@@ -1,0 +1,15 @@
+
+QDialog#LoginDlg, #RegisterDlg{
+    background-color: rgb(255,255,255);  
+}
+
+#usr_lbl, #pwd_lbl{
+    color: black;
+}
+#err_tip_lbl[state='normal']{
+    color:green;
+}
+
+#err_tip_lbl[state='err']{
+    color:red;
+}
