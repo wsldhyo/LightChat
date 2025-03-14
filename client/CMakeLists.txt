@@ -10,8 +10,9 @@ set(CMAKE_AUTORCC ON)   # 自动处理 Qt 资源文件
 
 # 告诉 AutoUic 在项目根目录搜索 .ui 文件
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
-message("ui files: ${CMAKE_AUTOUIC_SEARCH_PATHS}")
-find_package(Qt5 COMPONENTS Widgets Core REQUIRED)
+
+find_package(Qt5 COMPONENTS Widgets Core Network REQUIRED)
+
 
 #生成qrc文件
 # 获取 icons 目录下所有 png 文件
@@ -37,13 +38,14 @@ add_executable(${TARGET_NAME}
   src/mainwindow.cc
   src/register_dlg.cc
   src/global.cc
+  ../common/http_manager.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/generated_icons.qrc)
 
 
 set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-target_link_libraries(${TARGET_NAME} PRIVATE Qt5::Widgets Qt5::Core)
-message("bin dir " ${CMAKE_BINARY_DIR} )
+target_link_libraries(${TARGET_NAME} PRIVATE Qt5::Widgets Qt5::Core Qt5::Network)
+
 # 添加构建目录到包含目录，确保能找到自动生成的 ui_*.h 文件
 target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_BINARY_DIR})
 # 拷贝qss文件到bin目录下
