@@ -7,12 +7,12 @@ enum class RequestID
     REGISTER_USER,
 };
 
-enum class Modules
+enum  class Modules
 {
     REGISTER_MOD,
 };
 
-enum class ErrorCode
+enum  class ErrorCode
 {
     NO_ERROR = 0,
     JSON_PARSE_FAILED = 1001,   // JSON 解析失败

@@ -6,7 +6,7 @@
 template <typename T> class Singleton : public NoCopy {
 public:
   static std::shared_ptr<T> get_instance() {
-    std::once_flag flag;
+    static std::once_flag flag;
     std::call_once(flag, [&]() { instance_ = std::shared_ptr<T>(new T()); });
     return instance_;
   }

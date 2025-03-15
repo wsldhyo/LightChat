@@ -4,6 +4,8 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <qdebug.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
 RegisterDlg::RegisterDlg(QWidget *_parent /*nullptr*/)
     : QDialog(_parent), ui_(new Ui::RegisterDlg()) {
   ui_->setupUi(this);
@@ -17,11 +19,17 @@ RegisterDlg::RegisterDlg(QWidget *_parent /*nullptr*/)
 
 void RegisterDlg::slot_get_code_clicked() {
 
+  auto email = ui_->email_edit->text();
   QRegularExpression emailRegex(
       R"((^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$))");
-  bool match = emailRegex.match(ui_->email_edit->text()).hasMatch();
+  bool match = emailRegex.match(email).hasMatch();
   if (match) {
-    // TODO 发送http验证码
+    QJsonObject json_obj;
+    json_obj["email"] = email;
+    HttpManager::get_instance()->post_http_request(
+        QUrl(gate_url_prefix + "/get_vertifycode"), json_obj,
+        RequestID::GET_VERTIFY_CODE, Modules::REGISTER_MOD);
+    
   } else {
     show_tip("邮箱地址不正确", false);
   }
@@ -47,8 +55,9 @@ void RegisterDlg::slot_reg_mod_finished(QString _res, RequestID _req_ID,
   auto handler_it = handlers_.find(_req_ID);
   if (handler_it == handlers_.end()) {
     show_tip("无法处理该类型请求", false);
-    return; 
+    return;
   }
+  show_tip("验证码请求已发出", true);
   handler_it.value()(json_doc.object());
   return;
 }
@@ -64,7 +73,7 @@ void RegisterDlg::init_http_handlers() {
         }
         auto email = _json_obj["email"].toString();
         show_tip("验证码已经发送到指定邮箱，请注意查收", true);
-        qDebug() << "email is " << email; 
+        qDebug() << "email is " << email;
       });
 }
 
@@ -82,6 +91,6 @@ void RegisterDlg::show_tip(QString _str, bool _ok) {
 void RegisterDlg::create_connection() {
   connect(ui_->get_vetrify_btn, &QPushButton::clicked, this,
           &RegisterDlg::slot_get_code_clicked);
-  connect(HttpManager::get_instance().get(), &HttpManager::sig_reg_mod_finished, this,
-          &RegisterDlg::slot_reg_mod_finished);
+  connect(HttpManager::get_instance().get(), &HttpManager::sig_reg_mod_finished,
+          this, &RegisterDlg::slot_reg_mod_finished);
 }

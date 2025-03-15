@@ -46,3 +46,6 @@ target_link_libraries(${TARGET_NAME} PRIVATE Qt5::Widgets Qt5::Core Qt5::Network
 target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_BINARY_DIR})
 # 拷贝qss文件到bin目录下
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss ${CMAKE_BINARY_DIR}/bin/stylesheet.qss COPYONLY)
+# 拷贝客户端配置到bin目录下
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.ini ${CMAKE_BINARY_DIR}/bin/config.ini COPYONLY)
+target_compile_options(${TARGET_NAME} PRIVATE -g)
