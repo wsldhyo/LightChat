@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 3.28)
-
-
-set(CMAKE_BIN)
 # 启用 Qt 自动处理相关文件
 set(CMAKE_AUTOUIC ON)   # 自动生成 ui_*.h 文件
 set(CMAKE_AUTOMOC ON)   # 自动处理 MOC
