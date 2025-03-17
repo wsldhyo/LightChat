@@ -11,8 +11,8 @@
 #include <iostream>
 #include <ostream>
 #include <string_view>
-HttpConnection::HttpConnection(tcp::socket _socket)
-    : socket_(std::move(_socket)) {}
+HttpConnection::HttpConnection(asio::io_context& _ioc)
+    : socket_(_ioc) {}
 
 void HttpConnection::start() {
   auto self = shared_from_this();
@@ -150,3 +150,6 @@ void HttpConnection::parse_get_params() {
     }
   }
 }
+  tcp::socket& HttpConnection::get_socket(){
+    return socket_;
+  }

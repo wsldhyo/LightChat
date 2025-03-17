@@ -1,6 +1,8 @@
 #include "logic_system.hpp"
 #include "../../common/constant.hpp"
+#include "grpc_vertify_code_client.hpp"
 #include "http_connection.hpp"
+#include "message.pb.h"
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/http/field.hpp>
@@ -56,9 +58,11 @@ LogicSystem::LogicSystem() {
           return false;
         }
 
+
         auto email = src_root["email"].asString();
+        GetVertifyRsp vertify_reponse = GrpcVertifyCodeClient::get_instance()->get_vertify_code(email);
         std::cout << "email is " << email << std::endl;
-        res_root["error"] = 0;
+        res_root["error"] = vertify_reponse.error();
         res_root["email"] = email;
         beast::ostream(_connection->response_.body()) << res_root.toStyledString();
         return true;

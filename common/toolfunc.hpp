@@ -2,7 +2,7 @@
 #define TOOL_FUNC_HPP
 #include <string>
 #include <string_view>
-
+#include "constant.hpp"
 /**
  * @brief 将整数转换为对应的 ASCII 十六进制字符 ('0'-'9', 'A'-'F')
  *
@@ -55,4 +55,6 @@ void url_encode(std::string_view const _str, std::string &_res);
  */
 void url_decode(std::string_view _str, std::string& _res);
 
+
+ErrorCode get_executable_path(std::string& _res);
 #endif

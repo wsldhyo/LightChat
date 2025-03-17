@@ -1,8 +1,17 @@
 #include "toolfunc.hpp"
 #include <cassert>
+#include <filesystem>
 #include <string>
 #include <string_view>
-
+#ifdef _WIN32
+#include <windows.h>
+#elif __APPLE__
+#include <mach-o/dyld.h>
+#elif __linux__
+#include <limits.h>
+#include <unistd.h>
+#include <vector>
+#endif
 unsigned char to_hex(int _num) { return _num > 9 ? _num + 55 : _num + 48; }
 
 int from_hex(unsigned char _ch) {
@@ -41,11 +50,10 @@ void url_decode(std::string_view _str, std::string &_res) {
   size_t length = _str.length();
   for (size_t i = 0; i < length; i++) {
     if (_str[i] == '+') {
-    // 还原+为空
+      // 还原+为空
       _res += ' ';
-    }
-    else if (_str[i] == '%' && i + 2 < length) {
-    // 遇到%将后面的两个字符从16进制转为char再拼接
+    } else if (_str[i] == '%' && i + 2 < length) {
+      // 遇到%将后面的两个字符从16进制转为char再拼接
       auto high = from_hex((unsigned char)_str[++i]);
       auto low = from_hex((unsigned char)_str[++i]);
       _res += high * 16 + low;
@@ -54,4 +62,41 @@ void url_decode(std::string_view _str, std::string &_res) {
       _res += _str[i];
     }
   }
+}
+
+ErrorCode get_executable_path(std::string &_res) {
+#ifdef _WIN32
+  wchar_t exePath[MAX_PATH];
+  if (GetModuleFileNameW(NULL, exePath, MAX_PATH) > 0) {
+    std::error_code ec;
+    _res =
+        std::filesystem::canonical(std::filesystem::path(exePath), ec).string();
+    return ec ? ErrorCode::PATH_DO_NOT_EXIST : ErrorCode::NO_ERROR;
+  }
+  return ErrorCode::PATH_DO_NOT_EXIST;
+
+#elif __APPLE__
+  char exePath[PATH_MAX];
+  uint32_t size = sizeof(exePath);
+  if (_NSGetExecutablePath(exePath, &size) == 0) {
+    std::error_code ec;
+    _res = std::filesystem::canonical(exePath, ec).string();
+    return ec ? ErrorCode::PATH_DO_NOT_EXIST : ErrorCode::NO_ERROR;
+  }
+  return ErrorCode::PATH_DO_NOT_EXIST;
+
+#elif __linux__
+  std::vector<char> exePath(4096); // 避免 PATH_MAX 兼容性问题
+  ssize_t len = readlink("/proc/self/exe", exePath.data(), exePath.size() - 1);
+  if (len != -1) {
+    exePath[len] = '\0';
+    std::error_code ec;
+    _res = std::filesystem::canonical(std::string(exePath.data()), ec).string();
+    return ec ? ErrorCode::PATH_DO_NOT_EXIST : ErrorCode::NO_ERROR;
+  }
+  return ErrorCode::PATH_DO_NOT_EXIST;
+
+#else
+  return ErrorCode::PLATFORM_NOT_SUPPORT;
+#endif
 }

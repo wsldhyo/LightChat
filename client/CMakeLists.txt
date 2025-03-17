@@ -1,3 +1,4 @@
+set(TARGET_NAME "client")
 # 启用 Qt 自动处理相关文件
 set(CMAKE_AUTOUIC ON)   # 自动生成 ui_*.h 文件
 set(CMAKE_AUTOMOC ON)   # 自动处理 MOC
@@ -40,12 +41,17 @@ add_executable(${TARGET_NAME}
 
 set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-target_link_libraries(${TARGET_NAME} PRIVATE Qt5::Widgets Qt5::Core Qt5::Network)
 
 # 添加构建目录到包含目录，确保能找到自动生成的 ui_*.h 文件
 target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_BINARY_DIR})
 # 拷贝qss文件到bin目录下
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss ${CMAKE_BINARY_DIR}/bin/stylesheet.qss COPYONLY)
 # 拷贝客户端配置到bin目录下
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.ini ${CMAKE_BINARY_DIR}/bin/config.ini COPYONLY)
 target_compile_options(${TARGET_NAME} PRIVATE -g)
+
+target_link_libraries(${TARGET_NAME} PRIVATE 
+      Qt5::Widgets 
+      Qt5::Core 
+      Qt5::Network
+      proto_lib
+      )

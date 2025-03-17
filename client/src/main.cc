@@ -20,9 +20,6 @@ void read_config() {
 
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
-  qRegisterMetaType<RequestID>("RequestID");
-  qRegisterMetaType<Modules>("Modules");
-  qRegisterMetaType<ErrorCode>("ErrorCode");
   QString qss_file_path =
       QDir::toNativeSeparators(QCoreApplication::applicationDirPath() +
                                QDir::separator() + "stylesheet.qss");

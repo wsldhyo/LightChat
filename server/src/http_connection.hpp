@@ -20,9 +20,9 @@ class LogicSystem;
 using tcp = asio::ip::tcp;
 class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
 public:
-  HttpConnection(tcp::socket _socket);
+  HttpConnection(asio::io_context& _ioc);
   void start();
-
+  tcp::socket& get_socket();
 private:
   friend class LogicSystem;
   void check_deadline();
