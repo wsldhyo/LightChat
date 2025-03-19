@@ -2,8 +2,8 @@
 #define CONFIG_MANAGER_HPP
 #include <map>
 #include <string>
-#include "constant.hpp"
-#include "../common/singleton.hpp"
+#include "../../common/constant.hpp"
+#include "../../common/singleton.hpp"
 struct SectionInfo {
   ~SectionInfo() { section_datas.clear(); }
   std::map<std::string, std::string> section_datas;
