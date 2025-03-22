@@ -2,7 +2,7 @@
 #include <hiredis.h>
 #include <iostream>
 RedisConnectPool::RedisConnectPool(size_t poolSize, const char *host, int port,
-                                   const char *pwd)
+                                   char const* _pwd)
     : pool_size_(poolSize), host_(host), port_(port), b_stop_(false) {
 
   // 通过redisConnect获取一定数量的redis连接
@@ -19,7 +19,7 @@ RedisConnectPool::RedisConnectPool(size_t poolSize, const char *host, int port,
     }
 
     // 进行redis认证
-    auto reply = (redisReply *)redisCommand(context, "AUTH %s", pwd);
+    auto reply = (redisReply *)redisCommand(context, "AUTH %s", _pwd);
     if (reply->type == REDIS_REPLY_ERROR) {
       std::cout << "认证失败" << std::endl;
       // 执行成功 释放redisCommand执行后返回的redisReply所占用的内存

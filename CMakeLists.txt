@@ -3,10 +3,10 @@ project(grpc_demo)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 # 查找依赖项
 find_package(Protobuf REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 find_package(PkgConfig REQUIRED)   #redis
 pkg_check_modules(HIREDIS REQUIRED hiredis)
 

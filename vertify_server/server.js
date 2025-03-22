@@ -37,7 +37,7 @@ async function GetVertifyCode(call, callback) {
 
         console.log("uniqueId is ", uniqueId)
         let text_str =  '您的验证码为'+ uniqueId +'请三分钟内完成注册'
-        //发送邮件
+        //构造邮件
         let mailOptions = {
             from: 'cril2ldh@163.com',
             to: call.request.email,
@@ -45,6 +45,7 @@ async function GetVertifyCode(call, callback) {
             text: text_str,
         };
     
+        // 发送邮件
         let send_res = await emailModule.SendMail(mailOptions);
         console.log("send res is ", send_res)
 
@@ -68,7 +69,7 @@ function main() {
     server.addService(message_proto.VertifyService.service, { GetVertifyCode: GetVertifyCode })
     server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
         server.start()
-        console.log('varify server started')        
+        console.log('vertify server started')        
     })
 }
 

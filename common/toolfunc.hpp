@@ -57,4 +57,5 @@ void url_decode(std::string_view _str, std::string& _res);
 
 
 ErrorCode get_executable_path(std::string& _res);
+
 #endif

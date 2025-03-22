@@ -17,6 +17,7 @@ private slots:
   void slot_reg_mod_finished(QString _res, RequestID _req_ID, Modules _modules,
                              ErrorCode _ec);
 
+  void slot_confirm_register_user();
 private:
   void init_http_handlers();
   void create_connection();

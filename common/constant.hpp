@@ -15,8 +15,13 @@ enum class ErrorCode {
   JSON_PARSE_FAILED = 1001, // JSON 解析失败
   NETWORK_ERROR,            // 网络错误
   RPC_FAILED,
+  VERTIFY_CODE_EXPIRED,
+  VERTIFY_CODE_DISMATCH,
+  USER_EXISTED,
   PATH_DO_NOT_EXIST,
   PLATFORM_NOT_SUPPORT,
   PARSE_GATE_PORT_ERROR,
 };
+
+constexpr char const* CODE_PREFIX{"code_"};
 #endif

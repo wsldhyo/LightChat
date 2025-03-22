@@ -6,11 +6,9 @@
 #include <boost/beast.hpp>
 #include <boost/beast/http.hpp>
 #include <memory>
-namespace beast = boost::beast;
-namespace http = beast::http;
 namespace asio = boost::asio;
 using tcp = asio::ip::tcp;
-
+class HttpConnection;
 class Server : public std::enable_shared_from_this<Server> {
 public:
   Server(asio::io_context &_ioc, unsigned short _port);
@@ -19,6 +17,7 @@ public:
 private:
   tcp::acceptor acceptor_;
   asio::io_context &ioc_;
+  std::atomic_bool b_stop_;
 };
 
 #endif
