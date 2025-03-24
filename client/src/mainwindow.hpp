@@ -13,6 +13,7 @@ public:
 
 public slots:
     void slot_switch_register_dlg();
+    void slot_switch_login_dlg();
 private:
     void create_connection();
 

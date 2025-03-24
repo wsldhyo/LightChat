@@ -16,7 +16,7 @@ find_package(Qt5 COMPONENTS Widgets Core Network REQUIRED)
 file(GLOB ICON_FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/*.png")
 
 # 生成一个包含所有图标的 qrc 文件
-set(QRC_CONTENT "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"/icons\">\n")
+set(QRC_CONTENT "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"/\">\n")
 foreach(icon ${ICON_FILES})
   # 转换为相对路径，例如 "icons/icon1.png"
   file(RELATIVE_PATH rel_icon ${CMAKE_CURRENT_SOURCE_DIR} ${icon})
@@ -27,7 +27,6 @@ set(QRC_CONTENT "${QRC_CONTENT}  </qresource>\n</RCC>\n")
 
 # 写入生成的 qrc , qrc放在当前子目录，方便QtDesigner查找g
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/generated_icons.qrc "${QRC_CONTENT}")
-
 set(TARGET_NAME "client")
 add_executable(${TARGET_NAME} 
   src/main.cc 
@@ -35,17 +34,31 @@ add_executable(${TARGET_NAME}
   src/mainwindow.cc
   src/register_dlg.cc
   src/global.cc
+  src/timer_btn.cc
+  src/pwd_visible_lbl.cc
   ../common/http_manager.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/generated_icons.qrc)
+  ${CMAKE_CURRENT_SOURCE_DIR}/generated_icons.qrc
+)
 
 
 set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+#使用qrc
+#add_custom_command(
+#    TARGET ${TARGET_NAME} POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_directory 
+#        ${CMAKE_CURRENT_SOURCE_DIR}/icons
+#        ${CMAKE_BINARY_DIR}/bin/icons
+#)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/timer_btn.hpp DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/pwd_visible_lbl.hpp DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss DESTINATION ${CMAKE_BINARY_DIR}/bin)
+
 
 # 添加构建目录到包含目录，确保能找到自动生成的 ui_*.h 文件
 target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_BINARY_DIR})
-# 拷贝qss文件到bin目录下
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss ${CMAKE_BINARY_DIR}/bin/stylesheet.qss COPYONLY)
+#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/timer_btn.hpp ${CMAKE_BINARY_DIR}/timer_btn.hpp COPYONLY)
 # 拷贝客户端配置到bin目录下
 target_compile_options(${TARGET_NAME} PRIVATE -g)
 

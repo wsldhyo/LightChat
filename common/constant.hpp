@@ -10,8 +10,21 @@ enum class Modules {
   REGISTER_MOD,
 };
 
+enum class PwdVisibleState {
+  NORMAL,
+  SELECTED,
+};
+
 enum class ErrorCode {
   NO_ERROR = 0,
+  TIP_NO_ERROR,
+  TIP_EMAIL_ERR,
+  TIP_PWD_ERR,
+  TIP_CONFIRM_ERR,
+  TIP_PWD_CONFIRM,
+  TIP_VARIFY_ERR,
+  TIP_USER_ERR,
+
   JSON_PARSE_FAILED = 1001, // JSON 解析失败
   NETWORK_ERROR,            // 网络错误
   RPC_FAILED,
@@ -23,5 +36,5 @@ enum class ErrorCode {
   PARSE_GATE_PORT_ERROR,
 };
 
-constexpr char const* CODE_PREFIX{"code_"};
+constexpr char const *CODE_PREFIX{"code_"};
 #endif

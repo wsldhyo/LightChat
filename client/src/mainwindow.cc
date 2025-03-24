@@ -7,13 +7,9 @@ MainWindow::MainWindow(QWidget *_parent /*nullptr*/)
     : QMainWindow(_parent), window_(new Ui::MainWindow) {
 
   window_->setupUi(this);
-  login_dlg_ = new LoginDlg();
+  login_dlg_ = new LoginDlg(this);
   setCentralWidget(login_dlg_);
   login_dlg_->setWindowFlags(Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
-  login_dlg_->show();
-
-  register_dlg_ = new RegisterDlg(this);
-  register_dlg_->hide();
 
   create_connection();
 }
@@ -23,9 +19,27 @@ void MainWindow::create_connection() {
           &MainWindow::slot_switch_register_dlg);
 }
 
-void MainWindow::slot_switch_register_dlg()
-{
+void MainWindow::slot_switch_register_dlg() {
 
-    login_dlg_->hide();
-    register_dlg_->show(); 
+  register_dlg_ = new RegisterDlg(this);
+  register_dlg_->hide();
+  register_dlg_->setWindowFlags(Qt::CustomizeWindowHint |
+                                Qt::FramelessWindowHint);
+  connect(register_dlg_, &RegisterDlg::sig_switch_login_page, this,
+          &MainWindow::slot_switch_login_dlg);
+  login_dlg_->hide();
+  register_dlg_->show();
+}
+
+// 从注册界面返回登录界面
+void MainWindow::slot_switch_login_dlg() {
+  // 创建一个CentralWidget, 并将其设置为MainWindow的中心部件
+  login_dlg_ = new LoginDlg(this);
+  login_dlg_->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+  setCentralWidget(login_dlg_);
+  register_dlg_->hide();
+  login_dlg_->show();
+  // 连接登录界面注册信号
+  connect(login_dlg_, &LoginDlg::switch_register_dlg, this,
+          &MainWindow::slot_switch_register_dlg);
 }

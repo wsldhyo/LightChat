@@ -1,6 +1,6 @@
 #include "../common/constant.hpp"
-#include "mainwindow.hpp"
 #include "global.hpp"
+#include "mainwindow.hpp"
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDebug>
@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
                                QDir::separator() + "stylesheet.qss");
   QFile qss_file(qss_file_path);
   qDebug() << qss_file_path;
+
   if (qss_file.open(QFile::ReadOnly)) {
     qDebug() << "open qss file sucess";
     QString style = QLatin1String(qss_file.readAll());
