@@ -1,7 +1,7 @@
 #include "register_dlg.hpp"
 #include "../common/http_manager.hpp"
 #include "global.hpp"
-#include "pwd_visible_lbl.hpp"
+#include "clickable_lbl.hpp"
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -15,8 +15,6 @@ RegisterDlg::RegisterDlg(QWidget *_parent /*nullptr*/)
   ui_->err_tip_lbl->setProperty("state", "normal");
   repolish(ui_->err_tip_lbl);
   ui_->err_tip_lbl->clear();
-  ui_->pwd_visible_lbl->setCursor(Qt::PointingHandCursor);
-  ui_->confirm_pwd_visible_lbl->setCursor(Qt::PointingHandCursor);
   ui_->pwd_visible_lbl->set_state("unvisible", "unvisible_hover", "", "visible",
                                   "visible_hover", "");
   ui_->confirm_pwd_visible_lbl->set_state("unvisible", "unvisible_hover", "",
@@ -162,7 +160,7 @@ void RegisterDlg::create_connection() {
           [this]() { check_vertify_valid(); });
 
   // 隐藏和显示密码
-  connect(ui_->confirm_pwd_visible_lbl, &PwdVisibleLbl::clicked, [this]() {
+  connect(ui_->confirm_pwd_visible_lbl, &ClickableLbl::clicked, [this]() {
     auto state = ui_->confirm_pwd_visible_lbl->get_state();
     if (state == PwdVisibleState::NORMAL) {
       ui_->confirm_pwd_edit->setEchoMode(QLineEdit::Normal);
@@ -172,7 +170,7 @@ void RegisterDlg::create_connection() {
   });
 
   // 隐藏和显示密码
-  connect(ui_->pwd_visible_lbl, &PwdVisibleLbl::clicked, [this]() {
+  connect(ui_->pwd_visible_lbl, &ClickableLbl::clicked, [this]() {
     auto state = ui_->pwd_visible_lbl->get_state();
     if (state == PwdVisibleState::NORMAL) {
       ui_->pwd_edit->setEchoMode(QLineEdit::Normal);
@@ -192,7 +190,7 @@ void RegisterDlg::create_connection() {
     ui_->reg_success_lbl1->setText(str);
   });
 
-  connect(ui_->reg_success_ret_btn, &QPushButton::clicked, this, &RegisterDlg::slot_click_reg_success_btn);
+  connect(ui_->reg_success_ret_btn, &QPushButton::click, this, &RegisterDlg::slot_click_reg_success_btn);
 }
 
 // 显示错误提示，并将其记录到map中

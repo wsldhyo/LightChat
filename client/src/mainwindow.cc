@@ -15,8 +15,11 @@ MainWindow::MainWindow(QWidget *_parent /*nullptr*/)
 }
 
 void MainWindow::create_connection() {
-  connect(login_dlg_, &LoginDlg::switch_register_dlg, this,
+  connect(login_dlg_, &LoginDlg::sig_switch_register_dlg, this,
           &MainWindow::slot_switch_register_dlg);
+  // 连接登录界面忘记密码信号
+  connect(login_dlg_, &LoginDlg::sig_switch_reset_pwd, this,
+          &MainWindow::slot_switch_reset_pwd_dlg);
 }
 
 void MainWindow::slot_switch_register_dlg() {
@@ -39,7 +42,39 @@ void MainWindow::slot_switch_login_dlg() {
   setCentralWidget(login_dlg_);
   register_dlg_->hide();
   login_dlg_->show();
+
+  // 连接登录界面忘记密码信号
+  connect(login_dlg_, &LoginDlg::sig_switch_reset_pwd, this,
+          &MainWindow::slot_switch_reset_pwd_dlg);
   // 连接登录界面注册信号
-  connect(login_dlg_, &LoginDlg::switch_register_dlg, this,
+  connect(login_dlg_, &LoginDlg::sig_switch_register_dlg, this,
+          &MainWindow::slot_switch_register_dlg);
+}
+
+void MainWindow::slot_switch_reset_pwd_dlg() {
+  // 创建一个CentralWidget, 并将其设置为MainWindow的中心部件
+  reset_pwd_dlg_ = new ResetPwdDlg(this);
+  reset_pwd_dlg_->setWindowFlags(Qt::CustomizeWindowHint |
+                                 Qt::FramelessWindowHint);
+  setCentralWidget(reset_pwd_dlg_);
+  login_dlg_->hide();
+  reset_pwd_dlg_->show();
+  // 注册返回登录信号和槽函数
+  connect(reset_pwd_dlg_, &ResetPwdDlg::sig_switch_login_page, this,
+          &MainWindow::slog_switch_login_from_reset_pwd_dlg);
+}
+
+void MainWindow::slog_switch_login_from_reset_pwd_dlg() {
+  // 创建一个CentralWidget, 并将其设置为MainWindow的中心部件
+  login_dlg_ = new LoginDlg(this);
+  login_dlg_->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+  setCentralWidget(login_dlg_);
+  reset_pwd_dlg_->hide();
+  login_dlg_->show();
+  // 连接登录界面忘记密码信号
+  connect(login_dlg_, &LoginDlg::sig_switch_reset_pwd, this,
+          &MainWindow::slot_switch_reset_pwd_dlg);
+  // 连接登录界面注册信号
+  connect(login_dlg_, &LoginDlg::sig_switch_register_dlg, this,
           &MainWindow::slot_switch_register_dlg);
 }

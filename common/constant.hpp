@@ -4,10 +4,12 @@
 enum class RequestID {
   GET_VERTIFY_CODE,
   REGISTER_USER,
+  RESET_PWD,
 };
 
 enum class Modules {
   REGISTER_MOD,
+  RESET_PWD_MOD,
 };
 
 enum class PwdVisibleState {

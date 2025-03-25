@@ -130,7 +130,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="forget_pwd_lbl">
+        <widget class="ClickableLbl" name="forget_pwd_lbl">
          <property name="maximumSize">
           <size>
            <width>100</width>
@@ -247,6 +247,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ClickableLbl</class>
+   <extends>QLabel</extends>
+   <header>clickable_lbl.hpp</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../generated_icons.qrc"/>
  </resources>

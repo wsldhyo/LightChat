@@ -35,7 +35,8 @@ add_executable(${TARGET_NAME}
   src/register_dlg.cc
   src/global.cc
   src/timer_btn.cc
-  src/pwd_visible_lbl.cc
+  src/clickable_lbl.cc
+  src/reset_pwd_dlg.cc
   ../common/http_manager.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/generated_icons.qrc
 )
@@ -52,7 +53,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE
 #)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/timer_btn.hpp DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/pwd_visible_lbl.hpp DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/clickable_lbl.hpp DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
 

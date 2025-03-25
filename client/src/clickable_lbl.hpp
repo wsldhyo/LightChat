@@ -1,11 +1,11 @@
-#ifndef PWD_VISIBLE_LBL
-#define PWD_VISIBLE_LBL
+#ifndef CLICKABLE_LBL
+#define CLICKABLE_LBL
 #include "../common/constant.hpp"
 #include <QLabel>
-class PwdVisibleLbl : public QLabel {
+class ClickableLbl : public QLabel {
   Q_OBJECT
 public:
-  PwdVisibleLbl(QWidget *_parent = nullptr);
+  ClickableLbl(QWidget *_parent = nullptr);
   // 处理鼠标按压逻辑
   void mousePressEvent(QMouseEvent *_event) override;
   // 处理鼠标悬停进入的逻辑

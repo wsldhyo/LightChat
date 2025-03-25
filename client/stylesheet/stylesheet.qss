@@ -56,3 +56,11 @@ QDialog#LoginDlg,
 #confirm_pwd_visible_lbl[state='visible_hover'] {
     border-image: url(:/icons/visible_hover.png);
 }
+
+#forget_pwd_lbl[state='normal'] , #forget_pwd_lbl[state='selected']{
+    color: black;
+}
+
+#forget_pwd_lbl[state='hover'] , #forget_pwd_lbl[state='selected_hover']{
+    color: rgb(42, 112, 241);
+}
