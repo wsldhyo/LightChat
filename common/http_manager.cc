@@ -5,9 +5,7 @@
 #include <qdebug.h>
 #include <qobjectdefs.h>
 
-  HttpManager:: HttpManager(){
-    create_connection();
-  }
+HttpManager::HttpManager() { create_connection(); }
 // 投递Http请求
 void HttpManager::post_http_request(QUrl _url, QJsonObject _json,
                                     RequestID _req_ID, Modules _modules) {
@@ -24,7 +22,7 @@ void HttpManager::post_http_request(QUrl _url, QJsonObject _json,
 
   // 投递Http请求
   QNetworkReply *reply = manager_.post(request, data);
-  // 事件循环中，QNetworkAccessManager 的线程中，槽函数被触发 
+  // 事件循环中，QNetworkAccessManager 的线程中，槽函数被触发
   connect(reply, &QNetworkReply::finished, [reply, self, _req_ID, _modules]() {
     // 回调判断Http回复，并发送信号通知收到回复
     if (reply->error() != QNetworkReply::NoError) {
@@ -49,11 +47,14 @@ void HttpManager::create_connection() {
           &HttpManager::slot_http_finished);
 }
 
-
 void HttpManager::slot_http_finished(QString _res, RequestID _req_ID,
                                      Modules _modules, ErrorCode _ec) {
-  qDebug() << "slot http finished mod:" << static_cast<int>(Modules::REGISTER_MOD);
+  qDebug() << "slot http finished mod:"
+           << static_cast<int>(Modules::REGISTER_MOD);
   if (_modules == Modules::REGISTER_MOD) {
-    emit sig_reg_mod_finished(_res, _req_ID, _modules,  _ec);
+    emit sig_reg_mod_finished(_res, _req_ID, _modules, _ec);
+  } else if (_modules == Modules::RESET_PWD_MOD) {
+
+    emit sig_reset_pwd_mod_finished(_res, _req_ID, _modules, _ec);
   }
 }

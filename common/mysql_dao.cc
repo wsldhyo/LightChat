@@ -201,7 +201,7 @@ int MysqlDao::register_user(std::string const &_name, std::string const &_email,
     auto email_exist = res_email->next();
     if (email_exist) {
       con->connection->rollback();
-      std::cout << "_email " << _email << " exist";
+      std::cout << "email " << _email << " exist";
       return 0;
     }
 
@@ -273,18 +273,19 @@ int MysqlDao::register_user(std::string const &_name, std::string const &_email,
 }
 
 bool MysqlDao::check_email(const std::string &name, const std::string &_email) {
+  // 从池中取出一个连接
   auto con = pool_->get_connection();
   try {
     if (con == nullptr) {
       return false;
     }
 
-    // 准备查询语句
+    // 准备查询用户对应的邮箱的SQL语句
     std::unique_ptr<sql::PreparedStatement> pstmt(
         con->connection->prepareStatement(
-            "SELECT _email FROM user WHERE name = ?"));
+            "SELECT email FROM user WHERE name = ?"));
 
-    // 绑定参数
+    // 绑定上面SQL中?占位的参数
     pstmt->setString(1, name);
 
     // 执行查询
@@ -292,8 +293,8 @@ bool MysqlDao::check_email(const std::string &name, const std::string &_email) {
 
     // 遍历结果集
     while (res->next()) {
-      std::cout << "Check _email: " << res->getString("_email") << std::endl;
-      if (_email != res->getString("_email")) {
+      std::cout << "Check email: " << res->getString("email") << std::endl;
+      if (_email != res->getString("email")) {
         pool_->return_connection(std::move(con));
         return false;
       }
@@ -317,12 +318,12 @@ bool MysqlDao::update_pwd(const std::string &name, const std::string &newpwd) {
       return false;
     }
 
-    // 准备查询语句
+    // 准备查询用户对应的邮箱的SQL语句
     std::unique_ptr<sql::PreparedStatement> pstmt(
         con->connection->prepareStatement(
             "UPDATE user SET pwd = ? WHERE name = ?"));
 
-    // 绑定参数
+    // 绑定上面SQL中?占位的参数
     pstmt->setString(2, name);
     pstmt->setString(1, newpwd);
 
@@ -343,6 +344,7 @@ bool MysqlDao::update_pwd(const std::string &name, const std::string &newpwd) {
 
 bool MysqlDao::check_pwd(const std::string &_email, const std::string &pwd,
                          UserInfo &userInfo) {
+  // 取出一个Mysql连接
   auto con = pool_->get_connection();
   if (con == nullptr) {
     return false;
@@ -355,8 +357,9 @@ bool MysqlDao::check_pwd(const std::string &_email, const std::string &pwd,
     // 准备SQL语句
     std::unique_ptr<sql::PreparedStatement> pstmt(
         con->connection->prepareStatement(
-            "SELECT * FROM user WHERE _email = ?"));
-    pstmt->setString(1, _email); // 将username替换为你要查询的用户名
+            "SELECT * FROM user WHERE email = ?"));
+    // 将username替换为要查询的用户名
+    pstmt->setString(1, _email);
 
     // 执行查询
     std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
@@ -373,7 +376,7 @@ bool MysqlDao::check_pwd(const std::string &_email, const std::string &pwd,
       return false;
     }
     userInfo.name = res->getString("name");
-    userInfo.email = res->getString("_email");
+    userInfo.email = res->getString("email");
     userInfo.uid = res->getInt("uid");
     userInfo.pwd = origin_pwd;
     return true;

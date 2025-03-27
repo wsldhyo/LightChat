@@ -16,10 +16,13 @@ private slots:
   void slot_reg_mod_finished(QString _res, RequestID _req_ID, Modules _modules,
                              ErrorCode _ec);
 
-  void slot_confirm_register_user();
+  void slot_click_confirm_btn();
+
+  void slot_click_get_vertify_btn();
 
   void slot_click_reg_success_btn();
-
+  
+  void slot_click_cancel_btn();
 signals:
   void sig_switch_login_page();
 

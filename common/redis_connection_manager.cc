@@ -271,7 +271,7 @@ bool RedisConnectionManager::h_get(const std::string &key,
               << "  ] failure ! " << std::endl;
     return "";
   }
-  std::string value = reply->str;
+  _value = reply->str;
   freeReplyObject(reply);
   pool_->return_connection(connect);
   std::cout << "Execut command [ HGet " << key << " " << hkey << " ] success ! "

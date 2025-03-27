@@ -1,6 +1,7 @@
 #include "logic_system.hpp"
 #include "../../common/constant.hpp"
 #include "grpc_vertify_code_client.hpp"
+#include "grpc_status_client.hpp"
 #include "http_connection.hpp"
 #include "mysql_manager.hpp"
 #include "redis_connection_manager.hpp"
@@ -149,6 +150,134 @@ LogicSystem::LogicSystem() {
         root["vertifycode"] = src_root["vertifycode"].asString();
         std::string jsonstr = root.toStyledString();
         beast::ostream(_connection->response_.body()) << jsonstr;
+        return true;
+      });
+
+  // 重置密码逻辑
+  register_post_handler(
+      "/reset_pwd", [](std::shared_ptr<HttpConnection> connection) {
+        auto body_str =
+            boost::beast::buffers_to_string(connection->request_.body().data());
+        std::cout << "receive body is " << body_str << std::endl;
+        connection->response_.set(http::field::content_type, "text/json");
+        Json::Value root;
+        Json::Reader reader;
+        Json::Value src_root;
+        bool parse_success = reader.parse(body_str, src_root);
+        if (!parse_success) {
+          std::cout << "Failed to parse JSON data!" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::JSON_PARSE_FAILED);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        auto email = src_root["email"].asString();
+        auto name = src_root["user"].asString();
+        auto pwd = src_root["passwd"].asString();
+        // 先查找redis中email对应的验证码是否合理
+        std::string vertify_code;
+        // 向redis查询最近发送的验证码
+        bool b_get_vertify = RedisConnectionManager::get_instance()->get(
+            CODE_PREFIX + src_root["email"].asString(), vertify_code);
+        // 获取失败，则验证码过期
+        if (!b_get_vertify) {
+          std::cout << " get vertify code expired" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::VERTIFY_CODE_EXPIRED);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        // 检查验证码与Redis缓存中的是否一致
+        if (vertify_code != src_root["vertifycode"].asString()) {
+          std::cout << " vertify code error" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::VERTIFY_CODE_DISMATCH);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        // 查询数据库判断用户名和邮箱是否匹配
+        bool email_valid =
+            MySqlManager::get_instance()->check_email(name, email);
+        if (!email_valid) {
+          std::cout << " user email not match" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::EMAIL_DISMATCH);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        // 更新密码为最新密码
+        bool b_up = MySqlManager::get_instance()->update_pwd(name, pwd);
+        if (!b_up) {
+          std::cout << " update pwd failed" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::UPDATE_PWD_FAILED);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+
+        // 操作成功
+        std::cout << "succeed to update password" << pwd << std::endl;
+        root["error"] = 0;
+        root["email"] = email;
+        root["user"] = name;
+        root["passwd"] = pwd;
+        root["vertifycode"] = src_root["vertifycode"].asString();
+        std::string jsonstr = root.toStyledString();
+        beast::ostream(connection->response_.body()) << jsonstr;
+        return true;
+      });
+
+  // 用户登录逻辑
+  register_post_handler(
+      "/user_login", [](std::shared_ptr<HttpConnection> connection) {
+        auto body_str =
+            boost::beast::buffers_to_string(connection->request_.body().data());
+        std::cout << "receive body is " << body_str << std::endl;
+        connection->response_.set(http::field::content_type, "text/json");
+        // 解析客户端的请求
+        Json::Value root;
+        Json::Reader reader;
+        Json::Value src_root;
+        bool parse_success = reader.parse(body_str, src_root);
+        if (!parse_success) {
+          std::cout << "Failed to parse JSON data!" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::JSON_PARSE_FAILED);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        auto name = src_root["user"].asString();
+        auto pwd = src_root["passwd"].asString();
+        UserInfo userInfo;
+        // 查询数据库判断用户名和密码是否匹配
+        bool pwd_valid = MySqlManager::get_instance()->check_pwd(name, pwd, userInfo);
+        if (!pwd_valid) {
+          std::cout << " user pwd not match" << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::PWD_DISMATCH);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        // 查询StatusServer找到合适的连接
+        auto reply =
+            GrpcStatusClient::get_instance()->GetChatServer(userInfo.uid);
+        if (reply.error()) {
+          std::cout << " grpc get chat server failed, error is "
+                    << reply.error() << std::endl;
+          root["error"] = static_cast<int>(ErrorCode::RPC_FAILED);
+          std::string jsonstr = root.toStyledString();
+          beast::ostream(connection->response_.body()) << jsonstr;
+          return true;
+        }
+        std::cout << "succeed to load userinfo uid is " << userInfo.uid
+                  << std::endl;
+        root["error"] = 0;
+        root["user"] = name;
+        root["uid"] = userInfo.uid;
+        root["token"] = reply.token();
+        root["host"] = reply.host();
+        std::string jsonstr = root.toStyledString();
+        beast::ostream(connection->response_.body()) << jsonstr;
         return true;
       });
 }

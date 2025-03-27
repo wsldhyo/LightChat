@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>398</width>
+    <width>304</width>
     <height>375</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="page_1">
         <widget class="QWidget" name="layoutWidget">
@@ -328,7 +328,7 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>122</width>
+                <width>75</width>
                 <height>20</height>
                </size>
               </property>
@@ -348,7 +348,7 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>122</width>
+                <width>75</width>
                 <height>20</height>
                </size>
               </property>

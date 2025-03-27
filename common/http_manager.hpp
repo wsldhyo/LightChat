@@ -43,6 +43,10 @@ public:
 signals:
   void sig_reg_mod_finished(QString _res, RequestID _req_ID, Modules _modules,
                             ErrorCode _ec);
+  void sig_reset_pwd_mod_finished(QString _res, RequestID _req_ID, Modules _modules,
+                            ErrorCode _ec);
+  void sig_login_mod_finished(QString _res, RequestID _req_ID, Modules _modules,
+                            ErrorCode _ec);
 
 private:
 signals:

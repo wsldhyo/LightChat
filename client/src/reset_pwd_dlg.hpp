@@ -11,11 +11,13 @@ public:
 
 private slots:
   void slot_get_code_btn_clicked();
-  void slot_return_code_btn_clicked();
+  void slot_return_btn_clicked();
   void slot_confirme_btn_clicked();
-  void slot_reset_mod_finished(RequestID _req_ID, QString _res, ErrorCode _err);
+  void slot_reset_mod_finished(QString _res, RequestID _req_ID,
+                               Modules _modules, ErrorCode _err);
 signals:
   void sig_switch_login_page();
+
 private:
   void init_http_handlers();
   void create_connection();

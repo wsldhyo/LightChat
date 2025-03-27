@@ -1,7 +1,7 @@
 #include "register_dlg.hpp"
 #include "../common/http_manager.hpp"
-#include "global.hpp"
 #include "clickable_lbl.hpp"
+#include "global.hpp"
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -57,10 +57,6 @@ void RegisterDlg::slot_reg_mod_finished(QString _res, RequestID _req_ID,
   return;
 }
 
-void RegisterDlg::slot_click_reg_success_btn() {
-  timer_->stop();
-  emit sig_switch_login_page(); // 让MainWindow切换窗口
-}
 
 void RegisterDlg::init_http_handlers() {
   // 注册各种类型请求的回调函数
@@ -108,25 +104,39 @@ void RegisterDlg::show_tip(QString _str, bool _ok) {
   repolish(ui_->err_tip_lbl);
 }
 
-void RegisterDlg::slot_confirm_register_user() {
+void RegisterDlg::slot_click_cancel_btn() {
+  emit sig_switch_login_page(); // 让MainWindow切换窗口
+}
+
+void RegisterDlg::slot_click_reg_success_btn() {
+  timer_->stop();               // 停止倒计时
+  emit sig_switch_login_page(); // 让MainWindow切换窗口
+}
+
+void RegisterDlg::slot_click_confirm_btn() {
   bool valid = check_user_valid();
   if (!valid) {
+    qDebug() << "invalid user";
     return;
   }
   valid = check_email_valid();
   if (!valid) {
+    qDebug() << "invalid email";
     return;
   }
   valid = check_pwd_valid();
   if (!valid) {
+    qDebug() << "invalid pwd";
     return;
   }
   valid = check_confirm_valid();
   if (!valid) {
+    qDebug() << "invalid confirm pwd";
     return;
   }
   valid = check_vertify_valid();
   if (!valid) {
+    qDebug() << "invalid vertify code";
     return;
   }
   // 发送http请求注册用户
@@ -143,9 +153,26 @@ void RegisterDlg::slot_confirm_register_user() {
       RequestID::REGISTER_USER, Modules::REGISTER_MOD);
 }
 
+void RegisterDlg::slot_click_get_vertify_btn() {
+  if (check_email_valid()) {
+    // 发送http请求获取验证码
+    QJsonObject json_obj;
+    json_obj["email"] = ui_->email_edit->text();
+    HttpManager::get_instance()->post_http_request(
+        QUrl(gate_url_prefix + "/get_vertifycode"), json_obj,
+        RequestID::GET_VERTIFY_CODE, Modules::REGISTER_MOD);
+  }
+}
+
 void RegisterDlg::create_connection() {
+  connect(ui_->get_vetrify_btn, &QPushButton::clicked, this,
+          &RegisterDlg::slot_click_get_vertify_btn);
   connect(ui_->confirm_btn, &QPushButton::clicked, this,
-          &RegisterDlg::slot_confirm_register_user);
+          &RegisterDlg::slot_click_confirm_btn);
+  connect(ui_->cancel_btn, &QPushButton::clicked, this,
+          &RegisterDlg::slot_click_cancel_btn);
+  connect(ui_->reg_success_ret_btn, &QPushButton::clicked, this,
+          &RegisterDlg::slot_click_reg_success_btn);
   connect(HttpManager::get_instance().get(), &HttpManager::sig_reg_mod_finished,
           this, &RegisterDlg::slot_reg_mod_finished);
   connect(ui_->usr_edit, &QLineEdit::editingFinished, this,
@@ -162,7 +189,7 @@ void RegisterDlg::create_connection() {
   // 隐藏和显示密码
   connect(ui_->confirm_pwd_visible_lbl, &ClickableLbl::clicked, [this]() {
     auto state = ui_->confirm_pwd_visible_lbl->get_state();
-    if (state == PwdVisibleState::NORMAL) {
+    if (state == PwdVisibleState::SELECTED) {
       ui_->confirm_pwd_edit->setEchoMode(QLineEdit::Normal);
     } else {
       ui_->confirm_pwd_edit->setEchoMode(QLineEdit::Password);
@@ -172,7 +199,7 @@ void RegisterDlg::create_connection() {
   // 隐藏和显示密码
   connect(ui_->pwd_visible_lbl, &ClickableLbl::clicked, [this]() {
     auto state = ui_->pwd_visible_lbl->get_state();
-    if (state == PwdVisibleState::NORMAL) {
+    if (state == PwdVisibleState::SELECTED) {
       ui_->pwd_edit->setEchoMode(QLineEdit::Normal);
     } else {
       ui_->pwd_edit->setEchoMode(QLineEdit::Password);
@@ -189,8 +216,6 @@ void RegisterDlg::create_connection() {
     auto str = QString("注册成功，%1 s后返回登录").arg(countdown_);
     ui_->reg_success_lbl1->setText(str);
   });
-
-  connect(ui_->reg_success_ret_btn, &QPushButton::click, this, &RegisterDlg::slot_click_reg_success_btn);
 }
 
 // 显示错误提示，并将其记录到map中
@@ -220,12 +245,13 @@ bool RegisterDlg::check_user_valid() {
 }
 
 bool RegisterDlg::check_confirm_valid() {
-  auto pass = ui_->vertify_edit->text();
-  if (pass.isEmpty()) {
-    add_tip_err(ErrorCode::TIP_VARIFY_ERR, tr("验证码不能为空"));
+  auto const &confirm_pwd = ui_->confirm_pwd_edit->text();
+  auto const &pwd = ui_->pwd_edit->text();
+  add_tip_err(ErrorCode::TIP_CONFIRM_ERR, "两次输入的密码不一致");
+  if (confirm_pwd != pwd) {
     return false;
   }
-  del_tip_err(ErrorCode::TIP_VARIFY_ERR);
+  del_tip_err(ErrorCode::TIP_CONFIRM_ERR);
   return true;
 }
 
@@ -236,11 +262,16 @@ bool RegisterDlg::check_email_valid() {
   QRegularExpression regex(R"((\w+)(\.|_)?(\w*)@(\w+)(\.(\w+))+)");
   bool match = regex.match(email).hasMatch(); // 执行正则表达式匹配
   if (!match) {
-    // 提示邮箱不正确
-    add_tip_err(ErrorCode::TIP_EMAIL_ERR, tr("邮箱地址不正确"));
+    if (email.isEmpty()) {
+      add_tip_err(ErrorCode::TIP_EMPTY_EMAIL_ERR, "请输入邮箱地址");
+    } else {
+
+      add_tip_err(ErrorCode::TIP_EMAIL_ERR, "邮箱地址不正确");
+    }
     return false;
   }
   del_tip_err(ErrorCode::TIP_EMAIL_ERR);
+  del_tip_err(ErrorCode::TIP_EMPTY_EMAIL_ERR);
   return true;
 }
 
@@ -248,7 +279,7 @@ bool RegisterDlg::check_pwd_valid() {
   auto pass = ui_->pwd_edit->text();
   if (pass.length() < 6 || pass.length() > 15) {
     // 提示长度不准确
-    add_tip_err(ErrorCode::TIP_PWD_ERR, tr("密码长度应为6~15"));
+    add_tip_err(ErrorCode::TIP_PWD_ERR, "密码长度应为6~15");
     return false;
   }
   // 创建一个正则表达式对象，按照上述密码要求
@@ -258,7 +289,7 @@ bool RegisterDlg::check_pwd_valid() {
   bool match = regExp.match(pass).hasMatch();
   if (!match) {
     // 提示字符非法
-    add_tip_err(ErrorCode::TIP_PWD_ERR, tr("不能包含非法字符"));
+    add_tip_err(ErrorCode::TIP_PWD_ERR, "不能包含非法字符");
     return false;
     ;
   }
@@ -267,13 +298,13 @@ bool RegisterDlg::check_pwd_valid() {
 }
 
 bool RegisterDlg::check_vertify_valid() {
-  auto const &confirm_pwd = ui_->confirm_pwd_edit->text();
-  auto const &pwd = ui_->pwd_edit->text();
-  add_tip_err(ErrorCode::TIP_CONFIRM_ERR, "两次输入的密码不一致");
-  if (confirm_pwd != pwd) {
+  qDebug() << "confirm pwd edit finished";
+  auto pass = ui_->vertify_edit->text();
+  if (pass.isEmpty()) {
+    add_tip_err(ErrorCode::TIP_VARIFY_ERR, "验证码不能为空");
     return false;
   }
-  del_tip_err(ErrorCode::TIP_CONFIRM_ERR);
+  del_tip_err(ErrorCode::TIP_VARIFY_ERR);
   return true;
 }
 

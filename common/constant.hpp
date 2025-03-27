@@ -1,15 +1,26 @@
 #ifndef CONSTANT_HPP
 #define CONSTANT_HPP
 
+
+
+
+#define USERIPPREFIX  "uip_"
+#define USERTOKENPREFIX  "utoken_"
+#define IPCOUNTPREFIX  "ipcount_"
+#define USER_BASE_INFO "ubaseinfo_"
+#define LOGIN_COUNT  "logincount"
+
 enum class RequestID {
   GET_VERTIFY_CODE,
   REGISTER_USER,
   RESET_PWD,
+  USER_LOGIN,
 };
 
 enum class Modules {
   REGISTER_MOD,
   RESET_PWD_MOD,
+  USER_LOGIN_MOD,
 };
 
 enum class PwdVisibleState {
@@ -21,6 +32,7 @@ enum class ErrorCode {
   NO_ERROR = 0,
   TIP_NO_ERROR,
   TIP_EMAIL_ERR,
+  TIP_EMPTY_EMAIL_ERR,
   TIP_PWD_ERR,
   TIP_CONFIRM_ERR,
   TIP_PWD_CONFIRM,
@@ -33,9 +45,15 @@ enum class ErrorCode {
   VERTIFY_CODE_EXPIRED,
   VERTIFY_CODE_DISMATCH,
   USER_EXISTED,
+  EMAIL_DISMATCH,
+  PWD_DISMATCH,
+  UPDATE_PWD_FAILED,
   PATH_DO_NOT_EXIST,
   PLATFORM_NOT_SUPPORT,
   PARSE_GATE_PORT_ERROR,
+  UID_VALID,
+  TOKEN_VALID,
+
 };
 
 constexpr char const *CODE_PREFIX{"code_"};

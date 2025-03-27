@@ -13,7 +13,11 @@ find_package(Qt5 COMPONENTS Widgets Core Network REQUIRED)
 
 #生成qrc文件
 # 获取 icons 目录下所有 png 文件
-file(GLOB ICON_FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/*.png")
+file(GLOB ICON_FILES 
+"${CMAKE_CURRENT_SOURCE_DIR}/icons/*.png"
+"${CMAKE_CURRENT_SOURCE_DIR}/icons/*.jpg"
+"${CMAKE_CURRENT_SOURCE_DIR}/icons/*.jpeg"
+)
 
 # 生成一个包含所有图标的 qrc 文件
 set(QRC_CONTENT "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"/\">\n")
