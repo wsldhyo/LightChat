@@ -41,6 +41,7 @@ add_executable(${TARGET_NAME}
   src/timer_btn.cc
   src/clickable_lbl.cc
   src/reset_pwd_dlg.cc
+  src/tcp_manager.cc
   ../common/http_manager.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/generated_icons.qrc
 )

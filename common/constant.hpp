@@ -11,10 +11,12 @@
 #define LOGIN_COUNT  "logincount"
 
 enum class RequestID {
-  GET_VERTIFY_CODE,
-  REGISTER_USER,
-  RESET_PWD,
-  USER_LOGIN,
+  GET_VERTIFY_CODE,     // 获取验证码
+  REGISTER_USER,        // 注册用户
+  RESET_PWD,            // 重置密码
+  LOGIN_USER,           // 用户登录
+  LOGIN_CHAT_SERVER,    // 登录聊天服务器
+  LOGIN_CHAT_SERVER_RSP, //登录聊天服务器的回包
 };
 
 enum class Modules {

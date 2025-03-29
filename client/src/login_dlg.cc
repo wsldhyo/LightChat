@@ -1,6 +1,7 @@
 #include "login_dlg.hpp"
 #include "../common/http_manager.hpp"
 #include "global.hpp"
+#include "tcp_manager.hpp"
 #include <QPainter>
 #include <QPainterPath>
 LoginDlg::LoginDlg(QWidget *_parent /*nullptr*/) : ui_(new Ui::LoginDlg) {
@@ -16,7 +17,7 @@ LoginDlg::LoginDlg(QWidget *_parent /*nullptr*/) : ui_(new Ui::LoginDlg) {
 void LoginDlg::init_http_handlers() {
 
   // 注册获取登录回包逻辑
-  handlers_.insert(RequestID::USER_LOGIN, [this](QJsonObject jsonObj) {
+  handlers_.insert(RequestID::LOGIN_USER, [this](QJsonObject jsonObj) {
     // 收到服务器回包就就取消对登录和注册按钮的禁用
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int>(ErrorCode::NO_ERROR)) {
@@ -25,7 +26,7 @@ void LoginDlg::init_http_handlers() {
       enable_btn(true);
       return;
     }
-  
+
     auto user = jsonObj["user"].toString();
     show_tip("登录成功", true);
 
@@ -36,8 +37,8 @@ void LoginDlg::init_http_handlers() {
     server_info.uid = jsonObj["uid"].toInt();
 
     qDebug() << "token: " << server_info.token << " uid:" << server_info.uid;
-    // 建立TCP长连接的信号
-    emit sig_connect_long_tcp(server_info);
+    // 建立TCP长连接的信号, TCP长连接为聊天会话服务
+    emit sig_connect_tcp(server_info);
   });
 }
 void LoginDlg::slot_click_login_btn() {
@@ -85,6 +86,23 @@ void LoginDlg::slot_login_mod_finished(QString _res, RequestID _req_ID,
   return;
 }
 
+  void LoginDlg::slot_tcp_connect_finished(bool _success){
+
+   if(_success){
+      show_tip("聊天服务连接成功，正在登录...",true);
+      QJsonObject jsonObj;
+      jsonObj["uid"] = uid_;
+      jsonObj["token"] = token_;
+      QJsonDocument doc(jsonObj);
+      QString jsonString = doc.toJson(QJsonDocument::Indented);
+      //发送tcp请求给chat server，请求登录聊天服务器
+      TcpManager::get_instance()->sig_send_data(RequestID::LOGIN_CHAT_SERVER, jsonString);
+   }else{
+      show_tip("网络异常",false);
+      enable_btn(true);
+   }
+  }
+
 void LoginDlg::init_head_image() {
   // 加载默认头像图片
   QPixmap originalPixmap(":/icons/head_1.jpg");
@@ -125,6 +143,9 @@ void LoginDlg::create_connection() {
 
   connect(HttpManager::get_instance().get(), &HttpManager::sig_reg_mod_finished,
           this, &LoginDlg::slot_login_mod_finished);
+
+  connect(this, &LoginDlg::sig_connect_tcp,
+          TcpManager::get_instance().get(), &TcpManager::slot_tcp_connect);
 }
 
 // 点击登录后，禁用注册按钮和登录按钮

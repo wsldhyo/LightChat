@@ -22,12 +22,12 @@ Status StatusServiceImpl::GetChatServer(ServerContext *context,
                                         const GetChatServerReq *request,
                                         GetChatServerRsp *reply) {
   std::string prefix("status server has received :  ");
-  const auto &server = getChatServer();
+  const auto &server = get_chat_server();
   reply->set_host(server.host);
   reply->set_port(server.port);
   reply->set_error(static_cast<int>(ErrorCode::NO_ERROR));
   reply->set_token(generate_unique_string());
-  insertToken(request->uid(), reply->token());
+  insert_token(request->uid(), reply->token());
   return Status::OK;
 }
 
@@ -58,7 +58,7 @@ StatusServiceImpl::StatusServiceImpl() {
   }
 }
 
-ChatServer StatusServiceImpl::getChatServer() {
+ChatServer StatusServiceImpl::get_chat_server() {
   std::lock_guard<std::mutex> guard(_server_mtx);
   auto minServer = _servers.begin()->second;
   std::string count_str;
@@ -119,7 +119,7 @@ Status StatusServiceImpl::Login(ServerContext *context, const LoginReq *request,
   return Status::OK;
 }
 
-void StatusServiceImpl::insertToken(int uid, std::string token) {
+void StatusServiceImpl::insert_token(int uid, std::string token) {
   std::string uid_str = std::to_string(uid);
   std::string token_key = USERTOKENPREFIX + uid_str;
   RedisConnectionManager::get_instance()->set(token_key, token);

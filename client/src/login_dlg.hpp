@@ -1,7 +1,7 @@
 #ifndef LOGIN_DLG_HPP
 #define LOGIN_DLG_HPP
-#include "ui_logindlg.h"
 #include "struct_def.hpp"
+#include "ui_logindlg.h"
 #include <QDialog>
 
 class LoginDlg : public QDialog {
@@ -13,10 +13,11 @@ private slots:
   void slot_click_login_btn();
   void slot_login_mod_finished(QString _res, RequestID _req_ID,
                                Modules _modules, ErrorCode _ec);
+  void slot_tcp_connect_finished(bool _success);
 signals:
   void sig_switch_register_dlg();
   void sig_switch_reset_pwd();
-  void sig_connect_long_tcp(ServerInfo _si);
+  void sig_connect_tcp(ServerInfo _si);
 
 private:
   void init_http_handlers();
