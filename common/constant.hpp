@@ -26,8 +26,7 @@ enum class Modules {
 };
 
 enum class PwdVisibleState {
-  NORMAL,
-  SELECTED,
+  NORMAL, SELECTED,
 };
 
 enum class ErrorCode {
@@ -59,4 +58,13 @@ enum class ErrorCode {
 };
 
 constexpr char const *CODE_PREFIX{"code_"};
+
+constexpr short TCP_MSG_ID_LENGTH{2};
+constexpr short TCP_MSG_BODY_LENGTH{2};
+constexpr short TCP_MSG_HEAD_LENGTH{TCP_MSG_ID_LENGTH + TCP_MSG_BODY_LENGTH};
+
+constexpr short TCP_MAX_MSG_LENGTH{2 * 1024};
+constexpr short TCP_MAX_SEND_QUE_SIZE{1000};
+constexpr short TCP_MAX_RECV_QUE_SIZE{1000};
+
 #endif
