@@ -67,10 +67,13 @@ async function GetVertifyCode(call, callback) {
 function main() {
     var server = new grpc.Server()
     server.addService(message_proto.VertifyService.service, { GetVertifyCode: GetVertifyCode })
-    server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
-        server.start()
-        console.log('vertify server started')        
-    })
+    server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), (err, port) => {
+    if (err) {
+        console.error('绑定失败:', err);
+        return;
+    }
+    console.log('验证服务已启动，监听端口:', port);
+});
 }
 
 main()

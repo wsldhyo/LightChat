@@ -246,36 +246,72 @@ bool RedisConnectionManager::h_set(const char *key, const char *hkey,
   pool_->return_connection(connect);
   return true;
 }
+//bool RedisConnectionManager::h_get(const std::string &key,
+//                                   const std::string &hkey,
+//                                   std::string &_value) {
+//  const char *argv[3];
+//  size_t argvlen[3];
+//  argv[0] = "HGET";
+//  argvlen[0] = 4;
+//  argv[1] = key.c_str();
+//  argvlen[1] = key.length();
+//  argv[2] = hkey.c_str();
+//  argvlen[2] = hkey.length();
+//  auto connect = pool_->get_connection();
+//  if (connect == nullptr) {
+//    return false;
+//  }
+//  auto reply =
+//      static_cast<redisReply *>(redisCommand(connect, "GET %s", key.c_str()));
+//  reply = (redisReply *)redisCommandArgv(connect, 3, argv, argvlen);
+//  if (reply == nullptr || reply->type == REDIS_REPLY_NIL) {
+//    freeReplyObject(reply);
+//    pool_->return_connection(connect);
+//    std::cout << "Execut command [ HGet " << key << " " << hkey
+//              << "  ] failure ! " << std::endl;
+//    return false;
+//  }
+//  _value = reply->str;
+//  freeReplyObject(reply);
+//  pool_->return_connection(connect);
+//  std::cout << "Execut command [ HGet " << key << " " << hkey << " ] success ! "
+//            << std::endl;
+//  return true;
+//}
 bool RedisConnectionManager::h_get(const std::string &key,
                                    const std::string &hkey,
                                    std::string &_value) {
-  const char *argv[3];
-  size_t argvlen[3];
-  argv[0] = "HGET";
-  argvlen[0] = 4;
-  argv[1] = key.c_str();
-  argvlen[1] = key.length();
-  argv[2] = hkey.c_str();
-  argvlen[2] = hkey.length();
+  // 构建 HGET 命令参数
+  const char *argv[] = {"HGET", key.c_str(), hkey.c_str()};
+  size_t argvlen[] = {4, key.size(), hkey.size()};
+
+  // 获取连接
   auto connect = pool_->get_connection();
-  if (connect == nullptr) {
+  if (!connect) return false;
+
+  // 发送 HGET 命令
+  redisReply *reply = (redisReply *)redisCommandArgv(connect, 3, argv, argvlen);
+
+  // 处理错误
+  if (!reply || reply->type == REDIS_REPLY_ERROR) {
+    if (reply) freeReplyObject(reply);
+    pool_->return_connection(connect);
+    std::cerr << "HGET failed for " << key << " " << hkey << std::endl;
     return false;
   }
-  auto reply =
-      static_cast<redisReply *>(redisCommand(connect, "GET %s", key.c_str()));
-  reply = (redisReply *)redisCommandArgv(connect, 3, argv, argvlen);
-  if (reply == nullptr || reply->type == REDIS_REPLY_NIL) {
+
+  // 处理空值
+  if (reply->type == REDIS_REPLY_NIL) {
     freeReplyObject(reply);
     pool_->return_connection(connect);
-    std::cout << "Execut command [ HGet " << key << " " << hkey
-              << "  ] failure ! " << std::endl;
-    return "";
+    _value.clear(); // 明确清空输出参数
+    return false;
   }
-  _value = reply->str;
+
+  // 成功获取值
+  _value = (reply->type == REDIS_REPLY_STRING) ? reply->str : "";
   freeReplyObject(reply);
   pool_->return_connection(connect);
-  std::cout << "Execut command [ HGet " << key << " " << hkey << " ] success ! "
-            << std::endl;
   return true;
 }
 bool RedisConnectionManager::del(const std::string &key) {

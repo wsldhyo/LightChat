@@ -1,8 +1,9 @@
-#include "tcp_manager.hpp"
 #include <QDataStream>
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "tcp_manager.hpp"
+#include "user_manager.hpp"
 TcpManager::TcpManager()
     : host_(""), port_(0), b_recv_pending_(false), message_id_(0),
       message_len_(0) {
@@ -155,12 +156,13 @@ void TcpManager::init_handlers() {
 
                      auto uid = jsonObj["uid"].toInt();
                      auto name = jsonObj["name"].toString();
-                     auto nick = jsonObj["nick"].toString();
-                     auto icon = jsonObj["icon"].toString();
-                     auto sex = jsonObj["sex"].toInt();
+                     auto token = jsonObj["token"].toString();
                      //  auto user_info = std::make_shared<UserInfo>(uid, name,
                      //  nick, icon, sex);
 
+                    UserManager::get_instance()->set_name(name);
+                    UserManager::get_instance()->set_uid(uid);
+                    UserManager::get_instance()->set_token(token);
                      //  UserMgr::GetInstance()->SetUserInfo(user_info);
                      //  UserMgr::GetInstance()->SetToken(jsonObj["token"].toString());
                      //  if (jsonObj.contains("apply_list")) {

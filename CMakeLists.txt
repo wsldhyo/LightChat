@@ -86,5 +86,7 @@ target_include_directories(proto_lib PUBLIC
     ${PROTO_GENERATED_DIR}  
 )
 add_subdirectory(client)
-add_subdirectory(server)
+add_subdirectory(gate_server)
+add_subdirectory(chat_server)
+add_subdirectory(status_server)
 configure_file(${CMAKE_SOURCE_DIR}/common/config.ini ${CMAKE_BINARY_DIR}/bin/config.ini COPYONLY)

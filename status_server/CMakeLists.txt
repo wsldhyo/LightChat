@@ -2,7 +2,12 @@ set(TARGET_NAME "status_server")
 
 
 add_executable(${TARGET_NAME}
+    ../../common/config_manager.cc
+    ../../common/toolfunc.cc
+    ../../common/redis_connection_manager.cc
+    ../../common/redis_connection_pool.cc
     src/status_server_impl.cc
+    src/main.cc
 )
 
 target_include_directories(${TARGET_NAME} PRIVATE 

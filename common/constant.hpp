@@ -14,7 +14,9 @@ enum class RequestID {
   GET_VERTIFY_CODE,     // 获取验证码
   REGISTER_USER,        // 注册用户
   RESET_PWD,            // 重置密码
-  LOGIN_USER,           // 用户登录
+  // 客户端先向GateServer发送登录请求，GateSever验证通过后
+  // 客户端再发送LOGIN_CHAT_SERVER请求来登录聊天服务器
+  LOGIN_USER,           // 用户登录，
   LOGIN_CHAT_SERVER,    // 登录聊天服务器
   LOGIN_CHAT_SERVER_RSP, //登录聊天服务器的回包
 };
@@ -57,14 +59,17 @@ enum class ErrorCode {
 
 };
 
+
 constexpr char const *CODE_PREFIX{"code_"};
 
-constexpr short TCP_MSG_ID_LENGTH{2};
-constexpr short TCP_MSG_BODY_LENGTH{2};
-constexpr short TCP_MSG_HEAD_LENGTH{TCP_MSG_ID_LENGTH + TCP_MSG_BODY_LENGTH};
+constexpr short TCP_MSG_ID_MEM_LENGTH{2};
+constexpr short TCP_MSG_BODY_MEM_LENGTH{2};
+constexpr short TCP_MSG_HEAD_MEM_LENGTH{TCP_MSG_ID_MEM_LENGTH + TCP_MSG_BODY_MEM_LENGTH};
 
 constexpr short TCP_MAX_MSG_LENGTH{2 * 1024};
+constexpr short TCP_MAX_ID_LENGTH{1024};
 constexpr short TCP_MAX_SEND_QUE_SIZE{1000};
 constexpr short TCP_MAX_RECV_QUE_SIZE{1000};
+constexpr short TCP_MAX_LOGIG_QUE_SIZE{1000};
 
 #endif

@@ -34,14 +34,16 @@ Status StatusServiceImpl::GetChatServer(ServerContext *context,
 StatusServiceImpl::StatusServiceImpl() {
   auto sp_cfg = ConfigManager::get_instance();
   auto &cfg = *sp_cfg;
-  auto server_list = cfg["chatservers"]["name"];
+
+  auto server_list = cfg["ChatServers"]["name"];
 
   std::vector<std::string> words;
 
   std::stringstream ss(server_list);
   std::string word;
-
+  std::cout << "servers:" << ss.str() << std::endl;
   while (std::getline(ss, word, ',')) {
+    std::cout << "word: " <<  word << std::endl;
     words.push_back(word);
   }
 
@@ -55,6 +57,7 @@ StatusServiceImpl::StatusServiceImpl() {
     server.host = cfg[word]["host"];
     server.name = cfg[word]["name"];
     _servers[server.name] = server;
+    std::cout << "add server: " << server.name << std::endl;
   }
 }
 

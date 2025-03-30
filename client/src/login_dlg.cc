@@ -21,14 +21,21 @@ void LoginDlg::init_http_handlers() {
     // 收到服务器回包就就取消对登录和注册按钮的禁用
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int>(ErrorCode::NO_ERROR)) {
-      show_tip("参数错误", false);
+      switch (static_cast<ErrorCode>(error)) {
+      case ErrorCode::PWD_DISMATCH:
+        show_tip("用户名与密码不匹配", false);
+        break;
+      default:
+        show_tip("网络参数错误", false);
+        break;
+      }
       // 登录失败，使能相关按钮
       enable_btn(true);
       return;
     }
 
     auto user = jsonObj["user"].toString();
-    show_tip("登录成功", true);
+    show_tip("", true);
 
     ServerInfo server_info;
     server_info.host = jsonObj["host"].toString();
@@ -59,7 +66,7 @@ void LoginDlg::slot_click_login_btn() {
   xor_string(pwd, res);
   json_obj["passwd"] = res;
   HttpManager::get_instance()->post_http_request(
-      QUrl(gate_url_prefix + "/user_login"), json_obj, RequestID::REGISTER_USER,
+      QUrl(gate_url_prefix + "/user_login"), json_obj, RequestID::LOGIN_USER,
       Modules::USER_LOGIN_MOD);
 }
 
@@ -67,6 +74,7 @@ void LoginDlg::slot_login_mod_finished(QString _res, RequestID _req_ID,
                                        Modules _modules, ErrorCode _ec) {
   if (_ec != ErrorCode::NO_ERROR) {
     show_tip("网络请求错误", false);
+    enable_btn(true);
     return;
   }
   // 解析 JSON 字符串,res需转化为QByteArray
@@ -74,10 +82,12 @@ void LoginDlg::slot_login_mod_finished(QString _res, RequestID _req_ID,
   // json解析错误
   if (jsonDoc.isNull()) {
     show_tip("json解析错误", false);
+    enable_btn(true);
     return;
   }
   // json解析错误
   if (!jsonDoc.isObject()) {
+    enable_btn(true);
     show_tip("json解析错误", false);
     return;
   }
@@ -86,22 +96,23 @@ void LoginDlg::slot_login_mod_finished(QString _res, RequestID _req_ID,
   return;
 }
 
-  void LoginDlg::slot_tcp_connect_finished(bool _success){
+void LoginDlg::slot_tcp_connect_finished(bool _success) {
 
-   if(_success){
-      show_tip("聊天服务连接成功，正在登录...",true);
-      QJsonObject jsonObj;
-      jsonObj["uid"] = uid_;
-      jsonObj["token"] = token_;
-      QJsonDocument doc(jsonObj);
-      QString jsonString = doc.toJson(QJsonDocument::Indented);
-      //发送tcp请求给chat server，请求登录聊天服务器
-      TcpManager::get_instance()->sig_send_data(RequestID::LOGIN_CHAT_SERVER, jsonString);
-   }else{
-      show_tip("网络异常",false);
-      enable_btn(true);
-   }
+  if (_success) {
+    show_tip("聊天服务连接成功，正在登录...", true);
+    QJsonObject jsonObj;
+    jsonObj["uid"] = uid_;
+    jsonObj["token"] = token_;
+    QJsonDocument doc(jsonObj);
+    QString jsonString = doc.toJson(QJsonDocument::Indented);
+    // 发送tcp请求给chat server，请求登录聊天服务器
+    TcpManager::get_instance()->sig_send_data(RequestID::LOGIN_CHAT_SERVER,
+                                              jsonString);
+  } else {
+    show_tip("网络异常", false);
+    enable_btn(true);
   }
+}
 
 void LoginDlg::init_head_image() {
   // 加载默认头像图片
@@ -141,11 +152,12 @@ void LoginDlg::create_connection() {
   connect(ui_->login_btn, &QPushButton::clicked, this,
           &LoginDlg::slot_click_login_btn);
 
-  connect(HttpManager::get_instance().get(), &HttpManager::sig_reg_mod_finished,
-          this, &LoginDlg::slot_login_mod_finished);
+  connect(HttpManager::get_instance().get(),
+          &HttpManager::sig_login_mod_finished, this,
+          &LoginDlg::slot_login_mod_finished);
 
-  connect(this, &LoginDlg::sig_connect_tcp,
-          TcpManager::get_instance().get(), &TcpManager::slot_tcp_connect);
+  connect(this, &LoginDlg::sig_connect_tcp, TcpManager::get_instance().get(),
+          &TcpManager::slot_tcp_connect);
 }
 
 // 点击登录后，禁用注册按钮和登录按钮

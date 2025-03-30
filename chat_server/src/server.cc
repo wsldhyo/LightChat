@@ -17,14 +17,20 @@ void Server::start_accept() {
   acceptor_.async_accept(new_session->get_socket(), [new_session,
                                                      this](auto _ec) {
     if (_ec) {
-      new_session->start();
       {
         std::lock_guard<std::mutex> gaurd(mutex_);
         sessions_.insert(std::make_pair(new_session->get_uuid(), new_session));
+        std::cout << "Accept peer: " << new_session->get_socket().remote_endpoint() << std::endl;
       }
+      new_session->start();
     } else {
         std::cerr << "Server accept error: " << _ec.what() << std::endl; 
     }
     start_accept();     // 继续监听下一个连接请求
   });
+}
+
+void Server::remove_session(std::string const& _uuid){
+    std::lock_guard<std::mutex> gaurd(mutex_);
+    sessions_.erase(_uuid);
 }

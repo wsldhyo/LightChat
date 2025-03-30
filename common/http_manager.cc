@@ -50,11 +50,13 @@ void HttpManager::create_connection() {
 void HttpManager::slot_http_finished(QString _res, RequestID _req_ID,
                                      Modules _modules, ErrorCode _ec) {
   qDebug() << "slot http finished mod:"
-           << static_cast<int>(Modules::REGISTER_MOD);
+           << static_cast<int>(_modules);
   if (_modules == Modules::REGISTER_MOD) {
     emit sig_reg_mod_finished(_res, _req_ID, _modules, _ec);
   } else if (_modules == Modules::RESET_PWD_MOD) {
-
     emit sig_reset_pwd_mod_finished(_res, _req_ID, _modules, _ec);
+  }
+  else if(_modules == Modules::USER_LOGIN_MOD){
+    emit sig_login_mod_finished(_res, _req_ID, _modules, _ec);
   }
 }

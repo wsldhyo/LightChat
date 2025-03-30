@@ -1,10 +1,9 @@
 #ifndef TCP_MSG_NODE_HPP
 #define TCP_MSG_NODE_HPP
-#include <memory>
 struct TcpMsgNode {
   TcpMsgNode(short max_len);
 
-  virtual ~TcpMsgNode();
+  ~TcpMsgNode();//没用多态，无需虚函数
 
   void clear();
 
