@@ -6,6 +6,7 @@
 #include "login_dlg.hpp"
 #include "register_dlg.hpp"
 #include "reset_pwd_dlg.hpp"
+#include "chat_dlg.hpp"
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -16,7 +17,8 @@ public slots:
     void slot_switch_register_dlg();
     void slot_switch_login_dlg();
     void slot_switch_reset_pwd_dlg();
-    void slog_switch_login_from_reset_pwd_dlg();
+    void slot_switch_login_from_reset_pwd_dlg();
+    void slot_switch_chat_dlg();
 private:
     void create_connection();
 
@@ -25,6 +27,7 @@ private:
     LoginDlg* login_dlg_;
     RegisterDlg* register_dlg_;
     ResetPwdDlg* reset_pwd_dlg_;
+    ChatDlg* chat_dlg_;
 };
 
 #endif

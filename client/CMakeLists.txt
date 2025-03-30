@@ -37,6 +37,8 @@ add_executable(${TARGET_NAME}
   src/login_dlg.cc
   src/mainwindow.cc
   src/register_dlg.cc
+  src/chat_dlg.cc
+  src/stateful_btn.cc
   src/global.cc
   src/timer_btn.cc
   src/clickable_lbl.cc
@@ -60,6 +62,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/timer_btn.hpp DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/clickable_lbl.hpp DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/stateful_btn.hpp DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
 
