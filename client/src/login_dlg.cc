@@ -114,6 +114,12 @@ void LoginDlg::slot_tcp_connect_finished(bool _success) {
   }
 }
 
+void LoginDlg::slot_login_failed(ErrorCode _err) {
+  QString result = QString("登录失败, err is %1").arg(static_cast<int>(_err));
+  show_tip(result, false);
+  enable_btn(true);
+}
+
 void LoginDlg::init_head_image() {
   // 加载默认头像图片
   QPixmap originalPixmap(":/icons/head_1.jpg");
@@ -158,6 +164,8 @@ void LoginDlg::create_connection() {
 
   connect(this, &LoginDlg::sig_connect_tcp, TcpManager::get_instance().get(),
           &TcpManager::slot_tcp_connect);
+  connect(TcpManager::get_instance().get(), &TcpManager::sig_login_failed, this,
+          &LoginDlg::slot_login_failed);
 }
 
 // 点击登录后，禁用注册按钮和登录按钮

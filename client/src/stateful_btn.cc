@@ -7,8 +7,8 @@ StatefulBtn::StatefulBtn(QWidget *_parent /*nullptr*/) : QPushButton(_parent) {
 
 StatefulBtn::~StatefulBtn() {}
 
-void StatefulBtn::set_state(QString const &_normal, QString const &_hover,
-                            QString const &_press) {
+void StatefulBtn::set_state(QString const _normal, QString const _hover,
+                            QString const _press) {
   normal_ = _normal;
   hover_ = _hover;
   press_ = _press;

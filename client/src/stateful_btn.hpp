@@ -8,8 +8,8 @@ class StatefulBtn : public QPushButton {
 public:
   StatefulBtn(QWidget *_parent = nullptr);
   ~StatefulBtn();
-  void set_state(QString const &_normal, QString const &_hover,
-                 QString const &_press);
+  void set_state(QString const _normal, QString const _hover,
+                 QString const _press);
 protected:
     void enterEvent(QEvent* _e)override;
     void leaveEvent(QEvent* _e)override;

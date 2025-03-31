@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *_parent /*nullptr*/)
   login_dlg_->setWindowFlags(Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
 
   create_connection();
+  emit TcpManager::get_instance()->sig_switch_chat_dlg();
 }
 
 void MainWindow::create_connection() {

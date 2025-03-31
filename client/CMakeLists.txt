@@ -42,6 +42,8 @@ add_executable(${TARGET_NAME}
   src/global.cc
   src/timer_btn.cc
   src/clickable_lbl.cc
+  src/customize_edit.cc
+  src/chat_user_list.cc
   src/reset_pwd_dlg.cc
   src/tcp_manager.cc
   src/user_manager.cc
@@ -63,6 +65,8 @@ set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/timer_btn.hpp DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/clickable_lbl.hpp DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/stateful_btn.hpp DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/customize_edit.hpp DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/chat_user_list.hpp DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/stylesheet/stylesheet.qss DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
 

@@ -2,6 +2,8 @@
 #define STRUCT_DEF_HPP
 #include <QString>
 
+
+
 struct ServerInfo {
   QString host;
   QString port;

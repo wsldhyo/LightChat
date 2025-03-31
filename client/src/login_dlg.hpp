@@ -14,6 +14,7 @@ private slots:
   void slot_login_mod_finished(QString _res, RequestID _req_ID,
                                Modules _modules, ErrorCode _ec);
   void slot_tcp_connect_finished(bool _success);
+  void slot_login_failed(ErrorCode _err);
 signals:
   void sig_switch_register_dlg();
   void sig_switch_reset_pwd();
