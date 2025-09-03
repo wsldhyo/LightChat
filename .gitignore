@@ -1,5 +1,14 @@
-/**/build/
-/**/.vscode/
-/**/.cache/
-/**/CMakeFiles/
-config.txt
+# 忽略所有 build 目录
+build/
+
+# 忽略所有 .vscode 目录
+.vscode/
+
+# 忽略所有 .cache 目录
+.cache/
+
+# 忽略所有 CMakeFiles 目录
+CMakeFiles/
+
+#忽略node.js的模块
+node_modules/
