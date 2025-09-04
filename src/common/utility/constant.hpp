@@ -40,7 +40,9 @@ enum class Modules{
     REGISTERMOD = 0,
     RESETMOD,
     LOGINMOD,
+
 };
+
 
 
 constexpr  std::uint16_t TCP_MSG_LEN_MEM_SIZE{2};

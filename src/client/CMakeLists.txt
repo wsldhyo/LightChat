@@ -60,6 +60,9 @@ copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/client_constant.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/clickedlabel.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/timerbtn.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/clickedbtn.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/customizeedit.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatuserlist.hpp
 )
 
 # ==================== 可执行文件 ====================
@@ -75,6 +78,12 @@ add_executable(${TARGET_NAME}
   usermgr.cc
   clickedlabel.cc
   timerbtn.cc
+  clickedbtn.cc
+  chatdialog.cc
+  customizeedit.cc
+  chatuserlist.cc
+  chatuserwid.cc
+  listitembase.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 

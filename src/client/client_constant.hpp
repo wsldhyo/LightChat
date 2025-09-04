@@ -15,4 +15,31 @@ enum TipErr {
 // 可点击按钮的显示状态
 enum ClickLbState { Normal = 0, Selected = 1 };
 
+
+
+/**
+ * @brief 聊天界面的显示模式
+ * 
+ */
+enum class ChatUIMode{
+    SEARCH_MODE,  // 搜索模式
+    CHAT_MODE,    // 聊天模式
+    CONTACT_MODE,  // 联系人模式
+};
+
+
+/**
+ * @brief 自定义QListWidgetItem的几种类型
+ * 
+ */
+enum ListItemType{
+    CHAT_USER_ITEM, //聊天用户
+    CONTACT_USER_ITEM, //联系人用户
+    SEARCH_USER_ITEM, //搜索到的用户
+    ADD_USER_TIP_ITEM, //提示添加用户
+    INVALID_ITEM,  //不可点击条目
+    GROUP_TIP_ITEM, //分组提示条目
+    LINE_ITEM,  //分割线
+    APPLY_FRIEND_ITEM, //好友申请
+};
 #endif

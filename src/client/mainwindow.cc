@@ -1,6 +1,11 @@
 #include "mainwindow.hpp"
+#include "chatdialog.hpp"
+#include "logindialog.hpp"
+#include "registerdialog.hpp"
+#include "resetdialog.hpp"
+#include "tcp_manager.hpp"
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    : QMainWindow(parent), ui(new Ui::MainWindow), chat_dlg_(nullptr) {
   ui->setupUi(this);
   login_dlg_ = new LoginDialog(this);
   reg_dlg_ = new RegisterDialog(this);
@@ -8,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
   setCentralWidget(login_dlg_);
   login_dlg_->show();
   create_connection();
+  SlotSwitchChat();
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -79,6 +85,16 @@ void MainWindow::SlotSwitchReset() {
           &MainWindow::SlotSwitchLogin2);
 }
 
+void MainWindow::SlotSwitchChat() {
+  chat_dlg_ = new ChatDialog();
+  chat_dlg_->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+  setCentralWidget(chat_dlg_);
+  chat_dlg_->show();
+  login_dlg_->hide();
+  this->setMinimumSize(QSize(1050, 900));
+  this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+}
+
 void MainWindow::create_connection() {
   //创建和注册消息的链接
   connect(login_dlg_, &LoginDialog::switchRegister, this,
@@ -89,4 +105,7 @@ void MainWindow::create_connection() {
   //连接登录界面忘记密码信号
   connect(login_dlg_, &LoginDialog::switchReset, this,
           &MainWindow::SlotSwitchReset);
+  //连接创建聊天界面信号
+  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_swich_chatdlg, this,
+          &MainWindow::SlotSwitchChat);
 }
