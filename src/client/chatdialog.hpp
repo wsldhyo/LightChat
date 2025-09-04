@@ -1,12 +1,12 @@
 #ifndef CHATDIALOG_H
 #define CHATDIALOG_H
 
+#include "client_constant.hpp"
 #include <QDialog>
 #include <QLabel>
 #include <QList>
 #include <QListWidgetItem>
 #include <memory>
-#include "client_constant.hpp"
 
 namespace Ui {
 class ChatDialog;
@@ -42,8 +42,10 @@ private:
   // void SetSelectChatItem(int uid = 0);
   // void SetSelectChatPage(int uid = 0);
   void show_search(bool bsearch = false);
+
+  void create_connection();
 public slots:
-  // void slot_loading_chat_user();
+  void slot_loading_chat_user();
   // void slot_side_chat();
   // void slot_side_contact();
   // void slot_side_setting();
@@ -65,7 +67,7 @@ private slots:
 
 private:
   Ui::ChatDialog *ui;
-  ChatUIMode mode_;  //根据sidebar显示不同的界面：如联系人界面、会话界面
+  ChatUIMode mode_; //根据sidebar显示不同的界面：如联系人界面、会话界面
   ChatUIMode state_; // 不同mode下的搜索框状态
   bool b_loading_;
 };

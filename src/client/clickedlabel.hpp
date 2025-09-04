@@ -9,6 +9,8 @@ public:
   virtual void mousePressEvent(QMouseEvent *ev) override;
   virtual void enterEvent(QEvent *event) override;
   virtual void leaveEvent(QEvent *event) override;
+  virtual void mouseReleaseEvent(QMouseEvent *event) override;
+
   void SetState(QString normal = "", QString hover = "", QString press = "",
                 QString select = "", QString select_hover = "",
                 QString select_press = "");
@@ -17,15 +19,15 @@ public:
 
 protected:
 private:
-  QString _normal;
-  QString _normal_hover;
-  QString _normal_press;
+  QString normal_;
+  QString normal_hover_;
+  QString normal_press_;
 
-  QString _selected;
-  QString _selected_hover;
-  QString _selected_press;
+  QString selected_;
+  QString selected_hover_;
+  QString selected_press_;
 
-  ClickLbState _curstate;
+  ClickLbState curstate_;
 signals:
   void clicked(void);
 };

@@ -332,9 +332,9 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="chat_page"/>
+     <widget class="ChatPage" name="chat_page"/>
      <widget class="QWidget" name="friend_apply_page"/>
      <widget class="QWidget" name="friend_info_page"/>
      <widget class="QWidget" name="user_info_page"/>
@@ -357,6 +357,12 @@
    <class>ChatUserList</class>
    <extends>QListWidget</extends>
    <header>chatuserlist.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>ChatPage</class>
+   <extends>QWidget</extends>
+   <header>chatpage.hpp</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

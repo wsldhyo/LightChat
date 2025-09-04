@@ -1,17 +1,21 @@
 #include "chatdialog.hpp"
 #include "chatuserwid.hpp"
+#include "loadingdialog.hpp"
 #include "ui_chatdialog.h"
 #include <QAction>
+#include <QDebug>
 #include <QRandomGenerator>
+#include <future>
 ChatDialog::ChatDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::ChatDialog), mode_(ChatUIMode::CHAT_MODE),
-      state_(ChatUIMode::CHAT_MODE)
+      state_(ChatUIMode::CHAT_MODE), b_loading_(false)
 
 {
   ui->setupUi(this);
   ui->add_btn->SetState("normal", "hover", "press");
   set_search_edit();
   add_chat_user_list();
+  create_connection();
 }
 
 ChatDialog::~ChatDialog() { delete ui; }
@@ -106,4 +110,34 @@ void ChatDialog::show_search(bool bsearch) {
     ui->con_user_list->show();
     mode_ = ChatUIMode::CONTACT_MODE;
   }
+}
+
+void ChatDialog::create_connection() {
+  connect(ui->chat_user_list, &ChatUserList::sig_loading_chat_user, this,
+          &ChatDialog::slot_loading_chat_user);
+}
+
+void ChatDialog::slot_loading_chat_user() {
+  if (b_loading_) { // 正在加载，直接返回
+    return;
+  }
+  // TODO UserManager中加载完所有会话后，限制加载会话信号的发射
+  b_loading_ = true;
+  qDebug() << "add new data to list.....";
+  LoadingDialog *loading_dlg = new LoadingDialog(this);
+  loading_dlg->setModal(true);
+  loading_dlg->show();
+  add_chat_user_list();
+  // 加载完成后关闭对话框
+  loading_dlg->deleteLater();
+
+  b_loading_ = false;
+
+  // 可以通过下面的方法，强行观察加载动画的播放。
+  // QTimer::singleShot(500, this, [this, loading_dlg]() {
+  //   add_chat_user_list();
+  //   loading_dlg->close();
+  //   loading_dlg->deleteLater();
+  //   b_loading_ = false;
+  // });
 }

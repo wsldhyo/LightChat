@@ -63,6 +63,8 @@ copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/clickedbtn.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/customizeedit.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/chatuserlist.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatpage.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatview.hpp
 )
 
 # ==================== 可执行文件 ====================
@@ -84,6 +86,9 @@ add_executable(${TARGET_NAME}
   chatuserlist.cc
   chatuserwid.cc
   listitembase.cc
+  loadingdialog.cc
+  chatpage.cc
+  chatview.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 
