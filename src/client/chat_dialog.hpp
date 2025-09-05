@@ -15,7 +15,7 @@ class ChatDialog;
 class StateWidget;
 /**
  * @brief 聊天对话框类，包含聊天会话列表ChatUserList和聊天页面ChatPage
- * 
+ *
  */
 class ChatDialog : public QDialog {
   Q_OBJECT
@@ -25,13 +25,14 @@ public:
   ~ChatDialog();
 
 protected:
-  // bool eventFilter(QObject *watched, QEvent *event) override;
+  bool eventFilter(QObject *watched, QEvent *event) override;
 
-  // void handleGlobalMousePress(QMouseEvent *event);
   // void CloseFindDlg();
   // void UpdateChatMsg(std::vector<std::shared_ptr<TextChatData>> msgdata);
 
 private:
+
+  void handle_global_mouse_press(QMouseEvent *event);
   /**
    * @brief 设置搜索框，输入时在最右边显示删除按钮
    * @todo 放到CustomizeEdit里

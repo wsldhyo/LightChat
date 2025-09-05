@@ -71,6 +71,33 @@ copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/search_list.hpp
 )
 
+
+function(copy_heads target)
+    set(dst_files "")
+
+    # 先创建 static 目录，保证后续拷贝不会失败
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/static)
+
+    foreach(header IN LISTS ARGN)
+        get_filename_component(fname ${header} NAME)
+        set(dst ${CMAKE_BINARY_DIR}/bin/static/${fname})
+
+        add_custom_command(
+            OUTPUT ${dst}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${header} ${dst}
+            DEPENDS ${header}
+            COMMENT "Copying ${header} -> ${dst}"
+        )
+        list(APPEND dst_files ${dst})
+    endforeach()
+
+    add_custom_target(${target} ALL DEPENDS ${dst_files})
+endfunction()
+
+copy_heads(copy_my_heads
+    ${CMAKE_SOURCE_DIR}/resources/icons/head_1.jpg
+)
+
 # ==================== 可执行文件 ====================
 add_executable(${TARGET_NAME} 
   main.cc 
@@ -101,6 +128,7 @@ add_executable(${TARGET_NAME}
   state_widget.cc
   add_user_item.cc
   search_list.cc
+  find_success_dlg.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 

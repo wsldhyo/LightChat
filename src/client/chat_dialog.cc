@@ -5,8 +5,8 @@
 #include "ui_chatdialog.h"
 #include <QAction>
 #include <QDebug>
+#include <QMouseEvent>
 #include <QRandomGenerator>
-#include <future>
 ChatDialog::ChatDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::ChatDialog), mode_(ChatUIMode::CHAT_MODE),
       state_(ChatUIMode::CHAT_MODE), b_loading_(false)
@@ -39,9 +39,37 @@ ChatDialog::ChatDialog(QWidget *parent)
   add_lb_group(ui->side_contact_lb);
 
   create_connection();
+  // 安装事件过滤器，实现非搜索列表控件范围内的点击，将隐藏搜索列表
+  this->installEventFilter(this);
+  //设置聊天label选中状态
+  ui->side_chat_lb->SetSelected(true);
 }
 
 ChatDialog::~ChatDialog() { delete ui; }
+
+bool ChatDialog::eventFilter(QObject *watched, QEvent *event) {
+  if (event->type() == QEvent::MouseButtonPress) {
+    QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+    handle_global_mouse_press(mouseEvent);
+  }
+  return QDialog::eventFilter(watched, event);
+}
+
+void ChatDialog::handle_global_mouse_press(QMouseEvent *event) {
+  // 实现点击位置的判断和处理逻辑
+  // 先判断是否处于搜索模式，如果不处于搜索模式则直接返回
+  if (mode_ != ChatUIMode::SEARCH_MODE) {
+    return;
+  }
+
+  // 将鼠标点击位置转换为搜索列表坐标系中的位置，并判断点击位置是否位于搜索列表控件范围内
+  QPoint posInSearchList = ui->search_list->mapFromGlobal(event->globalPos());
+  if (!ui->search_list->rect().contains(posInSearchList)) {
+    // 不在搜索列表控件范围内的点击，将清空搜索列表的显示
+    ui->search_edit->clear();
+    show_search(false);
+  }
+}
 
 void ChatDialog::set_search_edit() {
   // 搜索动作，放到最前面，显示为放大镜
