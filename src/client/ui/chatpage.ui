@@ -97,6 +97,9 @@
             </property>
             <item>
              <widget class="QLabel" name="title_lb">
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
               <property name="text">
                <string>燃烧的胸毛</string>
               </property>
@@ -357,24 +360,24 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ClickedBtn</class>
-   <extends>QPushButton</extends>
-   <header>clickedbtn.h</header>
-  </customwidget>
-  <customwidget>
    <class>ClickedLabel</class>
    <extends>QLabel</extends>
-   <header>clickedlabel.h</header>
+   <header>clicked_label.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>ClickedBtn</class>
+   <extends>QPushButton</extends>
+   <header>clicked_btn.hpp</header>
   </customwidget>
   <customwidget>
    <class>MessageTextEdit</class>
    <extends>QTextEdit</extends>
-   <header>MessageTextEdit.h</header>
+   <header>msg_text_edit.hpp</header>
   </customwidget>
   <customwidget>
    <class>ChatView</class>
    <extends>QWidget</extends>
-   <header>chatview.h</header>
+   <header>chat_view.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -1,7 +1,7 @@
-#include "logindialog.hpp"
-#include "clickedlabel.hpp"
+#include "login_dialog.hpp"
+#include "clicked_label.hpp"
 #include "client_globalvar.hpp"
-#include "httpmagager.hpp"
+#include "http_manager.hpp"
 #include "tcp_manager.hpp"
 #include "ui_logindialog.h"
 #include <QDebug>

@@ -1,4 +1,4 @@
-#include "customizeedit.hpp"
+#include "customize_edit.hpp"
 
 CustomizeEdit::CustomizeEdit(QWidget *parent) : QLineEdit(parent), _max_len(0) {
   connect(this, &QLineEdit::textChanged, this, &CustomizeEdit::limitTextLength);

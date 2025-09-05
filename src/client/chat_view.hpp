@@ -4,7 +4,7 @@
 class QVBoxLayout;
 class QScrollArea;
 /**
- * @brief 聊天界面ChatPage中的聊天对话框界面。
+ * @brief 聊天界面ChatPage中的聊天对话框视窗。
  * 逐条显示历史消息，他人消息显示在最左侧，本人消息显示在最右侧
  * 目前采用ScrollArea + 垂直布局实现。
  * 也可以使用ListView实现，每个消息都是一个ListItem。

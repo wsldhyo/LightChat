@@ -1,4 +1,5 @@
-#include "chatview.hpp"
+#include "chat_view.hpp"
+#include <QApplication>
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QPainter>
@@ -7,7 +8,6 @@
 #include <QStyleOption>
 #include <QTimer>
 #include <QVBoxLayout>
-
 ChatView::ChatView(QWidget *parent) : QWidget(parent), is_appended_(false) {
   // ChatView 的主垂直布局（整体容器）
   QVBoxLayout *pMainLayout = new QVBoxLayout();
@@ -65,7 +65,7 @@ void ChatView::appendChatItem(QWidget *item) {
       qobject_cast<QVBoxLayout *>(scrollarea_->widget()->layout());
 
   // 把消息插入到“占位部件”之前（所以消息在上面，底部永远留空）
-  vl->insertWidget(vl->count() - 1, item);
+  vl->insertWidget(vl->count() - 1, item, 0, Qt::AlignRight | Qt::AlignTop);
   is_appended_ = true; // 标记：刚刚插入了新消息
 }
 

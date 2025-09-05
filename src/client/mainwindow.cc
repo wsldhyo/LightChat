@@ -1,8 +1,8 @@
 #include "mainwindow.hpp"
-#include "chatdialog.hpp"
-#include "logindialog.hpp"
-#include "registerdialog.hpp"
-#include "resetdialog.hpp"
+#include "chat_dialog.hpp"
+#include "login_dialog.hpp"
+#include "register_dialog.hpp"
+#include "reset_dialog.hpp"
 #include "tcp_manager.hpp"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), chat_dlg_(nullptr) {

@@ -1,4 +1,4 @@
-#include "chatuserwid.hpp"
+#include "chat_user_wid.hpp"
 #include "ui_chatuserwid.h"
 ChatUserWid::ChatUserWid(QWidget *parent) :
     ListItemBase(parent),

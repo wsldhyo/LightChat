@@ -1,4 +1,4 @@
-#include "httpmagager.hpp"
+#include "http_manager.hpp"
 #include <QNetworkReply>
 
 HttpMgr::HttpMgr() { create_connection(); }

@@ -308,7 +308,7 @@
   <customwidget>
    <class>TimerBtn</class>
    <extends>QPushButton</extends>
-   <header>timerbtn.hpp</header>
+   <header location="global">timer_btn.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

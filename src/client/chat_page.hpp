@@ -5,7 +5,7 @@ namespace Ui {
 class ChatPage;
 }
 /**
- * @brief 聊天界面类，主要包含消息对话框和消息编辑框
+ * @brief 聊天界面类，主要包含聊天消息视窗ChatView和消息编辑框MessageTestEdit
  *
  */
 class ChatPage : public QWidget {
@@ -14,8 +14,12 @@ class ChatPage : public QWidget {
 public:
   explicit ChatPage(QWidget *parent = nullptr);
   ~ChatPage();
+
 protected:
-    void paintEvent(QPaintEvent *event)override;
+  void paintEvent(QPaintEvent *event) override;
+
+private slots:
+  void on_send_btn_clicked();
 
 private:
   Ui::ChatPage *ui;

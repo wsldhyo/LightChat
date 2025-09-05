@@ -1,7 +1,7 @@
-#include "registerdialog.hpp"
-#include "clickedlabel.hpp"
+#include "register_dialog.hpp"
+#include "clicked_label.hpp"
 #include "client_globalvar.hpp"
-#include "httpmagager.hpp"
+#include "http_manager.hpp"
 #include "ui_registerdialog.h"
 #include <QDebug>
 #include <QRegularExpression>

@@ -1,4 +1,4 @@
-#include "chatuserlist.hpp"
+#include "chat_user_list.hpp"
 #include <QDebug>
 #include <QScrollBar>
 #include <QWheelEvent>

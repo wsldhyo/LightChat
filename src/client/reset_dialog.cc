@@ -1,8 +1,8 @@
-#include "resetdialog.hpp"
+#include "reset_dialog.hpp"
 #include "utility/constant.hpp"
 #include "client_constant.hpp"
 #include "client_globalvar.hpp"
-#include "httpmagager.hpp"
+#include "http_manager.hpp"
 #include "ui_resetdialog.h"
 #include <QDebug>
 #include <QRegularExpression>

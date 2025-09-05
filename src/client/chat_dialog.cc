@@ -1,6 +1,7 @@
-#include "chatdialog.hpp"
-#include "chatuserwid.hpp"
-#include "loadingdialog.hpp"
+#include "chat_dialog.hpp"
+#include "chat_user_wid.hpp"
+#include "loading_dialog.hpp"
+#include "state_widget.hpp"
 #include "ui_chatdialog.h"
 #include <QAction>
 #include <QDebug>
@@ -15,6 +16,28 @@ ChatDialog::ChatDialog(QWidget *parent)
   ui->add_btn->SetState("normal", "hover", "press");
   set_search_edit();
   add_chat_user_list();
+  ui->stackedWidget->setCurrentWidget(ui->chat_page);
+
+  // 设置侧边栏
+  QPixmap pixmap(":/icons/head_1.jpg");
+  ui->side_head_lb->setPixmap(pixmap); // 将图片设置到QLabel上
+  QPixmap scaledPixmap = pixmap.scaled(
+      ui->side_head_lb->size(), Qt::KeepAspectRatio); // 将图片缩放到label的大小
+  ui->side_head_lb->setPixmap(scaledPixmap); // 将缩放后的图片设置到QLabel上
+  ui->side_head_lb->setScaledContents(
+      true); // 设置QLabel自动缩放图片内容以适应大小
+
+  ui->side_chat_lb->setProperty("state", "normal");
+
+  ui->side_chat_lb->SetState("normal", "hover", "pressed", "selected_normal",
+                             "selected_hover", "selected_pressed");
+
+  ui->side_contact_lb->SetState("normal", "hover", "pressed", "selected_normal",
+                                "selected_hover", "selected_pressed");
+
+  add_lb_group(ui->side_chat_lb);
+  add_lb_group(ui->side_contact_lb);
+
   create_connection();
 }
 
@@ -112,9 +135,28 @@ void ChatDialog::show_search(bool bsearch) {
   }
 }
 
+void ChatDialog::add_lb_group(StateWidget *lb) { lb_list_.push_back(lb); }
+
+void ChatDialog::clear_label_state(StateWidget *lb) {
+  for (auto &ele : lb_list_) {
+    if (ele == lb) {
+      continue;
+    }
+
+    ele->ClearState();
+  }
+}
+
 void ChatDialog::create_connection() {
   connect(ui->chat_user_list, &ChatUserList::sig_loading_chat_user, this,
           &ChatDialog::slot_loading_chat_user);
+
+  connect(ui->side_chat_lb, &StateWidget::clicked, this,
+          &ChatDialog::slot_side_chat);
+  connect(ui->side_contact_lb, &StateWidget::clicked, this,
+          &ChatDialog::slot_side_contact);
+  connect(ui->search_edit, &QLineEdit::textChanged, this,
+          &ChatDialog::slot_text_changed);
 }
 
 void ChatDialog::slot_loading_chat_user() {
@@ -140,4 +182,27 @@ void ChatDialog::slot_loading_chat_user() {
   //   loading_dlg->deleteLater();
   //   b_loading_ = false;
   // });
+}
+
+void ChatDialog::slot_side_chat() {
+  qDebug() << "receive side chat clicked";
+  clear_label_state(ui->side_chat_lb);
+  ui->stackedWidget->setCurrentWidget(ui->chat_page);
+  state_ = ChatUIMode::CHAT_MODE;
+  show_search(false);
+}
+
+void ChatDialog::slot_side_contact() {
+  qDebug() << "receive side contact clicked";
+  clear_label_state(ui->side_contact_lb);
+  ui->stackedWidget->setCurrentWidget(ui->friend_apply_page);
+  state_ = ChatUIMode::CONTACT_MODE;
+  show_search(false);
+}
+
+void ChatDialog::slot_text_changed(const QString &str) {
+  // qDebug()<< "receive slot text changed str is " << str;
+  if (!str.isEmpty()) {
+    show_search(true);
+  }
 }

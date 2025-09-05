@@ -58,37 +58,49 @@ endfunction()
 #拷贝到构建目录，让QtDebugger找到对应自定义类型，以在ui中提升类型
 copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/client_constant.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clickedlabel.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/timerbtn.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clickedbtn.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/customizeedit.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatuserlist.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatpage.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatview.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/clicked_label.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/timer_btn.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/clicked_btn.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/customize_edit.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chat_user_list.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chat_page.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chat_view.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/msg_text_edit.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/client_struct_def.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/state_widget.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/search_list.hpp
 )
 
 # ==================== 可执行文件 ====================
 add_executable(${TARGET_NAME} 
   main.cc 
   mainwindow.cc
-  logindialog.cc
-  registerdialog.cc
-  resetdialog.cc
+  login_dialog.cc
+  register_dialog.cc
+  reset_dialog.cc
   client_globalvar.cc 
-  httpmagager.cc
+  http_manager.cc
   tcp_manager.cc
   usermgr.cc
-  clickedlabel.cc
-  timerbtn.cc
-  clickedbtn.cc
-  chatdialog.cc
-  customizeedit.cc
-  chatuserlist.cc
-  chatuserwid.cc
-  listitembase.cc
-  loadingdialog.cc
-  chatpage.cc
-  chatview.cc
+  clicked_label.cc
+  timer_btn.cc
+  clicked_btn.cc
+  chat_dialog.cc
+  customize_edit.cc
+  chat_user_list.cc
+  chat_user_wid.cc
+  list_item_base.cc
+  loading_dialog.cc
+  chat_page.cc
+  chat_view.cc
+  chat_item_base.cc
+  bubble_frame.cc
+  text_bubble.cc
+  picture_bubble.cc
+  msg_text_edit.cc
+  state_widget.cc
+  add_user_item.cc
+  search_list.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 

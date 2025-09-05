@@ -12,6 +12,11 @@ namespace Ui {
 class ChatDialog;
 }
 
+class StateWidget;
+/**
+ * @brief 聊天对话框类，包含聊天会话列表ChatUserList和聊天页面ChatPage
+ * 
+ */
 class ChatDialog : public QDialog {
   Q_OBJECT
 
@@ -35,9 +40,11 @@ private:
   void set_search_edit();
 
   void add_chat_user_list();
-  // void AddLBGroup(StateWidget *lb);
+
+  void clear_label_state(StateWidget *lb);
+
+  void add_lb_group(StateWidget *lb);
   // void loadMoreChatUser();
-  // void ClearLabelState(StateWidget *lb);
   // void loadMoreConUser();
   // void SetSelectChatItem(int uid = 0);
   // void SetSelectChatPage(int uid = 0);
@@ -46,10 +53,10 @@ private:
   void create_connection();
 public slots:
   void slot_loading_chat_user();
-  // void slot_side_chat();
-  // void slot_side_contact();
+  void slot_side_chat();
+  void slot_side_contact();
   // void slot_side_setting();
-  // void slot_text_changed(const QString & str);
+  void slot_text_changed(const QString &str);
   // void slot_focus_out();
   // void slot_loading_contact_user();
   // void slot_switch_apply_friend_page();
@@ -70,6 +77,7 @@ private:
   ChatUIMode mode_; //根据sidebar显示不同的界面：如联系人界面、会话界面
   ChatUIMode state_; // 不同mode下的搜索框状态
   bool b_loading_;
+  QList<StateWidget *> lb_list_;
 };
 
 #endif // CHATDIALOG_H

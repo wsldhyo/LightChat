@@ -1,7 +1,7 @@
 #ifndef CHAT_USER_WID_HPP
 #define CHAT_USER_WID_HPP
-#include "chatuserlist.hpp"
-#include "listitembase.hpp"
+#include "chat_user_list.hpp"
+#include "list_item_base.hpp"
 namespace Ui {
 class ChatUserWid;
 }

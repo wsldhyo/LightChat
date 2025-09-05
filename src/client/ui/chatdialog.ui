@@ -109,7 +109,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="side_chat_lb" native="true">
+          <widget class="StateWidget" name="side_chat_lb" native="true">
            <property name="minimumSize">
             <size>
              <width>30</width>
@@ -125,7 +125,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="side_contact_lb" native="true">
+          <widget class="StateWidget" name="side_contact_lb" native="true">
            <property name="minimumSize">
             <size>
              <width>30</width>
@@ -141,7 +141,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="side_settings_lb" native="true">
+          <widget class="StateWidget" name="side_settings_lb" native="true">
            <property name="minimumSize">
             <size>
              <width>30</width>
@@ -299,7 +299,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="search_list"/>
+       <widget class="SearchList" name="search_list"/>
       </item>
       <item>
        <widget class="ChatUserList" name="chat_user_list">
@@ -332,7 +332,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="ChatPage" name="chat_page"/>
      <widget class="QWidget" name="friend_apply_page"/>
@@ -346,22 +346,33 @@
   <customwidget>
    <class>ClickedBtn</class>
    <extends>QPushButton</extends>
-   <header>clickedbtn.hpp</header>
+   <header>clicked_btn.hpp</header>
   </customwidget>
   <customwidget>
    <class>CustomizeEdit</class>
    <extends>QLineEdit</extends>
-   <header>customizeedit.hpp</header>
+   <header>customize_edit.hpp</header>
   </customwidget>
   <customwidget>
    <class>ChatUserList</class>
    <extends>QListWidget</extends>
-   <header>chatuserlist.hpp</header>
+   <header>chat_user_list.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchList</class>
+   <extends>QListWidget</extends>
+   <header>search_list.hpp</header>
   </customwidget>
   <customwidget>
    <class>ChatPage</class>
    <extends>QWidget</extends>
-   <header>chatpage.hpp</header>
+   <header location="global">chat_page.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>StateWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">state_widget.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

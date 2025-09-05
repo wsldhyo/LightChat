@@ -1,4 +1,4 @@
-#include "loadingdialog.hpp"
+#include "loading_dialog.hpp"
 #include "ui_loadingdialog.h"
 #include <QMovie>
 
