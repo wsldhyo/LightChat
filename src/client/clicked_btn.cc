@@ -3,7 +3,7 @@
 #include <QVariant>
 ClickedBtn::ClickedBtn(QWidget *parent) : QPushButton(parent) {
   setCursor(Qt::PointingHandCursor); // 设置光标为小手
-
+  setFocusPolicy(Qt::NoFocus); // 光标无焦点，点击按钮后，即使按下回车也不响应回车
 }
 
 ClickedBtn::~ClickedBtn() {}

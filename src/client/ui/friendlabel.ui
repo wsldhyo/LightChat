@@ -128,7 +128,7 @@
   <customwidget>
    <class>ClickedLabel</class>
    <extends>QLabel</extends>
-   <header>clickedlabel.h</header>
+   <header>clicked_label.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

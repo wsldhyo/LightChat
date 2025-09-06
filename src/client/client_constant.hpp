@@ -1,5 +1,6 @@
 #ifndef CLIENT_CONSTANT_HPP
 #define CLIENT_CONSTANT_HPP
+#include <QString>
 
 // 注册界面错误消息提示类型
 enum TipErr {
@@ -47,4 +48,11 @@ enum class ChatRole {
 
 constexpr int PIC_MAX_WIDTH{160};
 constexpr int PIC_MAX_HEIGHT{90};
+
+// 申请好友框的最小长度
+constexpr int MIN_APPLY_LABEL_ED_LEN{40}; 
+// 添加好友对话框中的标签偏移量
+constexpr int g_tip_offset{5};
+
+const QString g_add_prefix {QStringLiteral(u"添加标签")};
 #endif

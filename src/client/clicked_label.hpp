@@ -11,11 +11,13 @@ public:
   virtual void leaveEvent(QEvent *event) override;
   virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
-  void SetState(QString normal = "", QString hover = "", QString press = "",
+  void set_state(QString normal = "", QString hover = "", QString press = "",
                 QString select = "", QString select_hover = "",
                 QString select_press = "");
 
-  ClickLbState GetCurState();
+  ClickLbState get_cur_state();
+  bool set_cur_state(ClickLbState state);
+  void reset_normal_state();
 
 protected:
 private:
@@ -29,7 +31,7 @@ private:
 
   ClickLbState curstate_;
 signals:
-  void clicked(void);
+  void clicked(QString, ClickLbState);
 };
 
 #endif // CLICKEDLABEL_H

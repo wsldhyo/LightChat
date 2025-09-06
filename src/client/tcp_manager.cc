@@ -157,9 +157,9 @@ void TcpMgr::initHandlers() {
           emit sig_login_failed(err);
           return;
         }
-        UserMgr::getinstance()->SetUid(jsonObj["uid"].toInt());
-        UserMgr::getinstance()->SetName(jsonObj["name"].toString());
-        UserMgr::getinstance()->SetToken(jsonObj["token"].toString());
+        UserMgr::getinstance()->set_uid(jsonObj["uid"].toInt());
+        UserMgr::getinstance()->set_name(jsonObj["name"].toString());
+        UserMgr::getinstance()->set_token(jsonObj["token"].toString());
         emit sig_swich_chatdlg();
       });
 }

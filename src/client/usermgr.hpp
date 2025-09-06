@@ -12,15 +12,16 @@ class UserMgr : public QObject,
 public:
   friend class Singleton<UserMgr>;
   ~UserMgr();
-  void SetName(QString name);
-  void SetUid(int uid);
-  void SetToken(QString token);
+  void set_name(QString name);
+  void set_uid(int uid);
+  void set_token(QString token);
+  QString const& get_name()const;
 
 private:
   UserMgr();
-  QString _name;
-  QString _token;
-  int _uid;
+  QString name_;
+  QString token_;
+  int uid_;
 };
 
 #endif // USERMGR_H

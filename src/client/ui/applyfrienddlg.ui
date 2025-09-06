@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ApplyFriend</class>
- <widget class="QDialog" name="ApplyFriend">
+ <class>ApplyFriendDlg</class>
+ <widget class="QDialog" name="ApplyFriendDlg">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -543,17 +543,17 @@
   <customwidget>
    <class>CustomizeEdit</class>
    <extends>QLineEdit</extends>
-   <header>customizeedit.h</header>
+   <header>customize_edit.hpp</header>
   </customwidget>
   <customwidget>
    <class>ClickedBtn</class>
    <extends>QPushButton</extends>
-   <header>clickedbtn.h</header>
+   <header>clicked_btn.hpp</header>
   </customwidget>
   <customwidget>
    <class>ClickedOnceLabel</class>
    <extends>QLabel</extends>
-   <header>clickedoncelabel.h</header>
+   <header>clicked_once_label.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

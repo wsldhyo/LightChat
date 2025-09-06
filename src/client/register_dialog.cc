@@ -24,10 +24,10 @@ RegisterDialog::RegisterDialog(QWidget *parent)
   ui->pass_visible->setCursor(Qt::PointingHandCursor);
   ui->confirm_visible->setCursor(Qt::PointingHandCursor);
 
-  ui->pass_visible->SetState("unvisible", "unvisible_hover", "", "visible",
+  ui->pass_visible->set_state("unvisible", "unvisible_hover", "", "visible",
                              "visible_hover", "");
 
-  ui->confirm_visible->SetState("unvisible", "unvisible_hover", "", "visible",
+  ui->confirm_visible->set_state("unvisible", "unvisible_hover", "", "visible",
                                 "visible_hover", "");
 }
 
@@ -316,7 +316,7 @@ void RegisterDialog::create_connection() {
 
   //连接ClickedLabel点击事件，改变其样式
   connect(ui->pass_visible, &ClickedLabel::clicked, this, [this]() {
-    auto state = ui->pass_visible->GetCurState();
+    auto state = ui->pass_visible->get_cur_state();
     if (state == ClickLbState::Normal) {
       ui->pass_edit->setEchoMode(QLineEdit::Password);
     } else {
@@ -326,7 +326,7 @@ void RegisterDialog::create_connection() {
   });
 
   connect(ui->confirm_visible, &ClickedLabel::clicked, this, [this]() {
-    auto state = ui->confirm_visible->GetCurState();
+    auto state = ui->confirm_visible->get_cur_state();
     if (state == ClickLbState::Normal) {
       ui->confirm_edit->setEchoMode(QLineEdit::Password);
     } else {

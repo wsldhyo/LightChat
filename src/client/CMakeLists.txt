@@ -69,6 +69,9 @@ copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/client_struct_def.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/state_widget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/search_list.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/clicked_once_label.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/friend_label.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/apply_friend_dialog.hpp
 )
 
 
@@ -129,6 +132,9 @@ add_executable(${TARGET_NAME}
   add_user_item.cc
   search_list.cc
   find_success_dlg.cc
+  clicked_once_label.cc
+  friend_label.cc
+  apply_friend_dialog.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 

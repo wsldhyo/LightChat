@@ -12,7 +12,7 @@ LoginDialog::LoginDialog(QWidget *parent)
   ui->setupUi(this);
   //设置窗口无边框
   setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
-  ui->forget_label->SetState("normal", "hover", "", "selected",
+  ui->forget_label->set_state("normal", "hover", "", "selected",
                              "selected_hover", "");
   ui->forget_label->setCursor(Qt::PointingHandCursor);
   create_connection();
