@@ -7,6 +7,10 @@ namespace Ui {
 class FriendLabel;
 }
 
+/**
+ * @brief ApplyFriendDialog中，用于表示好友标签的控件类
+ * 
+ */
 class FriendLabel : public QFrame {
   Q_OBJECT
 
