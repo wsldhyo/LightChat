@@ -78,7 +78,7 @@ private:
   ChatUIMode mode_; //根据sidebar显示不同的界面：如联系人界面、会话界面
   ChatUIMode state_; // 不同mode下的搜索框状态
   bool b_loading_;
-  QList<StateWidget *> lb_list_;
+  QList<StateWidget *> lb_list_; // 侧边栏标签列表，一次仅有一个激活并显示对应标签的列表（会话列表、联系人列表）
 };
 
 #endif // CHATDIALOG_H

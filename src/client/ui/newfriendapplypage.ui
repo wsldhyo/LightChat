@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ApplyFriendPage</class>
- <widget class="QWidget" name="ApplyFriendPage">
+ <class>NewFriendApplyPage</class>
+ <widget class="QWidget" name="NewFriendApplyPage">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -110,7 +110,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="ApplyFriendList" name="apply_friend_list"/>
+       <widget class="NewFriendApplyList" name="apply_friend_list"/>
       </item>
      </layout>
     </widget>
@@ -119,9 +119,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ApplyFriendList</class>
+   <class>NewFriendApplyList</class>
    <extends>QListWidget</extends>
-   <header location="global">applyfriendlist.h</header>
+   <header location="global">new_friend_apply_list.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ApplyFriendItem</class>
- <widget class="QWidget" name="ApplyFriendItem">
+ <class>NewFriendApplyItem</class>
+ <widget class="QWidget" name="NewFriendApplyItem">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -213,7 +213,7 @@
   <customwidget>
    <class>ClickedBtn</class>
    <extends>QPushButton</extends>
-   <header>clickedbtn.h</header>
+   <header>clicked_btn.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,0 +1,143 @@
+#include "new_friend_apply_page.hpp"
+#include "new_friend_apply_item.hpp"
+#include "new_friend_apply_list.hpp"
+#include "tcp_manager.hpp"
+#include "ui_newfriendapplypage.h"
+#include "user_data.hpp"
+#include "usermgr.hpp"
+#include <QPainter>
+#include <QRandomGenerator>
+
+NewFriendApplyPage::NewFriendApplyPage(QWidget *parent)
+    : QWidget(parent), ui(new Ui::NewFriendApplyPage) {
+  ui->setupUi(this);
+
+  // 当列表控件发出 sig_show_search 信号时，转发给外部
+  connect(ui->apply_friend_list, &NewFriendApplyList::sig_show_search, this,
+          &NewFriendApplyPage::sig_show_search);
+
+  // 加载好友申请列表（包含真实数据和模拟数据）
+  load_apply_list();
+
+  // 连接 TCP 模块的好友认证响应信号
+  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_auth_rsp, this,
+          &NewFriendApplyPage::slot_auth_rsp);
+}
+
+NewFriendApplyPage::~NewFriendApplyPage() { delete ui; }
+
+// ------------------ 模拟数据 ------------------
+static std::vector<QString> strs = {
+    "hello world !", "nice to meet u", "New year,new life",
+    "You have to love yourself",
+    "My love is written in the wind ever since the whole world is you"};
+
+static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
+                                     ":/icons/head_3.jpg", ":/icons/head_4.jpg",
+                                     ":/icons/head_5.jpg"};
+
+static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
+                                     "java", "nodejs", "python", "rust"};
+
+void NewFriendApplyPage::add_new_apply(std::shared_ptr<AddFriendApply> apply) {
+  // 随机选择头像
+  int randomValue = QRandomGenerator::global()->bounded(100);
+  int head_i = randomValue % heads.size();
+
+  // 创建新列表项
+  auto *apply_item = new NewFriendApplyItem();
+  auto apply_info =
+      std::make_shared<ApplyInfo>(apply->_from_uid, apply->_name, apply->_desc,
+                                  heads[head_i], apply->_name, 0, 0);
+  apply_item->set_info(apply_info);
+
+  // 创建 QListWidgetItem 并设置自定义 widget
+  QListWidgetItem *item = new QListWidgetItem;
+  item->setSizeHint(apply_item->sizeHint());
+  item->setFlags(item->flags() & ~Qt::ItemIsEnabled & ~Qt::ItemIsSelectable);
+  ui->apply_friend_list->insertItem(0, item); // 插入顶部
+  ui->apply_friend_list->setItemWidget(item, apply_item);
+
+  // 显示“添加好友”按钮
+  apply_item->show_add_btn(true);
+
+  // 点击“添加”按钮发出的信号（示例中未实现弹窗）
+  connect(apply_item, &NewFriendApplyItem::sig_auth_friend,
+          [this](std::shared_ptr<ApplyInfo> apply_info) {
+            // 这里可以弹出审核对话框
+
+          });
+}
+
+void NewFriendApplyPage::paintEvent(QPaintEvent *event) {
+  QStyleOption opt;
+  opt.init(this);
+  QPainter p(this);
+  style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+}
+
+void NewFriendApplyPage::load_apply_list() {
+  // --- 加载真实好友申请 ---
+  auto apply_list = UserMgr::getinstance()->get_apply_list();
+  for (auto &apply : apply_list) {
+    int randomValue = QRandomGenerator::global()->bounded(100);
+    int head_i = randomValue % heads.size();
+
+    auto *apply_item = new NewFriendApplyItem();
+    apply->SetIcon(heads[head_i]); // 设置头像
+    apply_item->set_info(apply);
+
+    QListWidgetItem *item = new QListWidgetItem;
+    item->setSizeHint(apply_item->sizeHint());
+    item->setFlags(item->flags() & ~Qt::ItemIsEnabled & ~Qt::ItemIsSelectable);
+    ui->apply_friend_list->insertItem(0, item);
+    ui->apply_friend_list->setItemWidget(item, apply_item);
+
+    if (apply->_status) {
+      apply_item->show_add_btn(false); // 已处理过的申请隐藏按钮
+    } else {
+      apply_item->show_add_btn(true); // 未处理的显示按钮
+      unauth_items_[apply_item->get_uid()] = apply_item; // 存储未审核列表
+    }
+
+    // 连接“添加好友”按钮点击信号
+    connect(apply_item, &NewFriendApplyItem::sig_auth_friend,
+            [this](std::shared_ptr<ApplyInfo> apply_info) {
+              // 这里可以弹出审核对话框
+            });
+  }
+
+  // --- 模拟假数据，用于 UI 测试 ---
+  for (int i = 0; i < 13; i++) {
+    int randomValue = QRandomGenerator::global()->bounded(100);
+    int str_i = randomValue % strs.size();
+    int head_i = randomValue % heads.size();
+    int name_i = randomValue % names.size();
+
+    auto *apply_item = new NewFriendApplyItem();
+    auto apply = std::make_shared<ApplyInfo>(
+        0, names[name_i], strs[str_i], heads[head_i], names[name_i], 0, 1);
+    apply_item->set_info(apply);
+
+    QListWidgetItem *item = new QListWidgetItem;
+    item->setSizeHint(apply_item->sizeHint());
+    item->setFlags(item->flags() & ~Qt::ItemIsEnabled & ~Qt::ItemIsSelectable);
+    ui->apply_friend_list->addItem(item);
+    ui->apply_friend_list->setItemWidget(item, apply_item);
+
+    connect(apply_item, &NewFriendApplyItem::sig_auth_friend,
+            [this](std::shared_ptr<ApplyInfo> apply_info) {
+              // 这里可以弹出审核对话框
+            });
+  }
+}
+
+void NewFriendApplyPage::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
+  auto uid = auth_rsp->_uid;
+  auto find_iter = unauth_items_.find(uid);
+  if (find_iter == unauth_items_.end()) {
+    return; // 未找到，不处理
+  }
+
+  find_iter->second->show_add_btn(false); // 隐藏“添加按钮”
+}

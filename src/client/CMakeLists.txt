@@ -73,6 +73,8 @@ copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/friend_label.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/apply_friend_dialog.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/contact_user_list.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/new_friend_apply_list.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/new_friend_apply_page.hpp
 )
 
 
@@ -140,6 +142,9 @@ add_executable(${TARGET_NAME}
   group_tip_item.cc
   contact_user_list.cc
   user_data.cc
+  new_friend_apply_page.cc
+  new_friend_apply_list.cc
+  new_friend_apply_item.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 

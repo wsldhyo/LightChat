@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 #include <memory>
+#include <vector>
+class ApplyInfo;
 
 class UserMgr : public QObject,
                 public Singleton<UserMgr>,
@@ -15,13 +17,15 @@ public:
   void set_name(QString name);
   void set_uid(int uid);
   void set_token(QString token);
-  QString const& get_name()const;
+  QString const &get_name() const;
+  std::vector<std::shared_ptr<ApplyInfo>> const &get_apply_list() const;
 
 private:
   UserMgr();
   QString name_;
   QString token_;
   int uid_;
+  std::vector<std::shared_ptr<ApplyInfo>> apply_list_;
 };
 
 #endif // USERMGR_H
