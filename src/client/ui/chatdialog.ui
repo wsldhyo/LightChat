@@ -318,7 +318,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="con_user_list"/>
+       <widget class="ContactUserList" name="con_user_list"/>
       </item>
      </layout>
     </widget>
@@ -374,6 +374,11 @@
    <extends>QWidget</extends>
    <header location="global">state_widget.hpp</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ContactUserList</class>
+   <extends>QListWidget</extends>
+   <header>contact_user_list.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

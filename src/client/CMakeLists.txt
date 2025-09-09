@@ -72,6 +72,7 @@ copy_headers(copy_my_headers
     ${CMAKE_CURRENT_SOURCE_DIR}/clicked_once_label.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/friend_label.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/apply_friend_dialog.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/contact_user_list.hpp
 )
 
 
@@ -135,6 +136,10 @@ add_executable(${TARGET_NAME}
   clicked_once_label.cc
   friend_label.cc
   apply_friend_dialog.cc
+  contact_user_item.cc
+  group_tip_item.cc
+  contact_user_list.cc
+  user_data.cc
   ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
 )
 

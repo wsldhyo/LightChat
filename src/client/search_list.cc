@@ -109,7 +109,7 @@ void SearchList::slot_item_clicked(QListWidgetItem *item) {
     // todo ...
     find_dlg_ = std::make_shared<FindSuccessDlg>(this);
     auto si = std::make_shared<SearchInfo>(0, "llfc", "llfc",
-                                           "hello , my friend!", 0);
+                                           "hello , my friend!", 0, "head_1.jpg");
     (std::dynamic_pointer_cast<FindSuccessDlg>(find_dlg_))->set_search_info(si);
     find_dlg_->show();
     return;
