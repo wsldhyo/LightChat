@@ -67,6 +67,7 @@ void ChatView::appendChatItem(QWidget *item) {
   // 把消息插入到“占位部件”之前（所以消息在上面，底部永远留空）
   vl->insertWidget(vl->count() - 1, item, 0, Qt::AlignRight | Qt::AlignTop);
   is_appended_ = true; // 标记：刚刚插入了新消息
+  repaint();
 }
 
 // 事件过滤器：控制滚动条显示/隐藏
