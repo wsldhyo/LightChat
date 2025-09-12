@@ -1,13 +1,14 @@
-﻿#include "chat_view.hpp"
-#include <QScrollBar>
-#include <QVBoxLayout>
+#include "chat_view.hpp"
+#include <QApplication>
 #include <QEvent>
-#include <QDebug>
-
-#include <QTimer>
-#include <QStyleOption>
+#include <QHBoxLayout>
 #include <QPainter>
-
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QStyleOption>
+#include <QTimer>
+#include <QVBoxLayout>
+#include <QDebug>
 ChatView::ChatView(QWidget *parent)
    : QWidget(parent)
    , isAppended(false)
@@ -85,8 +86,7 @@ bool ChatView::eventFilter(QObject *o, QEvent *e)
     {
 
     }
-    else */
-    if(e->type() == QEvent::Enter && o == m_pScrollArea)
+    else */if(e->type() == QEvent::Enter && o == m_pScrollArea)
     {
         m_pScrollArea->verticalScrollBar()->setHidden(m_pScrollArea->verticalScrollBar()->maximum() == 0);
     }

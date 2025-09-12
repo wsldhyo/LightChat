@@ -47,8 +47,8 @@ void ChatPage::on_send_btn_clicked() {
     if (type == "text") {
 
       pBubble =
-          new TextBubble(role, msgList[i].content, pChatItem->name_width());
-      qDebug() << "bubble" << pBubble->width();
+          new TextBubble(role, msgList[i].content);
+           qDebug() << "bubble" << pBubble->width();
     } else if (type == "image") {
       pBubble = new PictureBubble(QPixmap(msgList[i].content), role);
     } else if (type == "file") {
