@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   {
 
     auto config_mgr = ConfigManager::getinstance();
-    config_mgr->parse();
+    config_mgr->parse("basic_config.ini"sv);
     config_mgr->print();
     string_to_int((*config_mgr)["GateServer"]["port"], port);
   }

@@ -141,3 +141,13 @@ add_subdirectory(src/gate_server)
 add_subdirectory(src/status_server)
 add_subdirectory(src/chat_server)
 
+# 拷贝配置文件 
+set(CONFIG_DIR ${CMAKE_SOURCE_DIR}/config)
+set(OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
+
+# 拷贝 config 目录内容到 bin
+add_custom_target(copy_config ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CONFIG_DIR} ${OUTPUT_DIR}
+    COMMENT "Copying config files to ${OUTPUT_DIR}"
+)

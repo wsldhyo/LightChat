@@ -4,17 +4,15 @@
 add_library(common_utility STATIC
     utility/defer.cc
     utility/toolfunc.cc
-    utility/status_rpc_client.cc
     utility/tcp_msg_node.cc
 )
-target_include_directories(common_utility PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${HIREDIS_INCLUDE_DIRS} ${PROTO_GENERATED_DIR})
-target_link_libraries(common_utility PRIVATE ${HIREDIS_LIBRARIES} proto_lib)
 
-# =========================
-# Utility header-only 模块（纯头文件）
-# =========================
-add_library(common_utility_headers INTERFACE)
-target_include_directories(common_utility_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+# 暴露 src/common 路径给需要的模块
+# 子模块可以直接 #include "utility/xxx.hpp"
+# 如果写的是 ${CMAKE_CURRENT_SOURCE_DIR}/utility，那么可以直接#include "xxx.hpp"
+target_include_directories(common_utility
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # =========================
 # Pool 模块
@@ -27,14 +25,18 @@ add_library(common_pool STATIC
     pool/status_server_conn_pool.cc
 )
 
-#PUBLIC 让 链接该库的子项目可以访问头文件
-# redis_conn_pool需要Redis头文件，需要额外包含
-target_include_directories(common_pool PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${HIREDIS_INCLUDE_DIRS})
-# rpc_conn_pool需要grpc生成的文件
-target_link_libraries(common_pool PRIVATE common_utility ${HIREDIS_LIBRARIES} mysql::concpp-jdbc)
+# include Redis & grpc 生成路径
+target_include_directories(common_pool PUBLIC
+    ${HIREDIS_INCLUDE_DIRS}
+    ${PROTO_GENERATED_DIR}
+)
 
-
-
+# 链接依赖库
+target_link_libraries(common_pool
+    PRIVATE common_utility           # pool 内部使用 utility
+    PRIVATE ${HIREDIS_LIBRARIES}
+    PRIVATE mysql::concpp-jdbc
+)
 
 # =========================
 # Manager 模块
@@ -45,19 +47,40 @@ add_library(common_manager STATIC
     manager/redis_manager.cc
     manager/mysql_dao.cc
 )
-#redis_manager需要Redis头文件
-target_include_directories(common_manager PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(common_manager PRIVATE common_pool mysql::concpp-jdbc )
+
+# 链接 pool 模块
+# common_manager 直接 include utility 头文件，保留 PRIVATE
+target_link_libraries(common_manager
+    PUBLIC common_pool    # 对外暴露给链接 common_manager 的模块
+    PRIVATE common_utility
+    PRIVATE mysql::concpp-jdbc
+)
 
 # =========================
-# 使用示例（在子项目 CMakeLists.txt）
+# RPC Client 模块
+# =========================
+add_library(common_rpc_client STATIC
+    rpc_client/status_rpc_client.cc
+    rpc_client/chat_rpc_client.cc  
+    rpc_client/vertify_rpc_client.cc
+)
+
+target_link_libraries(common_rpc_client
+    PRIVATE common_utility
+    PRIVATE common_pool
+    PRIVATE proto_lib
+)
+
+# =========================
+# 子项目使用示例
 # =========================
 # target_link_libraries(SubProjectA PRIVATE
-#     common_pool
+#     common_rpc_client
 #     common_manager
+#     common_pool
 #     common_utility
-#     common_utility_headers
 # )
-
-# 子项目文件里include如下即可, 不需要指定相对路径
-#  #include "pool/iocontext_pool.hpp"
+#
+# 子项目 include 头文件直接：
+#   #include "pool/iocontext_pool.hpp"
+#   #include "utility/constant.hpp"

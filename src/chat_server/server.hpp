@@ -59,7 +59,7 @@ private:
   /**
    * @brief 真正移除某个 Session（仅限在 io_context 线程中调用）
    */
-  void remove_session(std::string const &uuid);
+  void remove_session(std::string const &session_id);
 
   /**
    * @brief 关闭服务器

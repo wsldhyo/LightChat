@@ -35,7 +35,7 @@ TcpMgr::TcpMgr()
         buffer_ = buffer_.mid(sizeof(quint16) * 2);
 
         // 输出读取的数据
-        qDebug() << "Message ID:" << message_id_ << ", Length:" << message_len_;
+        qDebug() << "TCP Message ID:" << message_id_ << ", Length:" << message_len_;
       }
 
       // buffer剩余长读是否满足消息体长度，不满足则退出继续等待接受
@@ -47,9 +47,10 @@ TcpMgr::TcpMgr()
       b_recv_pending_ = false;
       // 读取消息体
       QByteArray messageBody = buffer_.mid(0, message_len_);
-      qDebug() << "receive body msg is " << messageBody;
+      // qDebug() << "receive body msg is " << messageBody;
 
       buffer_ = buffer_.mid(message_len_);
+      handle_msg(static_cast<ReqId>(message_id_), message_len_, messageBody);
     }
   });
 
@@ -90,6 +91,7 @@ TcpMgr::TcpMgr()
                    [&]() { qDebug() << "Disconnected from server."; });
 
   QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
+  initHandlers();
 }
 
 void TcpMgr::slot_tcp_connect(ServerInfo si) {
@@ -132,8 +134,6 @@ void TcpMgr::initHandlers() {
   handlers_.insert(
       ReqId::ID_CHAT_LOGIN_RSP, [this](ReqId id, int len, QByteArray data) {
         Q_UNUSED(len);
-        qDebug() << "handle id is " << static_cast<int32_t>(id) << " data is "
-                 << data;
         // 将QByteArray转换为QJsonDocument
         QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
         // 检查转换是否成功
@@ -160,7 +160,8 @@ void TcpMgr::initHandlers() {
         UserMgr::getinstance()->set_uid(jsonObj["uid"].toInt());
         UserMgr::getinstance()->set_name(jsonObj["name"].toString());
         UserMgr::getinstance()->set_token(jsonObj["token"].toString());
-        emit sig_swich_chatdlg();
+        emit sig_switch_chatdlg();
+        // qDebug() << "switch chat dlg";
       });
 }
 

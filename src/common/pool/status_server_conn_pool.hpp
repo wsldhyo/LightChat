@@ -6,16 +6,9 @@
 #include "message.pb.h"
 #include <atomic>
 #include <condition_variable>
-#include <grpcpp/grpcpp.h>
 #include <mutex>
 #include <queue>
 
-using grpc::ClientContext;
-using grpc::Status;
-using message::GetChatServerReq;
-using message::LoginReq;
-using message::GetChatServerRsp;
-using message::LoginRsp;
 using message::StatusService;
 
 class StatusConnPool {

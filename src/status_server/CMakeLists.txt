@@ -1,12 +1,6 @@
 
 set(TARGET_NAME "status_server")
 
-
-# Hiredis 配置
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(HIREDIS REQUIRED hiredis)
-
-
 add_executable(${TARGET_NAME}
            main.cc
            status_server.cc
@@ -23,7 +17,6 @@ target_link_libraries(${TARGET_NAME} PRIVATE
     common_pool
     common_manager
     common_utility
-    common_utility_headers
     
 )
 

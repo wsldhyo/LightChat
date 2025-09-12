@@ -5,7 +5,6 @@ add_executable(${TARGET_NAME}
            server.cc
            logic_system.cc
            httpconn.cc
-           vertify_rpc_client.cc
 )
 
 target_include_directories(${TARGET_NAME} PRIVATE
@@ -21,7 +20,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE
     common_pool
     common_manager
     common_utility
-    common_utility_headers
+    common_rpc_client
 )
 
 # 设置可执行文件生成路径

@@ -24,7 +24,11 @@ void Session::start() {
                  });
 }
 
-std::string const &Session::get_uuid() const { return session_id_; }
+std::string const &Session::get_session_id() const { return session_id_; }
+
+void Session::set_user_id(int32_t uid) { user_id_ = uid; }
+
+int32_t Session::get_user_id() const { return user_id_; }
 
 void Session::send(std::string const &msg, std::uint16_t msg_id) {
   this->send(msg.data(), msg.length(), msg_id);
@@ -42,6 +46,7 @@ void Session::send(char const *msg, std::size_t msg_len, std::uint16_t msg_id) {
       return;
     }
     send_que_.push(std::make_unique<SendMsgNode>(msg, msg_len, msg_id));
+    std::cout << "send body len:" << msg_len << " total len:" << send_que_.back()->length_ << '\n';
     msg = send_que_.back()->data_;
   }
 
@@ -51,7 +56,7 @@ void Session::send(char const *msg, std::size_t msg_len, std::uint16_t msg_id) {
   }
   // 异步写
   boost::asio::async_write(
-      peer_, boost::asio::buffer(msg, msg_len),
+      peer_, boost::asio::buffer(msg, msg_len + TCP_MSG_HEAD_MEM_SIZE),
       [self = shared_from_this()](auto ec, auto bytes_transferred) {
         self->send_callback(ec, bytes_transferred);
       });

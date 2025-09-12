@@ -1,5 +1,6 @@
 #include "redis_manager.hpp"
 #include "config_manager.hpp"
+#include "utility/defer.hpp"
 #include "utility/toolfunc.hpp"
 #include <cstring>
 #include <iostream>
@@ -179,14 +180,14 @@ bool RedisMgr::r_pop(std::string const &key, std::string &value) {
   return true;
 }
 
-bool RedisMgr::h_set(std::string const &key, std::string const &hkey,
+bool RedisMgr::h_set(std::string_view key, std::string const &hkey,
                      std::string const &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
     return false;
   }
   auto reply = (redisReply *)redisCommand(
-      connection, "HSET %s %s %s", key.c_str(), hkey.c_str(), value.c_str());
+      connection, "HSET %s %s %s", key.data(), hkey.c_str(), value.c_str());
   if (reply == nullptr || reply->type != REDIS_REPLY_INTEGER) {
     std::cout << "Execut command [ HSet " << key << "  " << hkey << "  "
               << value << " ] failure ! " << std::endl;
@@ -238,7 +239,7 @@ bool RedisMgr::h_set(char const *key, char const *hkey, char const *hvalue,
   return true;
 }
 
-std::string RedisMgr::h_get(std::string const &key, std::string const &hkey) {
+std::string RedisMgr::h_get(std::string_view key, std::string const &hkey) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
     return "";
@@ -248,7 +249,7 @@ std::string RedisMgr::h_get(std::string const &key, std::string const &hkey) {
   size_t argvlen[3];
   argv[0] = "HGET";
   argvlen[0] = 4;
-  argv[1] = key.c_str();
+  argv[1] = key.data();
   argvlen[1] = key.length();
   argv[2] = hkey.c_str();
   argvlen[2] = hkey.length();
@@ -290,6 +291,30 @@ bool RedisMgr::del(std::string const &key) {
   freeReplyObject(reply);
   pool_->return_connection(connection);
   return true;
+}
+
+bool RedisMgr::h_del(std::string_view key, std::string const &field) {
+  auto connect = pool_->get_connection();
+  if (connect == nullptr) {
+    return false;
+  }
+
+  Defer defer([&connect, this]() { pool_->return_connection(connect); });
+
+  redisReply *reply = (redisReply *)redisCommand(connect, "HDEL %s %s",
+                                                 key.data(), field.c_str());
+  if (reply == nullptr) {
+    std::cerr << "HDEL command failed" << std::endl;
+    return false;
+  }
+
+  bool success = false;
+  if (reply->type == REDIS_REPLY_INTEGER) {
+    success = reply->integer > 0;
+  }
+
+  freeReplyObject(reply);
+  return success;
 }
 
 bool RedisMgr::existskey(std::string const &key) {

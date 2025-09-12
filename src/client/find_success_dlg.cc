@@ -14,7 +14,7 @@ FindSuccessDlg::FindSuccessDlg(QWidget *parent)
   // 获取当前应用程序的路径，找到好友头像
   QString app_path = QCoreApplication::applicationDirPath();
   QString pix_path =
-      QDir::toNativeSeparators(app_path + QDir::separator() + "static" +
+      QDir::toNativeSeparators(app_path + QDir::separator() + "resources" +
                                QDir::separator() + "head_1.jpg");
   qDebug() << "pix_path:" << pix_path;
   ;

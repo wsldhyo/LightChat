@@ -1,17 +1,10 @@
 #ifndef RPC_CONN_POOL_HPP
 #define RPC_CONN_POOL_HPP
-#include <grpcpp/grpcpp.h>
 #include "message.grpc.pb.h"
 #include <queue>
 #include <condition_variable>
 
-using grpc::Channel;
-using grpc::Status;
-using grpc::ClientContext;
-
 // messgae.proto定义的类
-using message::GetVertifyReq;  
-using message::GetVertifyRsp;
 using message::VertifyService;
 
 
