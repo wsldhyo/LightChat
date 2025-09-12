@@ -16,11 +16,10 @@ TextBubble::TextBubble(ChatRole role, const QString &text, QWidget *parent)
   text_edit_->setReadOnly(true);
   text_edit_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   text_edit_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
   QFont font("Microsoft YaHei");
   font.setPointSize(12);
   text_edit_->setFont(font);
-
+  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   setPlainText(text);
   setWidget(text_edit_);
   initStyleSheet();
@@ -32,8 +31,8 @@ TextBubble::TextBubble(ChatRole role, const QString &text, QWidget *parent)
             qreal doc_margin = text_edit_->document()->documentMargin();
             int vMargin = this->layout()->contentsMargins().top();
             setFixedHeight(newSize.height() + doc_margin * 2 + vMargin * 2);
-            qDebug() << "adjust text height:"
-                     << newSize.height() + doc_margin * 2 + vMargin * 2;
+            // qDebug() << "adjust text height:"
+            // << newSize.height() + doc_margin * 2 + vMargin * 2;
             // 强制父布局立即刷新
             if (auto lay = this->parentWidget() ? this->parentWidget()->layout()
                                                 : nullptr) {
@@ -52,18 +51,22 @@ void TextBubble::setPlainText(const QString &text) {
   qreal doc_margin = text_edit_->document()->documentMargin();
   int margin_left = this->layout()->contentsMargins().left();
   int margin_right = this->layout()->contentsMargins().right();
-  QFontMetricsF fm(text_edit_->font());
-  QTextDocument *doc = text_edit_->document();
 
-  int max_width = 0;
-  for (QTextBlock it = doc->begin(); it != doc->end(); it = it.next()) {
-    int txtW = int(fm.horizontalAdvance(it.text()));
-    max_width = std::max(max_width, txtW);
-  }
+  QFontMetrics fm(text_edit_->font());
+  int txtW = fm.horizontalAdvance(text);
 
-  // 设置最大宽度，但不限制最小宽度
-  setMaximumWidth(max_width + doc_margin * 2 + margin_left + margin_right + 20);
-  qDebug() << "text bubble max width:" << maximumWidth();
+  // QTextEdit 边框宽度
+  int frame_w = text_edit_->frameWidth();
+
+  // 额外留 2~4 像素，避免因字体度量误差导致换行
+  int extra = 4;
+
+  int bubble_width = txtW + int(doc_margin * 2) + margin_left + margin_right +
+                     frame_w * 2 + extra;
+
+  setMaximumWidth(bubble_width);
+  // qDebug() << "bubble max width" << bubble_width;
+
 }
 
 // 样式

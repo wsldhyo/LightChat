@@ -10,16 +10,14 @@ class TextBubble : public BubbleFrame {
   Q_OBJECT
 public:
   TextBubble(ChatRole role, const QString &text, QWidget *parent = nullptr);
-protected:
-  //void resizeEvent(QResizeEvent *event) override;
-  //bool eventFilter(QObject *o, QEvent *e) override;
+
+  void setPlainText(const QString &text);
 
 private:
-  void adjustTextHeight();
-  void setPlainText(const QString &text);
   void initStyleSheet();
 
 private:
   QTextEdit *text_edit_;
 };
+
 #endif

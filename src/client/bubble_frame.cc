@@ -5,49 +5,42 @@
 
 //连接头像框与气泡框的小三角的宽度
 BubbleFrame::BubbleFrame(ChatRole role, QWidget *parent)
-    : QFrame(parent), role_(role), margin_(3) {
-  hlayout_ = new QHBoxLayout();
-  if (role_ == ChatRole::SELF) {
+    : QFrame(parent), m_role(role), m_margin(3) {
+  m_pHLayout = new QHBoxLayout();
+  if (m_role == ChatRole::SELF)
+    m_pHLayout->setContentsMargins(m_margin, m_margin,
+                                   BUBBLE_TRIANGLE_WIDTH + m_margin, m_margin);
+  else
+    m_pHLayout->setContentsMargins(BUBBLE_TRIANGLE_WIDTH + m_margin, m_margin,
+                                   m_margin, m_margin);
 
-    // 自己发送的消息，头像框在右边，小三角也在消息右边，
-    // 内容到右边距为margin_ + BUBBLE_TRIANGLE_WIDTH
-    hlayout_->setContentsMargins(margin_, margin_, BUBBLE_TRIANGLE_WIDTH + margin_,
-                                 margin_);
-  } else {
-
-    // 他人发送的消息，头像框在左边，小三角也在消息主题左边，
-    // 内容到右边距为margin_ + BUBBLE_TRIANGLE_WIDTH
-    hlayout_->setContentsMargins(BUBBLE_TRIANGLE_WIDTH + margin_, margin_, margin_,
-                                 margin_);
-  }
-
-  this->setLayout(hlayout_);
+  this->setLayout(m_pHLayout);
 }
 
 void BubbleFrame::setMargin(int margin) {
   Q_UNUSED(margin);
-  // margin_ = margin;
+  // m_margin = margin;
 }
 
 void BubbleFrame::setWidget(QWidget *w) {
-  if (hlayout_->count() > 0)
+  if (m_pHLayout->count() > 0)
     return;
   else {
-    hlayout_->addWidget(w);
+    m_pHLayout->addWidget(w);
   }
 }
-// 重写paintEvent，绘制气泡聊天框
+
 void BubbleFrame::paintEvent(QPaintEvent *e) {
   QPainter painter(this);
-  painter.setPen(Qt::NoPen); // 不带边框
+  painter.setPen(Qt::NoPen);
 
-  if (role_ == ChatRole::OTHERS) {
-    QColor bk_color(Qt::white); // 他人消息，背景白色
+  if (m_role == ChatRole::OTHERS) {
+    //画气泡
+    QColor bk_color(Qt::white);
     painter.setBrush(QBrush(bk_color));
-
-    //画气泡， 左边预留小三角形的宽度，右边占满父Widget
-    QRect bk_rect = QRect(BUBBLE_TRIANGLE_WIDTH, 0, this->width() - BUBBLE_TRIANGLE_WIDTH,
-                          this->height());
+    QRect bk_rect =
+        QRect(BUBBLE_TRIANGLE_WIDTH, 0, this->width() - BUBBLE_TRIANGLE_WIDTH,
+              this->height());
     painter.drawRoundedRect(bk_rect, 5, 5);
     //画小三角
     QPointF points[3] = {
@@ -58,10 +51,11 @@ void BubbleFrame::paintEvent(QPaintEvent *e) {
     };
     painter.drawPolygon(points, 3);
   } else {
-    QColor bk_color(158, 234, 106); // 自己消息，背景绿色
+    QColor bk_color(158, 234, 106);
     painter.setBrush(QBrush(bk_color));
     //画气泡
-    QRect bk_rect = QRect(0, 0, this->width() - BUBBLE_TRIANGLE_WIDTH, this->height());
+    QRect bk_rect =
+        QRect(0, 0, this->width() - BUBBLE_TRIANGLE_WIDTH, this->height());
     painter.drawRoundedRect(bk_rect, 5, 5);
     //画三角
     QPointF points[3] = {

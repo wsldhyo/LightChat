@@ -1,18 +1,16 @@
-#ifndef TEXT_BUBBLE_HPP
-#define TEXT_BUBBLE_HPP
+﻿#ifndef TEXTBUBBLE_H
+#define TEXTBUBBLE_H
+
 #include "bubble_frame.hpp"
 class QTextEdit;
-/**
- * @brief 纯文本气聊天泡框
- *
- */
 class TextBubble : public BubbleFrame {
   Q_OBJECT
 public:
   TextBubble(ChatRole role, const QString &text, QWidget *parent = nullptr);
+
 protected:
-  //void resizeEvent(QResizeEvent *event) override;
-  //bool eventFilter(QObject *o, QEvent *e) override;
+  bool eventFilter(QObject *o, QEvent *e) override;
+  void resizeEvent(QResizeEvent *event) override;
 
 private:
   void adjustTextHeight();
@@ -20,6 +18,7 @@ private:
   void initStyleSheet();
 
 private:
-  QTextEdit *text_edit_;
+  QTextEdit *m_pTextEdit;
 };
-#endif
+
+#endif // TEXTBUBBLE_H

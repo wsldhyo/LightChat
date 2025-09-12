@@ -38,46 +38,6 @@ file(WRITE ${QRC_FILE} "${QRC_CONTENT}")
 qt_add_resources(CLIENT_RESOURCES ${QRC_FILE})
 
 
-
-
-function(copy_headers target)
-    set(dst_files "")
-    foreach(header IN LISTS ARGN)
-        get_filename_component(fname ${header} NAME)
-        set(dst ${CMAKE_BINARY_DIR}/${fname})
-        add_custom_command(
-            OUTPUT ${dst}
-            COMMAND ${CMAKE_COMMAND} -E copy ${header} ${dst}
-            DEPENDS ${header}
-        )
-        list(APPEND dst_files ${dst})
-    endforeach()
-    add_custom_target(${target} ALL DEPENDS ${dst_files})
-endfunction()
-
-#拷贝到构建目录，让QtDebugger找到对应自定义类型，以在ui中提升类型
-copy_headers(copy_my_headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/client_constant.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clicked_label.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/timer_btn.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clicked_btn.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/customize_edit.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/chat_user_list.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/chat_page.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/chat_view.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/msg_text_edit.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/client_struct_def.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/state_widget.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/search_list.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clicked_once_label.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/friend_label.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/apply_friend_dialog.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/contact_user_list.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/new_friend_apply_list.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/new_friend_apply_page.hpp
-)
-
-
 function(copy_heads target)
     set(dst_files "")
 
@@ -149,8 +109,10 @@ add_executable(${TARGET_NAME}
 )
 
 # 包含构建目录，以便找到 ui_*.h
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_BINARY_DIR})
-
+target_include_directories(${TARGET_NAME} PRIVATE 
+    ${CMAKE_BINARY_DIR} #Qt Designer生成的ui_xxx.h路径
+    ${CMAKE_CURRENT_SOURCE_DIR} #Qt Designer提升组件时，告知其到源码路径寻找所需头文件   
+)
 # 编译选项
 target_compile_options(${TARGET_NAME} PRIVATE -g)
 

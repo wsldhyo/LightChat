@@ -10,20 +10,21 @@ class QHBoxLayout;
  * 图片聊天气泡PictureBubble等
  * 
  */
-class BubbleFrame : public QFrame
-{
-    Q_OBJECT
+class BubbleFrame : public QFrame {
+  Q_OBJECT
 public:
-    BubbleFrame(ChatRole role, QWidget *parent = nullptr);
-    void setMargin(int margin);
-    //inline int margin(){return margin;}
-    void setWidget(QWidget *w);
+  BubbleFrame(ChatRole role, QWidget *parent = nullptr);
+  void setMargin(int margin);
+  // inline int margin(){return margin;}
+  void setWidget(QWidget *w);
+
 protected:
-    void paintEvent(QPaintEvent *e);
+  void paintEvent(QPaintEvent *e);
+
 private:
-    QHBoxLayout *m_pHLayout;
-    ChatRole m_role;
-     int      m_margin;
+  QHBoxLayout *hlayout_;
+  ChatRole role_;
+  int margin_;
 };
 
 #endif
