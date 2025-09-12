@@ -48,6 +48,7 @@ enum class ChatRole {
 
 constexpr int PIC_MAX_WIDTH{160};
 constexpr int PIC_MAX_HEIGHT{90};
+constexpr int BUBBLE_TRIANGLE_WIDTH = 8; //聊天气泡的三角宽
 
 // 申请好友框的最小长度
 constexpr int MIN_APPLY_LABEL_ED_LEN{40}; 

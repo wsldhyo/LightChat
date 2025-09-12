@@ -6,11 +6,11 @@ class QTextEdit;
 class TextBubble : public BubbleFrame {
   Q_OBJECT
 public:
-  TextBubble(ChatRole role, const QString &text, int minWidth, QWidget *parent = nullptr);
-  void setFrameMiniWidth(int width);
+  TextBubble(ChatRole role, const QString &text, QWidget *parent = nullptr);
+
 protected:
-  //void resizeEvent(QResizeEvent *event) override;
-  //bool eventFilter(QObject *o, QEvent *e) override;
+  bool eventFilter(QObject *o, QEvent *e) override;
+  void resizeEvent(QResizeEvent *event) override;
 
 private:
   void adjustTextHeight();
@@ -18,6 +18,7 @@ private:
   void initStyleSheet();
 
 private:
-  QTextEdit *text_edit_;
+  QTextEdit *m_pTextEdit;
 };
+
 #endif // TEXTBUBBLE_H

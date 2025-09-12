@@ -1,12 +1,13 @@
 #include "chat_page.hpp"
 #include "chat_item_base.hpp"
 #include "client_struct_def.hpp"
+#include "msg_text_edit.hpp"
 #include "picture_bubble.hpp"
 #include "text_bubble.hpp"
 #include "ui_chatpage.h"
+#include <QDebug>
 #include <QPainter>
 #include <QStyleOption>
-#include "msg_text_edit.hpp"
 ChatPage::ChatPage(QWidget *parent) : QWidget(parent), ui(new Ui::ChatPage) {
   ui->setupUi(this);
   //设置按钮样式
@@ -15,8 +16,10 @@ ChatPage::ChatPage(QWidget *parent) : QWidget(parent), ui(new Ui::ChatPage) {
 
   //设置图标样式
   ui->emo_lb->set_state("normal", "hover", "press", "normal", "hover", "press");
-  ui->file_lb->set_state("normal", "hover", "press", "normal", "hover", "press");
-  connect(ui->chatEdit, &MessageTextEdit::send, this, &ChatPage::on_send_btn_clicked);
+  ui->file_lb->set_state("normal", "hover", "press", "normal", "hover",
+                         "press");
+  connect(ui->chatEdit, &MessageTextEdit::send, this,
+          &ChatPage::on_send_btn_clicked);
 }
 
 ChatPage::~ChatPage() { delete ui; }
@@ -42,7 +45,10 @@ void ChatPage::on_send_btn_clicked() {
     pChatItem->setUserIcon(QPixmap(userIcon));
     QWidget *pBubble = nullptr;
     if (type == "text") {
-      pBubble = new TextBubble(role, msgList[i].content);
+
+      pBubble =
+          new TextBubble(role, msgList[i].content, pChatItem->name_width());
+      qDebug() << "bubble" << pBubble->width();
     } else if (type == "image") {
       pBubble = new PictureBubble(QPixmap(msgList[i].content), role);
     } else if (type == "file") {

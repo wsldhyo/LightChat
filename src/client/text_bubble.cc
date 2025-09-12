@@ -1,74 +1,94 @@
-#include "text_bubble.hpp"
+﻿#include "text_bubble.hpp"
 #include <QDebug>
 #include <QFont>
 #include <QFontMetricsF>
 #include <QHBoxLayout>
+#include <QPlainTextDocumentLayout>
 #include <QTextBlock>
 #include <QTextDocument>
 #include <QTextEdit>
 #include <QTextLayout>
-#include <QTimer>
-TextBubble::TextBubble(ChatRole role, const QString &text, QWidget *parent)
+
+// 构造函数
+TextBubble::TextBubble(ChatRole role, const QString &text, int minWidth,
+                       QWidget *parent)
     : BubbleFrame(role, parent) {
+  setMinimumWidth(minWidth);
   text_edit_ = new QTextEdit();
   text_edit_->setReadOnly(true);
   text_edit_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   text_edit_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  text_edit_->installEventFilter(this);
   QFont font("Microsoft YaHei");
   font.setPointSize(12);
   text_edit_->setFont(font);
+  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   setPlainText(text);
   setWidget(text_edit_);
   initStyleSheet();
+
+  // 文本文档排版完成后，自动调整气泡高度
+  connect(text_edit_->document()->documentLayout(),
+          &QAbstractTextDocumentLayout::documentSizeChanged, this,
+          [this](const QSizeF &newSize) {
+            qreal doc_margin = text_edit_->document()->documentMargin();
+            int vMargin = this->layout()->contentsMargins().top();
+            setFixedHeight(newSize.height() + doc_margin * 2 + vMargin * 2);
+            qDebug() << "adjust text height:"
+                     << newSize.height() + doc_margin * 2 + vMargin * 2;
+            // 强制父布局立即刷新
+            if (auto lay = this->parentWidget() ? this->parentWidget()->layout()
+                                                : nullptr) {
+              lay->invalidate();
+              lay->activate();
+            }
+            this->updateGeometry();
+          });
 }
 
-bool TextBubble::eventFilter(QObject *o, QEvent *e) {
-  if (text_edit_ == o && e->type() == QEvent::Paint) {
-    adjustTextHeight(); // PaintEvent中设置
-  }
-  return BubbleFrame::eventFilter(o, e);
+void TextBubble::setFrameMiniWidth(int width) {
+  BubbleFrame::setMinimumWidth(width);
+  update();
 }
 
+// 设置文本（只负责宽度，不再强制算高度）
 void TextBubble::setPlainText(const QString &text) {
   text_edit_->setPlainText(text);
-  // text_edit_->setHtml(text);
-  //找到段落中最大宽度
+
+  // 计算文本的理想宽度
   qreal doc_margin = text_edit_->document()->documentMargin();
   int margin_left = this->layout()->contentsMargins().left();
   int margin_right = this->layout()->contentsMargins().right();
-  QFontMetricsF fm(text_edit_->font());
-  QTextDocument *doc = text_edit_->document();
-  int max_width = 0;
-  //遍历每一段找到 最宽的那一段
-  for (QTextBlock it = doc->begin(); it != doc->end();
-       it = it.next()) //字体总长
-  {
-    int txtW = int(fm.width(it.text()));
-    max_width = max_width < txtW ? txtW : max_width; //找到最长的那段
+
+  QFontMetrics fm(text_edit_->font());
+  int txtW = fm.horizontalAdvance(text);
+
+  // QTextEdit 边框宽度
+  int frame_w = text_edit_->frameWidth();
+
+  // 额外留 2~4 像素，避免因字体度量误差导致换行
+  int extra = 4;
+
+  int bubble_width = txtW + int(doc_margin * 2) + margin_left + margin_right +
+                     frame_w * 2 + extra;
+
+  setMaximumWidth(bubble_width);
+  if (bubble_width < minimumWidth()) {
+    // 设置最大宽度，但不限制最小宽度
+    qDebug() << "text bubble max width:" << maximumWidth() << "min width"
+             << minimumWidth();
+    auto layout = qobject_cast<QHBoxLayout *>(this->layout());
+    if (layout) {
+      if (m_role == ChatRole::SELF) {
+        layout->setContentsMargins(minimumWidth() - bubble_width , 0, 0, 0);
+      } else {
+        layout->setContentsMargins(0, 0, minimumWidth() - bubble_width + 3, 0);
+      }
+    }
   }
-  //设置这个气泡的最大宽度 只需要设置一次
-  setMaximumWidth(max_width + doc_margin * 2 +
-                  (margin_left + margin_right)); //设置最大宽度
 }
 
-void TextBubble::adjustTextHeight() {
-  qreal doc_margin =
-      text_edit_->document()->documentMargin(); //字体到边框的距离默认为4
-  QTextDocument *doc = text_edit_->document();
-  qreal text_height = 0;
-  //把每一段的高度相加=文本高
-  for (QTextBlock it = doc->begin(); it != doc->end(); it = it.next()) {
-    QTextLayout *pLayout = it.layout();
-    QRectF text_rect = pLayout->boundingRect(); //这段的rect
-    text_height += text_rect.height();
-  }
-  int vMargin = this->layout()->contentsMargins().top();
-  //设置这个气泡需要的高度 文本高+文本边距+TextEdit边框到气泡边框的距离
-  qDebug() << "adjust text height:" << text_height + doc_margin * 2 + vMargin * 2;
-  setFixedHeight(text_height + doc_margin * 2 + vMargin * 2);
-}
-
+// 样式
 void TextBubble::initStyleSheet() {
-  text_edit_->setStyleSheet("QTextEdit{background:transparent;border:none}");
+  text_edit_->setStyleSheet(
+      "QTextEdit { background: transparent; border: none }");
 }

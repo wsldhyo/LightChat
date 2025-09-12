@@ -1,30 +1,23 @@
-#ifndef BUBBLE_FRAME_HPP
-#define BUBBLE_FRAME_HPP
+﻿#ifndef BUBBLE_H
+#define BUBBLE_H
 
-#include "client_constant.hpp"
 #include <QFrame>
+#include "client_constant.hpp"
 class QHBoxLayout;
-
-/**
- * @brief 聊天气泡的基类，基于此类可以实现各类聊天气泡，如纯文本聊天气泡TextBubble、
- * 图片聊天气泡PictureBubble等
- * 
- */
-class BubbleFrame : public QFrame {
-  Q_OBJECT
+class BubbleFrame : public QFrame
+{
+    Q_OBJECT
 public:
-  BubbleFrame(ChatRole role, QWidget *parent = nullptr);
-  void setMargin(int margin);
-  // inline int margin(){return margin;}
-  void setWidget(QWidget *w);
-
+    BubbleFrame(ChatRole role, QWidget *parent = nullptr);
+    void setMargin(int margin);
+    //inline int margin(){return margin;}
+    void setWidget(QWidget *w);
 protected:
-  void paintEvent(QPaintEvent *e);
-
+    void paintEvent(QPaintEvent *e);
+    ChatRole m_role;
 private:
-  QHBoxLayout *hlayout_;
-  ChatRole role_;
-  int margin_;
+    QHBoxLayout *m_pHLayout;
+     int      m_margin;
 };
 
-#endif
+#endif // BUBBLE_H
