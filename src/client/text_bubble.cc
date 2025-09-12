@@ -11,8 +11,7 @@
 #include <QTimer>
 #include <QtGlobal>
 // 构造函数
-TextBubble::TextBubble(ChatRole role, const QString &text,
-                       QWidget *parent)
+TextBubble::TextBubble(ChatRole role, const QString &text, QWidget *parent)
     : BubbleFrame(role, parent) {
   text_edit_ = new QTextEdit();
   text_edit_->setReadOnly(true);
@@ -33,8 +32,8 @@ TextBubble::TextBubble(ChatRole role, const QString &text,
             qreal doc_margin = text_edit_->document()->documentMargin();
             int vMargin = this->layout()->contentsMargins().top();
             setFixedHeight(newSize.height() + doc_margin * 2 + vMargin * 2);
-            qDebug() << "adjust text height:"
-                     << newSize.height() + doc_margin * 2 + vMargin * 2;
+            // qDebug() << "adjust text height:"
+            // << newSize.height() + doc_margin * 2 + vMargin * 2;
             // 强制父布局立即刷新
             if (auto lay = this->parentWidget() ? this->parentWidget()->layout()
                                                 : nullptr) {
@@ -72,20 +71,8 @@ void TextBubble::setPlainText(const QString &text) {
                      frame_w * 2 + extra;
 
   setMaximumWidth(bubble_width);
-  qDebug() << "bubble max width" << bubble_width;
-//  if (bubble_width < minimumWidth()) {
-//    // 设置最大宽度，但不限制最小宽度
-//    qDebug() << "text bubble max width:" << maximumWidth() << "min width"
-//             << minimumWidth();
-//    auto layout = qobject_cast<QHBoxLayout *>(this->layout());
-//    if (layout) {
-//      if (m_role == ChatRole::SELF) {
-//        layout->setContentsMargins(minimumWidth() - bubble_width , 0, 0, 0);
-//      } else {
-//        layout->setContentsMargins(0, 0, minimumWidth() - bubble_width + 3, 0);
-//      }
-//    }
-//  }
+  // qDebug() << "bubble max width" << bubble_width;
+
 }
 
 // 样式
