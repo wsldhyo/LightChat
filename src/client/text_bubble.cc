@@ -72,6 +72,7 @@ void TextBubble::setPlainText(const QString &text) {
                      frame_w * 2 + extra;
 
   setMaximumWidth(bubble_width);
+  qDebug() << "bubble max width" << bubble_width;
 //  if (bubble_width < minimumWidth()) {
 //    // 设置最大宽度，但不限制最小宽度
 //    qDebug() << "text bubble max width:" << maximumWidth() << "min width"

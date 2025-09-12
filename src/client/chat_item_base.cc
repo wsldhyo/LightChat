@@ -21,7 +21,7 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
   pGLayout->setHorizontalSpacing(3);
   pGLayout->setMargin(3);
   QSpacerItem *pSpacer =
-      new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+      new QSpacerItem(40, 20, QSizePolicy::Preferred, QSizePolicy::Minimum);
   if (m_role == ChatRole::SELF) {
     m_pNameLabel->setContentsMargins(0, 0, 8, 0);
     m_pNameLabel->setAlignment(Qt::AlignRight);
@@ -36,7 +36,7 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
     pGLayout->addItem(pSpacer, 1, 0, 1, 1);
     pGLayout->addLayout(cellLayout, 1, 1, 1, 1);
     pGLayout->setColumnStretch(0, 2);
-    pGLayout->setColumnStretch(1, 3);
+    pGLayout->setColumnStretch(1, 8);
   } else {
     m_pNameLabel->setContentsMargins(8, 0, 0, 0);
     m_pNameLabel->setAlignment(Qt::AlignLeft);
@@ -51,7 +51,7 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
 
     pGLayout->addLayout(cellLayout, 1, 1, 1, 1);
     pGLayout->addItem(pSpacer, 2, 2, 1, 1);
-    pGLayout->setColumnStretch(1, 3);
+    pGLayout->setColumnStretch(1, 8);
     pGLayout->setColumnStretch(2, 2);
   }
   this->setLayout(pGLayout);

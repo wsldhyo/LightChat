@@ -47,7 +47,7 @@ void ChatPage::on_send_btn_clicked() {
     if (type == "text") {
 
       pBubble = new TextBubble(role, msgList[i].content);
-      qDebug() << "bubble" << pBubble->width();
+      qDebug() << "bubble width" << pBubble->width() << "chat view width:" << ui->chat_data_list->width();
       if(pBubble->width() < pChatItem->name_width()){
         pChatItem->set_spacer_width(pChatItem->name_width() - pBubble->width());
       }
