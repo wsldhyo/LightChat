@@ -46,9 +46,11 @@ void ChatPage::on_send_btn_clicked() {
     QWidget *pBubble = nullptr;
     if (type == "text") {
 
-      pBubble =
-          new TextBubble(role, msgList[i].content);
-           qDebug() << "bubble" << pBubble->width();
+      pBubble = new TextBubble(role, msgList[i].content);
+      qDebug() << "bubble" << pBubble->width();
+      if(pBubble->width() < pChatItem->name_width()){
+        pChatItem->set_spacer_width(pChatItem->name_width() - pBubble->width());
+      }
     } else if (type == "image") {
       pBubble = new PictureBubble(QPixmap(msgList[i].content), role);
     } else if (type == "file") {
