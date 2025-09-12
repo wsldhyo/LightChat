@@ -74,8 +74,11 @@ public:
    * @brief 获取该会话的唯一标识符（UUID）
    * @return 会话 UUID 字符串
    */
-  std::string const &get_uuid() const;
+  std::string const &get_session_id() const;
 
+  void set_user_id(int32_t uid);
+
+  int32_t get_user_id()const;
   /**
    * @brief 发送字符串消息,
    * @param msg 消息内容
@@ -222,5 +225,6 @@ private:
   std::mutex send_que_mutex_;                         ///< 发送队列互斥锁
   std::queue<std::unique_ptr<SendMsgNode>> send_que_; ///< 发送队列
   std::atomic_bool closing_{false};                   ///< 会话是否正在关闭（幂等保护）
+  int32_t user_id_;
 };
 #endif

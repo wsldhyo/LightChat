@@ -6,7 +6,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <climits>
-
+#include "utility/constant.hpp"
 std::string generate_unique_string() {
   // 创建UUID对象
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -36,40 +36,33 @@ Status StatusServer::GetChatServer(ServerContext *context,
 ChatServer StatusServer::getChatServer() {
   std::lock_guard<std::mutex> guard(server_mtx_);
   auto minServer = servers_.begin()->second;
+  auto count_str = RedisMgr::getinstance()->h_get(REDIS_LOGIN_COUNT_PREFIX, minServer.name);
+  if (count_str.empty()) {
+    //不存在则默认设置为最大
+    minServer.con_count = INT_MAX;
+  } else {
+    minServer.con_count = std::stoi(count_str);
+  }
 
-  for (auto const &server : servers_) {
+  // 使用范围基于for循环
+  for (auto &server : servers_) {
+
+    if (server.second.name == minServer.name) {
+      continue;
+    }
+
+    auto count_str =
+        RedisMgr::getinstance()->h_get(REDIS_LOGIN_COUNT_PREFIX, server.second.name);
+    if (count_str.empty()) {
+      server.second.con_count = INT_MAX;
+    } else {
+      server.second.con_count = std::stoi(count_str);
+    }
+
     if (server.second.con_count < minServer.con_count) {
       minServer = server.second;
     }
   }
-  // auto count_str = RedisMgr::GetInstance()->HGet(LOGIN_COUNT,
-  // minServer.name); if (count_str.empty()) {
-  //	//不存在则默认设置为最大
-  //	minServer.con_count = INT_MAX;
-  // }
-  // else {
-  //	minServer.con_count = std::stoi(count_str);
-  // }
-
-  //// 使用范围基于for循环
-  // for ( auto& server : _servers) {
-  //
-  //	if (server.second.name == minServer.name) {
-  //		continue;
-  //	}
-
-  //	auto count_str = RedisMgr::GetInstance()->HGet(LOGIN_COUNT,
-  //server.second.name); 	if (count_str.empty()) { 		server.second.con_count =
-  //INT_MAX;
-  //	}
-  //	else {
-  //		server.second.con_count = std::stoi(count_str);
-  //	}
-
-  //	if (server.second.con_count < minServer.con_count) {
-  //		minServer = server.second;
-  //	}
-  //}
 
   return minServer;
 }
@@ -80,7 +73,7 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
   auto token = request->token();
 
   std::string uid_str = std::to_string(uid);
-  std::string token_key = std::string(USERTOKENPREFIX) + uid_str;
+  std::string token_key = std::string(REDIS_USER_TOKEN_PREFIX) + uid_str;
   std::string token_value = "";
   bool success = RedisMgr::getinstance()->get(token_key, token_value);
   if (!success) {
@@ -94,6 +87,9 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
     reply->set_error(static_cast<int32_t>(ErrorCodes::TOKEN_INVALID));
     return Status::OK;
   }
+
+
+
   reply->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
   reply->set_uid(uid);
   reply->set_token(token);
@@ -102,7 +98,7 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
 
 void StatusServer::insertToken(int uid, std::string token) {
   std::string uid_str = std::to_string(uid);
-  std::string token_key = std::string(USERTOKENPREFIX) + uid_str;
+  std::string token_key = std::string(REDIS_USER_TOKEN_PREFIX) + uid_str;
   RedisMgr::getinstance()->set(token_key, token);
 }
 

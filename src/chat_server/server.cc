@@ -1,6 +1,7 @@
 #include "server.hpp"
 #include "pool/iocontext_pool.hpp"
 #include "session.hpp"
+#include "user_manager.hpp"
 #include <iostream>
 Server::Server(asio::io_context &ioc, int port)
     : acceptor_(ioc, tcp::endpoint(tcp::v4(), port)) {
@@ -9,9 +10,14 @@ Server::Server(asio::io_context &ioc, int port)
 
 Server::~Server() { close(); }
 
-void Server::remove_session(std::string const &uuid) {
+void Server::remove_session(std::string const &session_id) {
+  // 同步移除UserManager中的绑定信息
+  if (sessions_.find(session_id) != sessions_.end()) {
+    UserManager::getinstance()->remove_user_session(
+        sessions_[session_id]->get_user_id());
+  }
   std::lock_guard<std::mutex> lock(mutex_);
-  sessions_.erase(uuid);
+  sessions_.erase(session_id);
 }
 // 专门用于 Session 请求移除 id 的方法（更语义化）
 void Server::post_remove_session(std::string id) {
@@ -24,7 +30,8 @@ void Server::start_accept() {
 
   auto self = shared_from_this();
   auto &ioc = IoContextPool::getinstance()->get_iocontext();
-  auto peer = std::make_shared<tcp::socket>(ioc); // 这里要用shared_ptr，保证回调调用前socket有效，不能move到lambda内
+  auto peer = std::make_shared<tcp::socket>(
+      ioc); // 这里要用shared_ptr，保证回调调用前socket有效，不能move到lambda内
   acceptor_.async_accept(*peer, [self, peer](boost::system::error_code ec) {
     if (!ec) {
       std::cout << "new connection reach, peer:" << peer->remote_endpoint()
@@ -33,7 +40,7 @@ void Server::start_accept() {
       {
         std::lock_guard<std::mutex> lock(self->mutex_);
         self->sessions_.insert(
-            std::make_pair(new_session->get_uuid(), new_session));
+            std::make_pair(new_session->get_session_id(), new_session));
       }
       new_session->start();
     } else {

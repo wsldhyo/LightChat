@@ -19,6 +19,7 @@ MysqlConnPool::MysqlConnPool(const std::string &url, const std::string &user,
 
 MysqlConnPool::~MysqlConnPool() {
   std::unique_lock<std::mutex> lock(mutex_);
+  close();
   while (!pool_.empty()) {
     pool_.pop();
   }

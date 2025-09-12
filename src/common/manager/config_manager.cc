@@ -42,7 +42,7 @@ std::string ConfigManager::get_value(const std::string &section,
 }
 #include <map>
 
-ErrorCodes ConfigManager::parse() {
+ErrorCodes ConfigManager::parse(std::string_view path) {
   // 获取可执行文件路径下ini的路径
   std::string exe_path_str;
   auto error_code = get_executable_path(exe_path_str);
@@ -52,7 +52,7 @@ ErrorCodes ConfigManager::parse() {
   }
 
   std::filesystem::path config_path(exe_path_str);
-  config_path = config_path.parent_path() / "config.ini";
+  config_path = config_path.parent_path() / path;
 
   std::cout << "ConfigMgr parse ini:" << config_path << '\n';
   // 使用boost库解析ini文件

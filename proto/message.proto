@@ -26,21 +26,111 @@ message LoginRsp {
 }
 
 
+
+service StatusService {
+  rpc GetChatServer (GetChatServerReq) returns (GetChatServerRsp);
+  rpc Login (LoginReq) returns (LoginRsp);
+}
+
+
  // 查询服务对端的聊天服务器（两个聊天客户端可能由不同的聊天服务器提供服务）
+// 获取对端聊天服务器请求
 message GetChatServerReq {
   int32 uid = 1;
 }
 
-
-// 查询聊天服务器的响应消息
+// 获取对端聊天服务器响应
 message GetChatServerRsp {
   int32 error = 1;
   string host = 2;
   string port = 3;
   string token = 4;
 }
+// 添加好友请求
+message AddFriendReq {
+	int32  applyuid = 1;
+	string name = 2;
+	string desc = 3;
+	string icon = 4;
+	string nick = 5;
+	int32  sex = 6;
+	int32  touid = 7;
+}
+//添加好友回包
+message AddFriendRsp {
+	int32 error = 1;
+	int32 applyuid = 2;
+	int32 touid = 3;
+}
 
-service StatusService {
-  rpc GetChatServer (GetChatServerReq) returns (GetChatServerRsp);
-  rpc Login (LoginReq) returns (LoginRsp);
+// 认证对方好友申请的请求
+message AuthFriendReq{
+	int32 fromuid = 1;
+	int32 touid = 2;
+}
+// 认证对方好友申请的回包
+message AuthFriendRsp{
+	int32 error = 1;
+	int32 fromuid = 2;
+	int32 touid = 3;
+}
+
+// 答复好友申请的请求（答复对方认证结果， 同意或者不同意成为好友）
+message RplyFriendReq {
+	int32 rplyuid = 1;
+	bool  agree = 2;
+	int32 touid = 3;
+}
+// 答复好友申请的回包
+message RplyFriendRsp {
+	int32 error = 1;
+	int32 rplyuid = 2;
+	int32 touid = 3;
+}
+
+
+
+// 发送聊天消息请求
+message SendChatMsgReq{
+		int32 fromuid = 1;
+		int32 touid = 2;
+		string message = 3;
+}
+
+// 发送聊天消息回包
+message SendChatMsgRsp{
+		int32 error = 1;
+		int32 fromuid = 2;
+		int32 touid = 3;
+}
+
+// 文本消息内容
+message TextChatData{
+	string msgid = 1;
+	string msgcontent = 2;
+}
+
+// 文本消息发送请求
+message TextChatMsgReq {
+	int32 fromuid = 1;
+    int32 touid = 2;
+	repeated TextChatData textmsgs = 3;
+}
+
+
+
+// 文本消息回包
+message TextChatMsgRsp {
+	int32 error = 1;
+	int32 fromuid = 2;
+	int32 touid = 3; 
+	repeated TextChatData textmsgs = 4;
+}
+
+service ChatService {
+	rpc NotifyAddFriend(AddFriendReq) returns (AddFriendRsp) {}
+	rpc RplyAddFriend(RplyFriendReq) returns (RplyFriendRsp) {}
+	rpc SendChatMsg(SendChatMsgReq) returns (SendChatMsgRsp) {}
+	rpc NotifyAuthFriend(AuthFriendReq) returns (AuthFriendRsp) {}
+	rpc NotifyTextChatMsg(TextChatMsgReq) returns (TextChatMsgRsp){}
 }

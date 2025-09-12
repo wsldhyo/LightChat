@@ -9,7 +9,8 @@
 #include "utility/defer.hpp"
 void runserver() {
   auto cfg = ConfigManager::getinstance();
-  cfg->parse();
+  cfg->parse("status_server_config.ini"sv);
+  cfg->parse("basic_config.ini"sv);
   cfg->print();
   std::string server_address((*cfg)["StatusServer"]["host"] + ":" +
                              (*cfg)["StatusServer"]["port"]);

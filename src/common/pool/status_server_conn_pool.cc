@@ -1,4 +1,5 @@
 #include "status_server_conn_pool.hpp"
+#include <grpcpp/grpcpp.h>
 using grpc::Channel;
 
 StatusConnPool::StatusConnPool(size_t pool_size, std::string host,
@@ -15,9 +16,6 @@ StatusConnPool::StatusConnPool(size_t pool_size, std::string host,
 StatusConnPool::~StatusConnPool() {
   std::lock_guard<std::mutex> lock(mutex_);
   close();
-  while (!connections_.empty()) {
-    connections_.pop();
-  }
 }
 
 std::unique_ptr<StatusService::Stub> StatusConnPool::get_connection() {

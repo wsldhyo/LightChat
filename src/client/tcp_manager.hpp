@@ -21,7 +21,7 @@ signals:
   void sig_con_success(bool bsuccess);
   void sig_send_data(ReqId reqId, QString data);
   void sig_login_failed(int error);
-  void sig_swich_chatdlg();
+  void sig_switch_chatdlg();
   // 搜索用户
   void sig_user_search(std::shared_ptr<SearchInfo>);
   // 申请添加对方为好友

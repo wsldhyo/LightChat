@@ -5,8 +5,6 @@
 #include <grpcpp/grpcpp.h>
 #include <mutex>
 
-using grpc::Server;
-using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 using message::GetChatServerReq;

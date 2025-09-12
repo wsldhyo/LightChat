@@ -49,7 +49,7 @@ public:
    *
    * @return ErrorCodes 解析结果，ErrorCodes::NO_ERROR 表示成功
    */
-  ErrorCodes parse();
+  ErrorCodes parse(std::string_view path);
 
   /**
    * @brief 通过 section 名称访问或创建 SectionInfo

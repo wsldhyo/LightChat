@@ -38,15 +38,16 @@ file(WRITE ${QRC_FILE} "${QRC_CONTENT}")
 qt_add_resources(CLIENT_RESOURCES ${QRC_FILE})
 
 
+# ==================== 拷贝文件到构建目录的函数 ====================
 function(copy_heads target)
     set(dst_files "")
 
-    # 先创建 static 目录，保证后续拷贝不会失败
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/static)
+    # 先创建 resources 目录，保证后续拷贝不会失败
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/resources)
 
     foreach(header IN LISTS ARGN)
         get_filename_component(fname ${header} NAME)
-        set(dst ${CMAKE_BINARY_DIR}/bin/static/${fname})
+        set(dst ${CMAKE_BINARY_DIR}/bin/resources/${fname})
 
         add_custom_command(
             OUTPUT ${dst}
@@ -113,6 +114,7 @@ target_include_directories(${TARGET_NAME} PRIVATE
     ${CMAKE_BINARY_DIR} #Qt Designer生成的ui_xxx.h路径
     ${CMAKE_CURRENT_SOURCE_DIR} #Qt Designer提升组件时，告知其到源码路径寻找所需头文件   
 )
+
 # 编译选项
 target_compile_options(${TARGET_NAME} PRIVATE -g)
 
@@ -128,14 +130,4 @@ target_link_libraries(${TARGET_NAME} PRIVATE
 # 设置输出目录
 set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_custom_command(TARGET client POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/config/config.ini
-            $<TARGET_FILE_DIR:${TARGET_NAME}>
-)
 
-add_custom_command(TARGET client POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/config/config.ini
-            $<TARGET_FILE_DIR:${TARGET_NAME}>
-)

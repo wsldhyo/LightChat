@@ -87,7 +87,7 @@ public:
    * @param value 待设置的值
    * @return true 成功，false 失败
    */
-  bool h_set(std::string const &key, std::string const &hkey,
+  bool h_set(std::string_view key, std::string const &hkey,
              std::string const &value);
 
   /**
@@ -107,7 +107,7 @@ public:
    * @param hkey 哈希表中字段，内层key
    * @return 字段对应的值，如果不存在返回空字符串
    */
-  std::string h_get(std::string const &key, std::string const &hkey);
+  std::string h_get(std::string_view key,std::string const &hkey);
 
   /**
    * @brief 删除指定键
@@ -115,6 +115,10 @@ public:
    * @return true 成功，false 失败
    */
   bool del(std::string const &key);
+
+
+
+  bool h_del(std::string_view key, std::string const &field);
 
   /**
    * @brief 判断指定键是否存在

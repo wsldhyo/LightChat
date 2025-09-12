@@ -2,8 +2,9 @@
 #include "httpconn.hpp"
 #include "manager/mysql_manager.hpp"
 #include "manager/redis_manager.hpp"
-#include "utility/status_rpc_client.hpp"
-#include "vertify_rpc_client.hpp"
+#include "rpc_client/status_rpc_client.hpp"
+#include "rpc_client/vertify_rpc_client.hpp"
+#include "utility/constant.hpp"
 #include <iostream>
 #include <json/reader.h>
 #include <json/value.h>
@@ -149,7 +150,7 @@ bool LogicSystem::handle_post_register_user(
   // 验证验证是否匹配
   std::string vertify_code;
   bool b_get_vertify = RedisMgr::getinstance()->get(
-      std::string(VERTIFY_CODE_PREFIX) + src_root["email"].asString(),
+      std::string(REDIS_VERTIFY_CODE_PREFIX) + src_root["email"].asString(),
       vertify_code);
   if (!b_get_vertify) {
     std::cout << " get vertify code expired" << std::endl;
@@ -214,7 +215,7 @@ bool LogicSystem::handle_post_reset_pwd(std::shared_ptr<HttpConn> connection) {
   //先查找redis中email对应的验证码是否合理
   std::string vertify_code;
   bool b_get_vertify = RedisMgr::getinstance()->get(
-      std::string(VERTIFY_CODE_PREFIX) + src_root["email"].asString(),
+      std::string(REDIS_VERTIFY_CODE_PREFIX) + src_root["email"].asString(),
       vertify_code);
   if (!b_get_vertify) {
     std::cout << " get vertify code expired" << std::endl;
