@@ -1,8 +1,10 @@
 #include "apply_friend_dialog.hpp"
 #include "client_constant.hpp"
+#include "tcp_manager.hpp"
 #include "ui_applyfrienddlg.h"
 #include "usermgr.hpp"
 #include <QDebug>
+#include <QJsonDocument>
 #include <QScrollBar>
 
 ApplyFriendDlg::ApplyFriendDlg(QWidget *parent)
@@ -504,7 +506,31 @@ void ApplyFriendDlg::slot_apply_cancel() {
 
 void ApplyFriendDlg::slot_apply_sure() {
   qDebug() << "Slot Apply Sure called";
-  // 点击确认 -> 隐藏窗口并销毁
+  // 点击确认 -> ，向服务器发起请求
+  // 申请人的数据
+  QJsonObject jsonObj;
+  auto uid = UserMgr::getinstance()->get_uid();
+  jsonObj["uid"] = uid;
+  auto name = ui->name_ed->text();
+  if (name.isEmpty()) {
+    // 如果name_ed为空，则使用占位文本作为名称
+    name = ui->name_ed->placeholderText();
+  }
+
+  jsonObj["applyname"] = name; //名称
+  auto bakname = ui->back_ed->text();
+  if (bakname.isEmpty()) {
+    bakname = ui->back_ed->placeholderText();
+  }
+  jsonObj["bakname"] = bakname; // 添加成功后，对方的备注名
+  jsonObj["touid"] = si_->_uid; // 对方uid
+
+  QJsonDocument doc(jsonObj);
+  QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
+
+  //发送tcp请求给chat server
+  emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_APPLY_FRIEND_REQ,
+                                            jsonData);
   this->hide();
   deleteLater();
 }

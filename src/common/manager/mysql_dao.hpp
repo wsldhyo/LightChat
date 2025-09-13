@@ -131,6 +131,23 @@ public:
    */
   std::optional<UserInfo> get_user(std::string const &name);
 
+  /**
+   * @brief 在 friend_apply 表中新增好友申请记录。
+   *
+   * 从连接池获取数据库连接，执行插入操作：
+   * - 若 (from_uid, to_uid) 组合不存在，则插入新记录；
+   * - 若已存在，则执行无副作用的更新（保持幂等）。
+   *
+   * @param from  发起申请的用户 ID。
+   * @param to    接收申请的用户 ID。
+   *
+   * @return true 操作成功（至少影响一行记录）；
+   *         false 获取连接失败或 SQL 执行异常。
+   *
+   * @note 异常时会捕获 SQLException 并输出错误日志。
+   */
+  bool add_friend_apply(int const from, int const to);
+
 private:
   std::unique_ptr<MysqlConnPool> pool_;
 };

@@ -44,6 +44,8 @@ public:
   std::optional<UserInfo> get_user(int32_t uid);
 
   std::optional<UserInfo> get_user(std::string const& name);
+
+  bool add_friend_apply(int const from, int const to);
 private:
   /**
    * @brief 构造函数（私有）

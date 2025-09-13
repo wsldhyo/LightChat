@@ -23,6 +23,7 @@ add_library(common_pool STATIC
     pool/mysql_conn_pool.cc
     pool/rpc_conn_pool.cc
     pool/status_server_conn_pool.cc
+    pool/chat_server_conn_pool.cc
 )
 
 # include Redis & grpc 生成路径

@@ -15,9 +15,11 @@ public:
   friend class Singleton<UserMgr>;
   ~UserMgr();
   void set_name(QString name);
+  QString const& get_name()const;
   void set_uid(int uid);
+  int get_uid()const;
   void set_token(QString token);
-  QString const &get_name() const;
+  QString const& get_token()const;
   std::vector<std::shared_ptr<ApplyInfo>> const &get_apply_list() const;
 
 private:

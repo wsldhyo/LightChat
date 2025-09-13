@@ -22,6 +22,14 @@ bool MysqlMgr::check_pwd(const std::string &email, const std::string &pwd,
   return dao_.check_pwd(email, pwd, userInfo);
 }
 
-std::optional<UserInfo> MysqlMgr::get_user(int32_t uid) { return dao_.get_user(uid); }
+std::optional<UserInfo> MysqlMgr::get_user(int32_t uid) {
+  return dao_.get_user(uid);
+}
 
-std::optional<UserInfo> MysqlMgr::get_user(std::string const& name) { return dao_.get_user(name); }
+std::optional<UserInfo> MysqlMgr::get_user(std::string const &name) {
+  return dao_.get_user(name);
+}
+
+bool MysqlMgr::add_friend_apply(int const from, int const to) {
+  return dao_.add_friend_apply(from, to);
+}

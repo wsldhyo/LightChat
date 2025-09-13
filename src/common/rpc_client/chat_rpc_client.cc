@@ -1,6 +1,7 @@
 #include "chat_rpc_client.hpp"
 #include "manager/config_manager.hpp"
 #include "pool/chat_server_conn_pool.hpp"
+#include "utility/defer.hpp"
 ChatGrpcClient::ChatGrpcClient() {
   // 读取配置，获取所有对端聊天服务器信息
   // TODO，通过状态服务器获取活跃的聊天服务器，而不是通过硬配置
@@ -18,7 +19,7 @@ ChatGrpcClient::ChatGrpcClient() {
     if ((*cfg)[word]["name"].empty()) {
       continue;
     }
-    pool_[(*cfg)[word]["name"]] = std::make_unique<ChatServerConnPool>(
+    pools_[(*cfg)[word]["name"]] = std::make_unique<ChatServerConnPool>(
         5, (*cfg)[word]["host"], (*cfg)[word]["port"]);
   }
 }
@@ -28,6 +29,28 @@ ChatGrpcClient::~ChatGrpcClient() {}
 AddFriendRsp ChatGrpcClient::notify_add_friend(std::string server_ip,
                                                const AddFriendReq &req) {
   AddFriendRsp rsp;
+  rsp.set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
+  Defer defer([&rsp, &req]() {
+    // 结束时填充必要信息
+    rsp.set_applyuid(req.applyuid());
+    rsp.set_touid(req.touid());
+  });
+  // 取出服务器对应的连接池
+  auto find_iter = pools_.find(server_ip);
+  if (find_iter == pools_.end()) {
+    return rsp;
+  }
+
+  auto &pool = find_iter->second;
+  // GRPC调用
+  grpc::ClientContext context;
+  auto stub = pool->get_connection();
+  grpc::Status status = stub->NotifyAddFriend(&context, req, &rsp);
+  Defer defercon(
+      [&stub, this, &pool]() { pool->return_connection(std::move(stub)); });
+  if (!status.ok()) {
+    rsp.set_error(static_cast<int32_t>(ErrorCodes::RPC_CALL_FAILED));
+  }
   return rsp;
 }
 

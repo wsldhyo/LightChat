@@ -70,7 +70,7 @@ public slots:
   /// 点击提示框中的内容 -> 添加好友标签
   void slot_add_firend_label_by_click_tip(QString text);
 
-  /// 点击“确认”按钮
+  /// 点击“确认”按钮, 准备好友申请数据并发送给服务器处理
   void slot_apply_sure();
 
   /// 点击“取消”按钮

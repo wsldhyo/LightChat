@@ -261,3 +261,36 @@ std::optional<UserInfo> MysqlDao::get_user(const std::string &name) {
     return std::nullopt;
   }
 }
+
+bool MysqlDao::add_friend_apply(int const from, int const to) {
+  // 从连接池获取数据库连接
+  auto con = pool_->get_connection();
+  if (con == nullptr) {
+    return false;
+  }
+
+  // 使用 Defer 自动归还数据库连接
+  Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
+
+  try {
+    std::unique_ptr<sql::PreparedStatement> pstmt(con->prepareStatement(
+        "INSERT INTO friend_apply (from_uid, to_uid) values "
+        "(?,?) " // 将from和to插入表
+        "ON DUPLICATE KEY UPDATE from_uid = from_uid, to_uid = "
+        "to_uid ")); // (from,to)的联合主键已存在时，采用更新而非插入（可不写该条件）
+    pstmt->setInt(1, from);
+    pstmt->setInt(2, to);
+    //执行更新
+    int rowAffected = pstmt->executeUpdate();
+    if (rowAffected < 0) {
+      // 上面的操作理论上必定会影响表中的一行数据
+      return false;
+    }
+    return true;
+  } catch (sql::SQLException &e) {
+    std::cerr << "SQLException: " << e.what();
+    std::cerr << " (MySQL error code: " << e.getErrorCode();
+    std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+    return false;
+  }
+}
