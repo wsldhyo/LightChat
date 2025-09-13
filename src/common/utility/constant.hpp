@@ -5,11 +5,13 @@ using std::literals::string_view_literals::operator""sv;
 // Http请求类型的id
 enum class ReqId {
   ID_GET_VERTIFY_CODE = 1001, //获取验证码
-  ID_REG_USER = 1002,         //注册用户
-  ID_RESET_PWD,
-  ID_LOGIN_USER,
-  ID_CHAT_LOGIN,
-  ID_CHAT_LOGIN_RSP,
+  ID_REG_USER,                //注册用户
+  ID_RESET_PWD,               //重置密码
+  ID_LOGIN_USER, // 用户登录请求，状态服务器分配聊天服务器给客户端
+  ID_CHAT_LOGIN_REQ, // 聊天服务器登录请求
+  ID_CHAT_LOGIN_RSP, // 聊天服务器登录应，客户端将切换到聊天界面
+  ID_SEARCH_USER_REQ, // 用户查询请求
+  ID_SEARCH_USER_RSP, // 用户查询响应，客户端将展示服务端返回的查询结果
 };
 
 enum class ErrorCodes {
@@ -17,21 +19,21 @@ enum class ErrorCodes {
   PARSE_JSON_FAILED = 1, // Json解析失败
   ERR_NETWORK = 2,       // 网络错误
   RPC_CALL_FAILED = 3,   // RPC调用失败
-  VERTIFY_CODE_EXPIRED,
-  VERTIFY_CODE_DISMATCH,
-  CONFIRM_PWD_DISMATCH,
-  REG_USER_EXISTS, // 注册时，用户名或邮箱已经被占用
-  EMAIL_DISMATCH,
-  PWD_UPDATE_FAILED,
-  PWD_INCORRECT, // 登录密码不正确
-  UID_INVALID,
-  TOKEN_INVALID,
+  VERTIFY_CODE_EXPIRED,  // 验证码过期
+  VERTIFY_CODE_DISMATCH, // 验证码错误（和服务器缓存的不一致）
+  CONFIRM_PWD_DISMATCH,  // 确认密码和密码输入不一致
+  REG_USER_EXISTS,       // 注册时，用户名或邮箱已经被占用
+  EMAIL_DISMATCH,        // 邮箱和用户名不匹配
+  PWD_UPDATE_FAILED,     // 密码更新失败
+  PWD_INCORRECT,         // 登录密码不正确
+  UID_INVALID,           // UID无效
+  TOKEN_INVALID, // 令牌无效，令牌可用于聊天服务器登录的验证
 
-  PATH_DO_NOT_EXIST,
-  PLATFORM_NOT_SUPPORT,
-  READ_CONFIG_ERROR,
-  OUT_OF_RANGE,
-  INVALID_ARGUMENT,
+  PATH_DO_NOT_EXIST,    // 文件路径不存在
+  PLATFORM_NOT_SUPPORT, // 不支持的平台
+  READ_CONFIG_ERROR,    // 读取配置文件错误
+  OUT_OF_RANGE,         //字符串转换后的数字超出范围
+  INVALID_ARGUMENT,     //字符串转数字失败，无效参数
 
 };
 
@@ -61,6 +63,7 @@ constexpr std::string_view REDIS_VERTIFY_CODE_PREFIX{"code_"sv};
 constexpr std::string_view REDIS_USER_IP_PREFIX{"uip_"sv};
 constexpr std::string_view REDIS_USER_BASE_INFO_PREFIX{"ubaseinfo_"sv};
 constexpr std::string_view REDIS_LOGIN_COUNT_PREFIX{"logincount"sv};
+constexpr std::string_view REDIS_NAME_INFO_PREFIX{"nameinfo_"sv};
 
 // http请求路由
 constexpr std::string_view GET_TEST_URL{"/get_test"sv};

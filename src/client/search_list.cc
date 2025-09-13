@@ -1,7 +1,12 @@
 #include "search_list.hpp"
 #include "add_user_item.hpp"
+#include "customize_edit.hpp"
+#include "find_failed_dlg.hpp"
 #include "find_success_dlg.hpp"
+#include "loading_dialog.hpp"
 #include "tcp_manager.hpp"
+#include "usermgr.hpp"
+#include <QJsonDocument>
 #include <QScrollBar>
 #include <QWheelEvent>
 SearchList::SearchList(QWidget *parent)
@@ -18,13 +23,13 @@ SearchList::SearchList(QWidget *parent)
 }
 
 void SearchList::close_find_dlg() {
-  if(find_dlg_){
+  if (find_dlg_) {
     find_dlg_->hide();
     find_dlg_ = nullptr;
   }
 }
 
-void SearchList::set_search_edit(QWidget *edit) {}
+void SearchList::set_search_edit(QWidget *edit) { search_edit_ = edit; }
 
 bool SearchList::eventFilter(QObject *watched, QEvent *event) {
   // 检查事件是否是鼠标悬浮进入或离开
@@ -54,7 +59,20 @@ bool SearchList::eventFilter(QObject *watched, QEvent *event) {
   return QListWidget::eventFilter(watched, event);
 }
 
-void SearchList::wait_pending(bool pending) {}
+void SearchList::wait_pending(bool pending) {
+  if (pending) {
+    // 如果已经发送请求，显示等待界面
+    loadingDialog_ = new LoadingDialog(this);
+    loadingDialog_->setModal(true);
+    loadingDialog_->show();
+    send_pending_ = pending;
+  } else {
+    // 网络请求发送完毕，销毁等待界面
+    loadingDialog_->hide();
+    loadingDialog_->deleteLater();
+    send_pending_ = pending;
+  }
+}
 void SearchList::add_tip_item() {
   auto *invalid_item = new QWidget();
   QListWidgetItem *item_tmp = new QListWidgetItem;
@@ -106,12 +124,28 @@ void SearchList::slot_item_clicked(QListWidgetItem *item) {
 
   if (itemType == ListItemType::ADD_USER_TIP_ITEM) {
 
-    // todo ...
-    find_dlg_ = std::make_shared<FindSuccessDlg>(this);
-    auto si = std::make_shared<SearchInfo>(0, "llfc", "llfc",
-                                           "hello , my friend!", 0, "head_1.jpg");
-    (std::dynamic_pointer_cast<FindSuccessDlg>(find_dlg_))->set_search_info(si);
-    find_dlg_->show();
+    if (send_pending_) { // 已经发送过网络请求，不多次发送请求
+      return;
+    }
+
+    if (!search_edit_) {
+      return;
+    }
+    qDebug() << "req server to search user";
+    wait_pending(true);
+    auto search_edit = dynamic_cast<CustomizeEdit *>(search_edit_);
+    auto uid_str = search_edit->text();
+    //此处发送请求给server
+    QJsonObject jsonObj;
+    jsonObj["uid"] = uid_str;
+
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
+
+    //发送tcp请求给chat server
+    emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ,
+                                              jsonData);
+
     return;
   }
 
@@ -119,4 +153,15 @@ void SearchList::slot_item_clicked(QListWidgetItem *item) {
   close_find_dlg();
 }
 
-void SearchList::slot_user_search(std::shared_ptr<SearchInfo> si) {}
+void SearchList::slot_user_search(std::shared_ptr<SearchInfo> si) {
+  wait_pending(false);
+  if (si == nullptr) {
+    find_dlg_ = std::make_shared<FindFailedDlg>(this);
+  } else {
+    // TODO 如果已经是自己的好友,  如果还不是好友
+
+    find_dlg_ = std::make_shared<FindSuccessDlg>(this);
+    std::dynamic_pointer_cast<FindSuccessDlg>(find_dlg_)->set_search_info(si);
+  }
+  find_dlg_->show();
+}

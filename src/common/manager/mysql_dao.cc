@@ -1,6 +1,6 @@
 #include "mysql_dao.hpp"
-#include "utility/defer.hpp"
 #include "config_manager.hpp"
+#include "utility/defer.hpp"
 
 MysqlDao::MysqlDao() {
   // 读取配置文件，获取数据库相关信息
@@ -19,11 +19,13 @@ MysqlDao::~MysqlDao() { pool_->close(); }
 int MysqlDao::reg_user(const std::string &name, const std::string &email,
                        const std::string &pwd) {
   auto con = pool_->get_connection();
+
+  if (con == nullptr) {
+    return -1;
+  }
+  // 使用 Defer 自动归还数据库连接
+  Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
   try {
-    if (con == nullptr) {
-      pool_->return_connection(std::move(con));
-      return false;
-    }
     // 准备调用存储过程
     std::unique_ptr<sql::PreparedStatement> stmt(
         con->prepareStatement("CALL reg_user(?,?,?,@result)"));
@@ -44,13 +46,10 @@ int MysqlDao::reg_user(const std::string &name, const std::string &email,
     if (res->next()) {
       int result = res->getInt("result");
       std::cout << "Result: " << result << '\n';
-      pool_->return_connection(std::move(con));
       return result;
     }
-    pool_->return_connection(std::move(con));
     return -1;
   } catch (sql::SQLException &e) {
-    pool_->return_connection(std::move(con));
     std::cerr << "SQLException: " << e.what();
     std::cerr << " (MySQL error code: " << e.getErrorCode();
     std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
@@ -60,11 +59,12 @@ int MysqlDao::reg_user(const std::string &name, const std::string &email,
 
 bool MysqlDao::check_email(const std::string &name, const std::string &email) {
   auto con = pool_->get_connection();
+  if (con == nullptr) {
+    return false;
+  }
+  // 使用 Defer 自动归还数据库连接
+  Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
   try {
-    if (con == nullptr) {
-      pool_->return_connection(std::move(con));
-      return false;
-    }
 
     // 准备查询语句
     std::unique_ptr<sql::PreparedStatement> pstmt(
@@ -89,10 +89,8 @@ bool MysqlDao::check_email(const std::string &name, const std::string &email) {
       }
     }
 
-    pool_->return_connection(std::move(con));
     return match;
   } catch (sql::SQLException &e) {
-    pool_->return_connection(std::move(con));
     std::cerr << "SQLException: " << e.what();
     std::cerr << " (MySQL error code: " << e.getErrorCode();
     std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
@@ -103,9 +101,12 @@ bool MysqlDao::check_email(const std::string &name, const std::string &email) {
 
 bool MysqlDao::update_pwd(const std::string &name, const std::string &newpwd) {
   auto con = pool_->get_connection();
+  if (con == nullptr) {
+    return false;
+  }
+  Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
   try {
     if (con == nullptr) {
-      pool_->return_connection(std::move(con));
       return false;
     }
 
@@ -121,10 +122,8 @@ bool MysqlDao::update_pwd(const std::string &name, const std::string &newpwd) {
     int updateCount = pstmt->executeUpdate();
 
     std::cout << "Updated rows: " << updateCount << std::endl;
-    pool_->return_connection(std::move(con));
     return true;
   } catch (sql::SQLException &e) {
-    pool_->return_connection(std::move(con));
     std::cerr << "SQLException: " << e.what();
     std::cerr << " (MySQL error code: " << e.getErrorCode();
     std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
@@ -175,39 +174,90 @@ bool MysqlDao::check_pwd(const std::string &email, const std::string &pwd,
   }
 }
 
+// 根据 uid 查询用户信息
 std::optional<UserInfo> MysqlDao::get_user(int32_t uid) {
+  // 从连接池获取数据库连接
   auto con = pool_->get_connection();
   if (con == nullptr) {
-    return std::optional<UserInfo>{};
+    return std::nullopt; // 获取连接失败，返回空
   }
 
+  // 使用 Defer 自动归还数据库连接
   Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
 
   try {
-
-    // 准备SQL语句
+    // 创建预编译 SQL 语句
     std::unique_ptr<sql::PreparedStatement> pstmt(
         con->prepareStatement("SELECT * FROM user WHERE uid = ?"));
-    pstmt->setString(1,
-                     std::to_string(uid)); // 将username替换为你要查询的用户名
+    pstmt->setInt(1, uid); // 设置查询参数
 
     // 执行查询
     std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-    std::string origin_pwd = "";
+    std::optional<UserInfo> user_info;
+
     // 遍历结果集
     while (res->next()) {
-      origin_pwd = res->getString("pwd");
-      // 输出查询到的密码
-      std::cout << "Password: " << origin_pwd << std::endl;
-      break;
+      user_info.emplace(); // 在 optional 中创建 UserInfo 对象
+      user_info->pwd = res->getString("pwd");
+      user_info->email = res->getString("email");
+      user_info->name = res->getString("name");
+      user_info->nick = res->getString("nick");
+      user_info->desc = res->getString("desc");
+      user_info->sex = res->getInt("sex");
+      user_info->icon = res->getString("icon");
+      user_info->uid = uid;
+      break; // 只取第一条记录
     }
-    return std::make_optional<UserInfo>(
-        UserInfo{res->getString("name"), res->getString("email"),
-                 res->getInt("uid"), origin_pwd});
+    return user_info; // 返回查询结果
   } catch (sql::SQLException &e) {
     std::cerr << "SQLException: " << e.what();
     std::cerr << " (MySQL error code: " << e.getErrorCode();
     std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
-    return std::optional<UserInfo>{};
+    return std::nullopt;
+  }
+}
+
+// 根据用户名查询用户信息
+std::optional<UserInfo> MysqlDao::get_user(const std::string &name) {
+  // 从连接池获取数据库连接
+  auto con = pool_->get_connection();
+  if (con == nullptr) {
+    return std::nullopt; // 获取连接失败，返回空
+  }
+
+  // 使用 Defer 自动归还数据库连接
+  Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
+
+  try {
+    // 创建预编译 SQL 语句，根据用户名查询
+    std::cout << "query user name: " << name << '\n';
+    std::unique_ptr<sql::PreparedStatement> pstmt(
+        con->prepareStatement("SELECT * FROM user WHERE name = ?"));
+    pstmt->setString(1, name); // 设置查询参数
+
+    // 执行查询
+    std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+    std::optional<UserInfo> user_info;
+
+    // 遍历结果集
+    while (res->next()) {
+      std::cout << "found user: " << name << '\n';
+      user_info.emplace(); // 在 optional 中创建 UserInfo 对象
+      user_info->pwd = res->getString("pwd");
+      user_info->email = res->getString("email");
+      user_info->name = res->getString("name");
+      user_info->nick = res->getString("nick");
+      user_info->desc = res->getString("desc");
+      user_info->sex = res->getInt("sex");
+      user_info->icon = res->getString("icon");
+      user_info->uid = res->getInt("uid");
+      break; // 只取第一条记录
+    }
+    return user_info;
+  } catch (sql::SQLException &e) {
+    std::cerr << "SQLException: " << e.what();
+    std::cerr << " (MySQL error code: " << e.getErrorCode();
+    std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+    return std::nullopt;
   }
 }

@@ -43,6 +43,8 @@ ChatDialog::ChatDialog(QWidget *parent)
   this->installEventFilter(this);
   //设置聊天label选中状态
   ui->side_chat_lb->SetSelected(true);
+
+  ui->search_list->set_search_edit(ui->search_edit);
 }
 
 ChatDialog::~ChatDialog() { delete ui; }

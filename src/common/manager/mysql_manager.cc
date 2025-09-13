@@ -23,3 +23,5 @@ bool MysqlMgr::check_pwd(const std::string &email, const std::string &pwd,
 }
 
 std::optional<UserInfo> MysqlMgr::get_user(int32_t uid) { return dao_.get_user(uid); }
+
+std::optional<UserInfo> MysqlMgr::get_user(std::string const& name) { return dao_.get_user(name); }

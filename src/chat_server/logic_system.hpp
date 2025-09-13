@@ -5,6 +5,7 @@
 #include "utility/tcp_msg_node.hpp"
 #include <condition_variable>
 #include <functional>
+#include <json/value.h>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -154,8 +155,43 @@ private:
    * - 启动逻辑处理线程（deal_msg）
    */
 
-  bool get_base_info(std::string base_key, int uid,
-                   UserInfo* userinfo);
+  bool get_base_info(std::string const &base_key, int uid, UserInfo &userinfo);
+  /**
+   * @brief 根据用户 UID 查询用户信息
+   *
+   * 优先从 Redis 缓存中获取用户基本信息；
+   * 如果 Redis 中没有或解析失败，则从 MySQL 数据库查询；
+   * 并在查询成功后，将结果写回 Redis 做缓存。
+   *
+   * @param uid_str  字符串形式的用户 UID（用于构建 Redis key）
+   * @param uid      整型用户 UID（用于数据库查询）
+   * @param ret_value [out] JSON 对象，包含用户信息及 error 字段
+   *
+   * @note 返回结果ret_value中始终包含 "error" 字段：
+   *       - 0：成功
+   *       - PARSE_JSON_FAILED：Redis 中 JSON 解析失败
+   *       - UID_INVALID：数据库中未找到对应用户
+   */
+  void get_user_by_uid(std::string const &uid_str, int32_t uid,
+                       Json::Value &ret_value);
+
+  /**
+   * @brief 根据用户名查询用户信息
+   *
+   * 优先从 Redis 缓存中获取用户基本信息；
+   * 如果 Redis 中没有或解析失败，则从 MySQL 数据库查询；
+   * 并在查询成功后，将结果写回 Redis 做缓存。
+   *
+   * @param name     用户名（用于 Redis key 和数据库查询）
+   * @param rtvalue  [out] JSON 对象，包含用户信息及 error 字段
+   *
+   * @note 返回结果始终包含 "error" 字段：
+   *       - 0：成功
+   *       - PARSE_JSON_FAILED：Redis 中 JSON 解析失败
+   *       - UID_INVALID：数据库中未找到对应用户
+   */
+  void get_user_by_name(std::string const &name, Json::Value &rtvalue);
+
   LogicSystem();
 
   std::mutex msg_que_mutex_;

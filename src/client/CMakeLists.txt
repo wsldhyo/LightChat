@@ -67,6 +67,7 @@ copy_heads(copy_my_heads
 
 # ==================== 可执行文件 ====================
 add_executable(${TARGET_NAME} 
+  ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
   main.cc 
   mainwindow.cc
   login_dialog.cc
@@ -106,7 +107,7 @@ add_executable(${TARGET_NAME}
   new_friend_apply_page.cc
   new_friend_apply_list.cc
   new_friend_apply_item.cc
-  ${CLIENT_RESOURCES}  # 使用 qt_add_resources 自动生成的资源
+  find_failed_dlg.cc
 )
 
 # 包含构建目录，以便找到 ui_*.h

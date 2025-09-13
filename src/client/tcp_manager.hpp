@@ -16,10 +16,10 @@ public:
   TcpMgr();
 public slots:
   void slot_tcp_connect(ServerInfo);
-  void slot_send_data(ReqId reqId, QString data);
+  void slot_send_data(ReqId reqId, QByteArray data);
 signals:
   void sig_con_success(bool bsuccess);
-  void sig_send_data(ReqId reqId, QString data);
+  void sig_send_data(ReqId reqId, QByteArray data);
   void sig_login_failed(int error);
   void sig_switch_chatdlg();
   // 搜索用户

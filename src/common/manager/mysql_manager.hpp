@@ -42,6 +42,8 @@ public:
                  UserInfo &userInfo);
 
   std::optional<UserInfo> get_user(int32_t uid);
+
+  std::optional<UserInfo> get_user(std::string const& name);
 private:
   /**
    * @brief 构造函数（私有）

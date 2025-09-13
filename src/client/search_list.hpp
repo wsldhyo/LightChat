@@ -3,7 +3,7 @@
 
 #include <QListWidget>
 
-class LoginDialog;
+class LoadingDialog;
 class SearchInfo;
 
 /**
@@ -34,6 +34,7 @@ private:
   bool send_pending_;
   std::shared_ptr<QDialog> find_dlg_;
   QWidget *search_edit_;
-  LoginDialog *loadingDialog_;
+  LoadingDialog *loadingDialog_;
+
 };
 #endif

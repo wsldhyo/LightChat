@@ -3,6 +3,7 @@
 #include <QDataStream>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include "user_data.hpp"
 TcpMgr::TcpMgr()
     : host_(""), port_(0), b_recv_pending_(false), message_id_(0),
       message_len_(0) {
@@ -35,7 +36,8 @@ TcpMgr::TcpMgr()
         buffer_ = buffer_.mid(sizeof(quint16) * 2);
 
         // 输出读取的数据
-        qDebug() << "TCP Message ID:" << message_id_ << ", Length:" << message_len_;
+        qDebug() << "TCP Message ID:" << message_id_
+                 << ", Length:" << message_len_;
       }
 
       // buffer剩余长读是否满足消息体长度，不满足则退出继续等待接受
@@ -103,14 +105,11 @@ void TcpMgr::slot_tcp_connect(ServerInfo si) {
   socket_.connectToHost(si.Host, port_);
 }
 
-void TcpMgr::slot_send_data(ReqId reqId, QString data) {
+void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes) {
   uint16_t id = static_cast<int32_t>(reqId);
 
-  // 将字符串转换为UTF-8编码的字节数组
-  QByteArray dataBytes = data.toUtf8();
-
   // 计算长度（使用网络字节序转换）
-  quint16 len = static_cast<quint16>(data.size());
+  quint16 len = static_cast<quint16>(dataBytes.size());
 
   // 创建一个QByteArray用于存储要发送的所有数据
   QByteArray block;
@@ -146,7 +145,7 @@ void TcpMgr::initHandlers() {
         qDebug() << "data jsonobj is " << jsonObj;
         if (!jsonObj.contains("error")) {
           int err = static_cast<int32_t>(ErrorCodes::PARSE_JSON_FAILED);
-          qDebug() << "Login Failed, err is Json Parse Err" << err;
+          qDebug() << "Json parse: Missing errro filed" << err;
           emit sig_login_failed(err);
           return;
         }
@@ -162,6 +161,46 @@ void TcpMgr::initHandlers() {
         UserMgr::getinstance()->set_token(jsonObj["token"].toString());
         emit sig_switch_chatdlg();
         // qDebug() << "switch chat dlg";
+      });
+
+  // 处理服务器搜索用户请求的响应
+  handlers_.insert(
+      ReqId::ID_SEARCH_USER_RSP, [this](ReqId id, int len, QByteArray data) {
+        Q_UNUSED(len);
+        qDebug() << "handle id is " << static_cast<int32_t>(id) << " data is "
+                 << data;
+        // 将QByteArray转换为QJsonDocument
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        // 检查转换是否成功
+        if (jsonDoc.isNull()) {
+          qDebug() << "Failed to create QJsonDocument.";
+          return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+        // 检查Json解析是否成功
+        if (!jsonObj.contains("error")) {
+          int err = static_cast<int32_t>(ErrorCodes::PARSE_JSON_FAILED);
+          qDebug() << "Query user failed, Missing error filed" << err;
+
+          emit sig_user_search(nullptr);
+          return;
+        }
+        // 检查服务器回包的错误码
+        int err = jsonObj["error"].toInt();
+        if (err != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
+          qDebug() << "Query user failed, err is " << err;
+          emit sig_user_search(nullptr);
+          return;
+        }
+        // 解析出搜索到的用户信息
+        auto search_info = std::make_shared<SearchInfo>(
+            jsonObj["uid"].toInt(), jsonObj["name"].toString(),
+            jsonObj["nick"].toString(), jsonObj["desc"].toString(),
+            jsonObj["sex"].toInt(), jsonObj["icon"].toString());
+        // 将搜索结果发送给聊天界面
+        emit sig_user_search(search_info);
       });
 }
 
