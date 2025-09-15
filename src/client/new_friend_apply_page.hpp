@@ -5,6 +5,7 @@
 namespace Ui {
 class NewFriendApplyPage;
 }
+class ApplyInfo;
 class AuthRsp;
 class AddFriendApply;
 class NewFriendApplyItem;
@@ -33,6 +34,11 @@ public:
    */
   void add_new_apply(std::shared_ptr<AddFriendApply> apply);
 
+  /**
+   * @brief 加载好友申请列表
+   */
+  void load_apply_list();
+
 protected:
   /**
    * @brief 重写绘制事件，确保样式表生效
@@ -41,11 +47,6 @@ protected:
   void paintEvent(QPaintEvent *event) override;
 
 private:
-  /**
-   * @brief 加载好友申请列表
-   */
-  void load_apply_list();
-
   Ui::NewFriendApplyPage *ui; ///< UI界面指针
   std::unordered_map<int, NewFriendApplyItem *>
       unauth_items_; ///< 未审核好友请求项（uid->item),即 暂未同意好友请求的项
@@ -57,7 +58,15 @@ public slots:
    */
   void slot_auth_rsp(std::shared_ptr<AuthRsp>);
 
+  /**
+   * @brief 显示好人认证对话框，显示好友申请信息并决定是否同意对方的申请
+   * @param apply_info 好友申请信息
+   */
+  void slot_show_auth_friend_dlg(std::shared_ptr<ApplyInfo> apply_info);
+
 signals:
+  void sig_recv_new_friend_apply();
+
   /**
    * @brief 通知外部是否显示搜索框
    * @param show 是否显示

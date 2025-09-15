@@ -33,3 +33,9 @@ std::optional<UserInfo> MysqlMgr::get_user(std::string const &name) {
 bool MysqlMgr::add_friend_apply(int const from, int const to) {
   return dao_.add_friend_apply(from, to);
 }
+
+bool MysqlMgr::get_apply_list(int touid, 
+    std::vector<std::shared_ptr<ApplyInfo>>& applyList, int begin, int limit) {
+
+    return dao_.get_apply_list(touid, applyList, begin, limit);
+}

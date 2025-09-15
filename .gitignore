@@ -1,4 +1,4 @@
-*.sql
+op.sql
 
 # 忽略所有 build 目录
 build/

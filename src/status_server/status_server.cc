@@ -28,6 +28,7 @@ Status StatusServer::GetChatServer(ServerContext *context,
   reply->set_host(server.host);
   reply->set_port(server.port);
   reply->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
+  // 生成Token，用户密码验证通过后，使用Token作为凭证，后续客户端请求都用 token 证明身份，不必每次带密码
   reply->set_token(generate_unique_string());
   insertToken(request->uid(), reply->token());
   return Status::OK;

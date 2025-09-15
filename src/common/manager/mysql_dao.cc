@@ -294,3 +294,51 @@ bool MysqlDao::add_friend_apply(int const from, int const to) {
     return false;
   }
 }
+
+bool MysqlDao::get_apply_list(
+    int touid, std::vector<std::shared_ptr<ApplyInfo>> &applyList, int begin,
+    int limit) {
+  auto con = pool_->get_connection();
+  if (con == nullptr) {
+    return false;
+  }
+
+  Defer defer([this, &con]() { pool_->return_connection(std::move(con)); });
+
+  try {
+    // 准备SQL语句, 根据起始id和限制条数返回列表
+    // 联表查询
+    std::unique_ptr<sql::PreparedStatement> pstmt(con->prepareStatement(
+        // 查询申请人ID、申请状态、名字  申请人昵称、性别
+        "select apply.from_uid, apply.status, user.name, user.nick, user.sex "
+        "from friend_apply as apply "             // 从好友申请表
+        "join user on apply.from_uid = user.uid " // 关联用户表，获取申请人信息
+        "where apply.to_uid = ? " // 接收人是指定用户 (参数1)
+        "and apply.id > ? "       // 只取大于某个ID的记录 (参数2)
+        "order by apply.id ASC "  // 按申请ID升序
+        "LIMIT ? "                // 限制返回条数 (参数3)
+        ));
+    pstmt->setInt(1, touid); // 将uid替换为你要查询的uid
+    pstmt->setInt(2, begin); // 起始id
+    pstmt->setInt(3, limit); //偏移量
+    // 执行查询
+    std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+    // 遍历结果集
+    while (res->next()) {
+      auto name = res->getString("name");
+      auto uid = res->getInt("from_uid");
+      auto status = res->getInt("status");
+      auto nick = res->getString("nick");
+      auto sex = res->getInt("sex");
+      auto apply_ptr =
+          std::make_shared<ApplyInfo>(uid, name, "", "", nick, sex, status);
+      applyList.push_back(apply_ptr);
+    }
+    return true;
+  } catch (sql::SQLException &e) {
+    std::cerr << "SQLException: " << e.what();
+    std::cerr << " (MySQL error code: " << e.getErrorCode();
+    std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+    return false;
+  }
+}

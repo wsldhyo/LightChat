@@ -19,6 +19,7 @@ RedisMgr::~RedisMgr() { close(); }
 bool RedisMgr::get(std::string const &key, std::string &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
 
@@ -46,6 +47,7 @@ bool RedisMgr::get(std::string const &key, std::string &value) {
 bool RedisMgr::set(std::string const &key, std::string const &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
 
@@ -81,6 +83,7 @@ bool RedisMgr::set(std::string const &key, std::string const &value) {
 bool RedisMgr::l_push(std::string const &key, std::string const &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(connection, "LPUSH %s %s",
@@ -111,6 +114,7 @@ bool RedisMgr::l_push(std::string const &key, std::string const &value) {
 bool RedisMgr::l_pop(std::string const &key, std::string &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(connection, "LPOP %s ", key.c_str());
@@ -132,6 +136,7 @@ bool RedisMgr::l_pop(std::string const &key, std::string &value) {
 bool RedisMgr::r_push(std::string const &key, std::string const &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(connection, "RPUSH %s %s",
@@ -161,6 +166,7 @@ bool RedisMgr::r_push(std::string const &key, std::string const &value) {
 bool RedisMgr::r_pop(std::string const &key, std::string &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(connection, "RPOP %s ", key.c_str());
@@ -184,6 +190,7 @@ bool RedisMgr::h_set(std::string_view key, std::string const &hkey,
                      std::string const &value) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(
@@ -208,6 +215,7 @@ bool RedisMgr::h_set(char const *key, char const *hkey, char const *hvalue,
                      size_t hvaluelen) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
 
@@ -242,6 +250,7 @@ bool RedisMgr::h_set(char const *key, char const *hkey, char const *hvalue,
 std::string RedisMgr::h_get(std::string_view key, std::string const &hkey) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return "";
   }
 
@@ -276,6 +285,7 @@ std::string RedisMgr::h_get(std::string_view key, std::string const &hkey) {
 bool RedisMgr::del(std::string const &key) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(connection, "DEL %s", key.c_str());
@@ -296,6 +306,7 @@ bool RedisMgr::del(std::string const &key) {
 bool RedisMgr::h_del(std::string_view key, std::string const &field) {
   auto connect = pool_->get_connection();
   if (connect == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
 
@@ -320,6 +331,7 @@ bool RedisMgr::h_del(std::string_view key, std::string const &field) {
 bool RedisMgr::existskey(std::string const &key) {
   auto connection{pool_->get_connection()};
   if (connection == nullptr) {
+    std::cout << "failed to get redis connection\n";
     return false;
   }
   auto reply = (redisReply *)redisCommand(connection, "exists %s", key.c_str());

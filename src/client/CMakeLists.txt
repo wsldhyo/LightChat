@@ -108,6 +108,7 @@ add_executable(${TARGET_NAME}
   new_friend_apply_list.cc
   new_friend_apply_item.cc
   find_failed_dlg.cc
+  authen_friend_dlg.cc
 )
 
 # 包含构建目录，以便找到 ui_*.h

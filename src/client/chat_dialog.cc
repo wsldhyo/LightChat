@@ -2,7 +2,10 @@
 #include "chat_user_wid.hpp"
 #include "loading_dialog.hpp"
 #include "state_widget.hpp"
+#include "tcp_manager.hpp"
 #include "ui_chatdialog.h"
+#include "user_data.hpp"
+#include "usermgr.hpp"
 #include <QAction>
 #include <QDebug>
 #include <QMouseEvent>
@@ -38,13 +41,15 @@ ChatDialog::ChatDialog(QWidget *parent)
   add_lb_group(ui->side_chat_lb);
   add_lb_group(ui->side_contact_lb);
 
-  create_connection();
   // 安装事件过滤器，实现非搜索列表控件范围内的点击，将隐藏搜索列表
   this->installEventFilter(this);
   //设置聊天label选中状态
   ui->side_chat_lb->SetSelected(true);
 
   ui->search_list->set_search_edit(ui->search_edit);
+  create_connection();
+  // 加载好友申请列表
+  ui->friend_apply_page->load_apply_list();
 }
 
 ChatDialog::~ChatDialog() { delete ui; }
@@ -118,11 +123,11 @@ static std::vector<QString> strs = {
     "My love is written in the wind ever since the whole world is you"};
 
 static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
-                              ":/icons/head_3.jpg", ":/icons/head_4.jpg",
-                              ":/icons/head_5.jpg"};
+                                     ":/icons/head_3.jpg", ":/icons/head_4.jpg",
+                                     ":/icons/head_5.jpg"};
 
 static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
-                              "java", "nodejs", "python", "rust"};
+                                     "java", "nodejs", "python", "rust"};
 void ChatDialog::add_chat_user_list() {
   // 创建QListWidgetItem，并设置自定义的widget
   for (int i = 0; i < 13; i++) {
@@ -187,6 +192,13 @@ void ChatDialog::create_connection() {
           &ChatDialog::slot_side_contact);
   connect(ui->search_edit, &QLineEdit::textChanged, this,
           &ChatDialog::slot_text_changed);
+
+  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_friend_apply, this,
+          &ChatDialog::slot_apply_friend);
+
+   connect(ui->friend_apply_page,
+                    &NewFriendApplyPage::sig_recv_new_friend_apply, this,
+                    &ChatDialog::slot_show_friend_apply_red_point);
 }
 
 void ChatDialog::slot_loading_chat_user() {
@@ -235,4 +247,24 @@ void ChatDialog::slot_text_changed(const QString &str) {
   if (!str.isEmpty()) {
     show_search(true);
   }
+}
+
+void ChatDialog::slot_apply_friend(std::shared_ptr<AddFriendApply> apply) {
+  // 判断是否已经申请过了，只显示同一申请者的申请信息
+  bool b_already = UserMgr::getinstance()->already_apply(apply->_from_uid);
+  if (b_already) {
+    return;
+  }
+  qDebug() << "receive apply friend slot, applyuid is " << apply->_from_uid
+           << " name is " << apply->_name << " desc is " << apply->_desc;
+  UserMgr::getinstance()->add_apply_list(std::make_shared<ApplyInfo>(apply));
+  // 显示红点，表示有未处理信息
+  slot_show_friend_apply_red_point();
+  // 将好友申请项显示到好友申请页面
+  ui->friend_apply_page->add_new_apply(apply);
+}
+
+void ChatDialog::slot_show_friend_apply_red_point() {
+  ui->side_contact_lb->ShowRedPoint(true);
+  ui->con_user_list->ShowRedPoint(true);
 }

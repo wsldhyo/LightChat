@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AuthenFriend</class>
- <widget class="QDialog" name="AuthenFriend">
+ <class>AuthenFriendDlg</class>
+ <widget class="QDialog" name="AuthenFriendDlg">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -506,19 +506,19 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CustomizeEdit</class>
-   <extends>QLineEdit</extends>
-   <header>customizeedit.h</header>
-  </customwidget>
-  <customwidget>
    <class>ClickedBtn</class>
    <extends>QPushButton</extends>
-   <header>clickedbtn.h</header>
+   <header location="global">clicked_btn.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomizeEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">customize_edit.hpp</header>
   </customwidget>
   <customwidget>
    <class>ClickedOnceLabel</class>
    <extends>QLabel</extends>
-   <header>clickedoncelabel.h</header>
+   <header location="global">clicked_once_label.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

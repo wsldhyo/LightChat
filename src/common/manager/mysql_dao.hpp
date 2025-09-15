@@ -148,6 +148,32 @@ public:
    */
   bool add_friend_apply(int const from, int const to);
 
+  /**
+   * @brief 获取指定用户的好友申请列表
+   *
+   * 从数据库中查询接收人为指定用户 (to_uid) 的好友申请记录，并返回结果列表。
+   * 查询结果会包含申请人 ID、申请状态、姓名、昵称、性别等信息。
+   * 支持通过起始 ID 和返回条数限制结果范围。
+   *
+   * @param touid      接收好友申请的用户 ID
+   * @param applyList  输出参数，用于存储查询到的好友申请信息列表
+   * @param begin      起始 ID，只查询 ID 大于该值的记录（用于分页或增量查询）
+   * @param limit      最大返回条数（限制查询结果数量）
+   *
+   * @return true  查询成功并填充了 applyList
+   * @return false 查询失败（数据库连接为空或 SQL 执行异常）
+   *
+   * @note
+   * - 使用连接池获取数据库连接，查询完成后会自动归还；
+   * - SQL 内部通过 JOIN 语句关联 user 表获取申请人信息；
+   * - 若查询失败，会捕获 sql::SQLException 并输出错误信息；
+   * - applyList 中的元素为 std::shared_ptr<ApplyInfo>，由本函数构造并返回。
+   * @todo  将返回值使用optional包装，让接口语义更明确
+   */
+  bool get_apply_list(int touid,
+                      std::vector<std::shared_ptr<ApplyInfo>> &applyList,
+                      int begin, int limit);
+
 private:
   std::unique_ptr<MysqlConnPool> pool_;
 };

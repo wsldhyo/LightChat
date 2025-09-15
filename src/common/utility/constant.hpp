@@ -12,9 +12,11 @@ enum class ReqId {
   ID_CHAT_LOGIN_RSP, // 聊天服务器登录应，客户端将切换到聊天界面
   ID_SEARCH_USER_REQ, // 用户查询请求
   ID_SEARCH_USER_RSP, // 用户查询响应，客户端将展示服务端返回的查询结果
-  ID_APPLY_FRIEND_REQ, // 申请添加好友
+  ID_APPLY_FRIEND_REQ,        // 申请添加好友
   ID_NOTIFY_FRIEND_APPLY_REQ, // 通知对方有新好友申请
-  ID_APPLY_FRIEND_RSP, // 申请添加好友的服务器处理回包（成功通知对方或者有错误发生） 
+  ID_APPLY_FRIEND_RSP, // 申请添加好友的服务器处理回包（是否转发申请给被申请方或者有错误发生）
+  ID_AUTH_FRIEND_REQ,  // 认证好友请求，服务器将转发认证结果给好友申请方
+  ID_AUTH_FRIEND_RSP,  // 被申请方的认证结果（同意成为好友或者不同意） 
 };
 
 enum class ErrorCodes {
@@ -60,6 +62,7 @@ constexpr short TCP_MAX_RECV_QUE_SIZE{1000};
 constexpr short TCP_MAX_LOGIG_QUE_SIZE{1000};
 
 // Redis键
+// 和uid拼接，查找登录的token
 constexpr std::string_view REDIS_USER_TOKEN_PREFIX{"utoken_"sv};
 constexpr std::string_view REDIS_IP_COUNT_PREFIX{"ipcount_"sv};
 //和邮箱拼接， 查找发给对应邮箱的验证码
@@ -68,8 +71,10 @@ constexpr std::string_view REDIS_VERTIFY_CODE_PREFIX{"code_"sv};
 constexpr std::string_view REDIS_USER_IP_PREFIX{"uip_"sv};
 // 和uid拼接，查询用户的详细信息（UserInfo中的全部字段）
 constexpr std::string_view REDIS_USER_BASE_INFO_PREFIX{"ubaseinfo_"sv};
-constexpr std::string_view REDIS_LOGIN_COUNT_PREFIX{"logincount"sv};
+// 和用户名拼接，查询用户的详细信息（UserInfo中的全部字段）
 constexpr std::string_view REDIS_NAME_INFO_PREFIX{"nameinfo_"sv};
+// 查询每台服务器当前登录用户数目
+constexpr std::string_view REDIS_LOGIN_COUNT_PREFIX{"logincount"sv};
 
 // http请求路由
 constexpr std::string_view GET_TEST_URL{"/get_test"sv};
