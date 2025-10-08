@@ -17,8 +17,8 @@ NewFriendApplyPage::NewFriendApplyPage(QWidget *parent)
           &NewFriendApplyPage::sig_show_search);
 
   // 连接 TCP 模块的好友认证响应信号
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_auth_rsp, this,
-          &NewFriendApplyPage::slot_auth_rsp);
+  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_friend_apply_rsp, this,
+          &NewFriendApplyPage::slot_handle_auth_rsp);
 }
 
 NewFriendApplyPage::~NewFriendApplyPage() { delete ui; }
@@ -38,14 +38,14 @@ static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
 
 void NewFriendApplyPage::add_new_apply(std::shared_ptr<AddFriendApply> apply) {
   // 随机选择头像
-  int randomValue = QRandomGenerator::global()->bounded(100);
-  int head_i = randomValue % heads.size();
+  //int randomValue = QRandomGenerator::global()->bounded(100);
+  //int head_i = randomValue % heads.size();
 
   // 创建新列表项
   auto *apply_item = new NewFriendApplyItem();
   auto apply_info =
       std::make_shared<ApplyInfo>(apply->_from_uid, apply->_name, apply->_desc,
-                                  heads[head_i], apply->_name, 0, 0);
+                                  apply->_icon, apply->_name, 0, 0);
   apply_item->set_info(apply_info);
 
   // 创建 QListWidgetItem 并设置自定义 widget
@@ -59,7 +59,7 @@ void NewFriendApplyPage::add_new_apply(std::shared_ptr<AddFriendApply> apply) {
   apply_item->show_add_btn(true);
 
   // 点击“添加”按钮发出的信号（示例中未实现弹窗）
-
+  unauth_items_[apply_item->get_uid()] = apply_item; // 存储未审核列表
   connect(apply_item, &NewFriendApplyItem::sig_auth_friend, this,
           &NewFriendApplyPage::slot_show_auth_friend_dlg);
 }
@@ -134,14 +134,17 @@ void NewFriendApplyPage::load_apply_list() {
   }
 }
 
-void NewFriendApplyPage::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
+void NewFriendApplyPage::slot_handle_auth_rsp(
+    std::shared_ptr<AuthRsp> auth_rsp) {
   auto uid = auth_rsp->_uid;
   auto find_iter = unauth_items_.find(uid);
   if (find_iter == unauth_items_.end()) {
+    qDebug() << "uid:" << uid << "does not in unauth_items";
     return; // 未找到，不处理
   }
 
-  find_iter->second->show_add_btn(false); // 隐藏“添加按钮”
+  // 如果对方uid是未认证的陌生人，则将添加按钮隐藏，显示"已添加"标签
+  find_iter->second->show_add_btn(false);
 }
 
 void NewFriendApplyPage::slot_show_auth_friend_dlg(

@@ -56,4 +56,7 @@ constexpr int MIN_APPLY_LABEL_ED_LEN{40};
 constexpr int g_tip_offset{5};
 
 const QString g_add_prefix{QStringLiteral(u"添加标签")};
+// 一页13个聊天会话项
+constexpr int CHAT_COUNT_PER_PAGE{13};
+
 #endif

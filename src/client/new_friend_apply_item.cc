@@ -38,6 +38,7 @@ void NewFriendApplyItem::show_add_btn(bool bshow) {
     ui->already_add_lb->hide();
     added_ = false;
   } else {
+    qDebug() << "show added label";
     ui->addBtn->hide();
     ui->already_add_lb->show();
     added_ = true;

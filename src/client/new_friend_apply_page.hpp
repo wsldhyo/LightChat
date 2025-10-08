@@ -35,7 +35,7 @@ public:
   void add_new_apply(std::shared_ptr<AddFriendApply> apply);
 
   /**
-   * @brief 加载好友申请列表
+   * @brief 登录时，加载服务器发送过来的好友申请列表
    */
   void load_apply_list();
 
@@ -56,7 +56,7 @@ public slots:
    * @brief 处理好友认证响应
    * @param auth_rsp 认证结果响应
    */
-  void slot_auth_rsp(std::shared_ptr<AuthRsp>);
+  void slot_handle_auth_rsp(std::shared_ptr<AuthRsp>);
 
   /**
    * @brief 显示好人认证对话框，显示好友申请信息并决定是否同意对方的申请

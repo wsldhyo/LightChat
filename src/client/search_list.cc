@@ -100,6 +100,7 @@ void SearchList::create_connection() {
   //连接搜索条目
   connect(TcpMgr::getinstance().get(), &TcpMgr::sig_user_search, this,
           &SearchList::slot_user_search);
+
 }
 
 void SearchList::slot_item_clicked(QListWidgetItem *item) {
@@ -158,8 +159,17 @@ void SearchList::slot_user_search(std::shared_ptr<SearchInfo> si) {
   if (si == nullptr) {
     find_dlg_ = std::make_shared<FindFailedDlg>(this);
   } else {
-    // TODO 如果已经是自己的好友,  如果还不是好友
+    auto self_uid = UserMgr::getinstance()->get_uid();
+    if(self_uid == si->_uid){
+      // 查找的是自己，就什么也不做
+      return;
+    }
 
+    if(UserMgr::getinstance()->check_friend_by_id(si->_uid)){
+      // 如果已经是好友，就跳转到好友聊天界面
+      emit sig_switch_chat_item(si);
+      return;
+    }
     find_dlg_ = std::make_shared<FindSuccessDlg>(this);
     std::dynamic_pointer_cast<FindSuccessDlg>(find_dlg_)->set_search_info(si);
   }

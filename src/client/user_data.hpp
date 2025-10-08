@@ -51,6 +51,7 @@ struct ApplyInfo {
   int _status;
 };
 
+// 好友认证信息
 struct AuthInfo {
   AuthInfo(int uid, QString name, QString nick, QString icon, int sex)
       : _uid(uid), _name(name), _nick(nick), _icon(icon), _sex(sex) {}
@@ -61,6 +62,7 @@ struct AuthInfo {
   int _sex;
 };
 
+// 好友认证答复
 struct AuthRsp {
   AuthRsp(int peer_uid, QString peer_name, QString peer_nick, QString peer_icon,
           int peer_sex)
@@ -138,8 +140,8 @@ struct UserInfo {
   QString _nick;
   QString _icon;
   int _sex;
-  QString _desc;
-  QString _last_msg;
+  QString _desc;  
+  QString _last_msg; // 聊天会话列表项中显示的最后一条聊天消息
   std::vector<std::shared_ptr<TextChatData>> _chat_msgs;
 };
 

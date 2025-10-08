@@ -34,8 +34,23 @@ bool MysqlMgr::add_friend_apply(int const from, int const to) {
   return dao_.add_friend_apply(from, to);
 }
 
-bool MysqlMgr::get_apply_list(int touid, 
-    std::vector<std::shared_ptr<ApplyInfo>>& applyList, int begin, int limit) {
+bool MysqlMgr::get_apply_list(
+    int touid, std::vector<std::shared_ptr<ApplyInfo>> &applyList, int begin,
+    int limit) {
 
-    return dao_.get_apply_list(touid, applyList, begin, limit);
+  return dao_.get_apply_list(touid, applyList, begin, limit);
+}
+
+bool MysqlMgr::auth_friend_apply(int const from, int const to) {
+  return dao_.auth_friend_apply(from, to);
+}
+
+bool MysqlMgr::add_friend(int const from, int const to,
+                          std::string const &back_name) {
+  return dao_.add_friend(from, to, back_name);
+}
+
+bool MysqlMgr::get_friend_list(
+    int self_uid, std::vector<std::shared_ptr<UserInfo>> friend_list) {
+  return dao_.get_friend_list(self_uid, friend_list);
 }

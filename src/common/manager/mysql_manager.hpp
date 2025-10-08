@@ -48,8 +48,15 @@ public:
   bool add_friend_apply(int const from, int const to);
 
   bool get_apply_list(int touid,
-                    std::vector<std::shared_ptr<ApplyInfo>> &applyList,
-                    int begin, int limit);
+                      std::vector<std::shared_ptr<ApplyInfo>> &applyList,
+                      int begin, int limit);
+
+  bool auth_friend_apply(int const from, int const to);
+
+  bool add_friend(int const from, int const to, std::string const &back_name);
+
+  bool get_friend_list(int self_uid,
+                       std::vector<std::shared_ptr<UserInfo>> friend_list);
 
 private:
   /**

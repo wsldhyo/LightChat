@@ -25,12 +25,12 @@ signals:
   // 搜索用户
   void sig_user_search(std::shared_ptr<SearchInfo>);
   // 申请添加对方为好友
-  void sig_friend_apply(std::shared_ptr<AddFriendApply>);
-  // 对方同意好友申请
-  void sig_add_auth_friend(std::shared_ptr<AuthInfo>);
-  // 同意对方好友申请
-  void sig_auth_rsp(std::shared_ptr<AuthRsp>);
-
+  void sig_recv_friend_apply(std::shared_ptr<AddFriendApply>);
+  // 处理完对方好友申请
+  void sig_friend_apply_rsp(std::shared_ptr<AuthRsp>);
+  // 对方处理完好友申请的答复
+  void sig_recv_friend_auth(std::shared_ptr<AuthInfo>);
+   
 private:
   void initHandlers();
   void handle_msg(ReqId id, int len, QByteArray data);

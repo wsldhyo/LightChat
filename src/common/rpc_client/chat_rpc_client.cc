@@ -1,7 +1,10 @@
 #include "chat_rpc_client.hpp"
 #include "manager/config_manager.hpp"
+#include "manager/mysql_manager.hpp"
+#include "manager/redis_manager.hpp"
 #include "pool/chat_server_conn_pool.hpp"
 #include "utility/defer.hpp"
+#include <json/reader.h>
 ChatGrpcClient::ChatGrpcClient() {
   // 读取配置，获取所有对端聊天服务器信息
   // TODO，通过状态服务器获取活跃的聊天服务器，而不是通过硬配置
@@ -57,11 +60,73 @@ AddFriendRsp ChatGrpcClient::notify_add_friend(std::string server_ip,
 AuthFriendRsp ChatGrpcClient::notify_auth_friend(std::string server_ip,
                                                  const AuthFriendReq &req) {
   AuthFriendRsp rsp;
+  rsp.set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
+
+  Defer defer([&rsp, &req]() {
+    rsp.set_fromuid(req.fromuid());
+    rsp.set_touid(req.touid());
+  });
+
+  auto find_iter = pools_.find(server_ip);
+  if (find_iter == pools_.end()) {
+    return rsp;
+  }
+
+  auto &pool = find_iter->second;
+  grpc::ClientContext context;
+  auto stub = pool->get_connection();
+  grpc::Status status = stub->NotifyAuthFriend(&context, req, &rsp);
+  Defer defercon(
+      [&stub, this, &pool]() { pool->return_connection(std::move(stub)); });
+
+  if (!status.ok()) {
+    rsp.set_error(static_cast<int32_t>(ErrorCodes::RPC_CALL_FAILED));
+    return rsp;
+  }
+
   return rsp;
 }
 
 bool ChatGrpcClient::get_base_info(std::string base_key, int uid,
                                    std::shared_ptr<UserInfo> &userinfo) {
+
+  // TODO, 走GRPC调用？ 
+  std::string info_str = "";
+  bool b_base = RedisMgr::getinstance()->get(base_key, info_str);
+  if (b_base) {
+    Json::Reader reader;
+    Json::Value root;
+    reader.parse(info_str, root);
+    userinfo->uid = root["uid"].asInt();
+    userinfo->name = root["name"].asString();
+    userinfo->pwd = root["pwd"].asString();
+    userinfo->email = root["email"].asString();
+    userinfo->nick = root["nick"].asString();
+    userinfo->desc = root["desc"].asString();
+    userinfo->sex = root["sex"].asInt();
+    userinfo->icon = root["icon"].asString();
+    std::cout << "user login uid is  " << userinfo->uid << " name  is "
+              << userinfo->name << " pwd is " << userinfo->pwd << " email is "
+              << userinfo->email << std::endl;
+  } else {
+    auto user_info = MysqlMgr::getinstance()->get_user(uid);
+    if (user_info == std::nullopt) {
+      return false;
+    }
+
+    userinfo = std::make_shared<UserInfo>(user_info.value());
+
+    Json::Value redis_root;
+    redis_root["uid"] = uid;
+    redis_root["pwd"] = userinfo->pwd;
+    redis_root["name"] = userinfo->name;
+    redis_root["email"] = userinfo->email;
+    redis_root["nick"] = userinfo->nick;
+    redis_root["desc"] = userinfo->desc;
+    redis_root["sex"] = userinfo->sex;
+    redis_root["icon"] = userinfo->icon;
+    RedisMgr::getinstance()->set(base_key, redis_root.toStyledString());
+  }
   return true;
 }
 

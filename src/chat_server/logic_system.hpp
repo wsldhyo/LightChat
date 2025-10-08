@@ -9,6 +9,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <string>
 #include <string_view>
 #include <thread>
 class Session;
@@ -191,23 +192,36 @@ private:
    *       - PARSE_JSON_FAILED：Redis 中 JSON 解析失败
    *       - UID_INVALID：数据库中未找到对应用户
    */
-  void get_user_by_name(std::string const &name, Json::Value &rtvalue)const;
+  void get_user_by_name(std::string const &name, Json::Value &rtvalue) const;
 
   /**
- * @brief 获取指定用户的好友申请列表，并序列化为 JSON 格式返回
- *
- * 该函数会从数据库中查询某个用户收到的好友申请列表，将结果存储到 
- * `apply_list` 中，再逐条转换为 JSON 对象，组装成 JSON 数组，最后存放到 
- * `rtvalue["apply_list"]` 中。
- *
- * @param to_uid   接收好友申请的用户 ID
- * @param rtvalue  返回结果 JSON，增加字段 "apply_list"，其中包含好友申请信息数组
- *
- * @note
- * - 内部调用 MysqlMgr::get_apply_list 从数据库获取数据；
- * - 如果查询失败或没有数据，`rtvalue` 不会包含 "apply_list" 字段；
- */void get_friend_apply_info(int const to_uid, Json::Value& rtvalue)const;
+   * @brief 获取指定用户的好友申请列表，并序列化为 JSON 格式返回
+   *
+   * 该函数会从数据库中查询某个用户收到的好友申请列表，将结果存储到
+   * `apply_list` 中，再逐条转换为 JSON 对象，组装成 JSON 数组，最后存放到
+   * `rtvalue["apply_list"]` 中。
+   *
+   * @param to_uid   接收好友申请的用户 ID
+   * @param rtvalue  返回结果 JSON，增加字段
+   * "apply_list"，其中包含好友申请信息数组
+   *
+   * @note
+   * - 内部调用 MysqlMgr::get_apply_list 从数据库获取数据；
+   * - 如果查询失败或没有数据，`rtvalue` 不会包含 "apply_list" 字段；
+   */
+  void get_friend_apply_info(int const to_uid, Json::Value &rtvalue) const;
 
+  /**
+   * @brief 向数据库查询用户的好友列表，以转发给客户端展示
+   *
+   * @param self_id 本用户id
+   * @param user_list 存储查询到的好友列表
+   * @return true
+   *    成功查询到好友列表
+   * @return false
+   *    查询好友列表失败
+   */
+  bool get_friend_list(int self_id,Json::Value &rtvalue);
   std::mutex msg_que_mutex_;
   bool b_stop_;
   std::condition_variable deal_msg_cond_;

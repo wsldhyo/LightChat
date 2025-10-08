@@ -8,7 +8,7 @@ class SearchInfo;
 
 /**
  * @brief ChatDialog搜索框的显示列表控件，显示搜索结果
- * 
+ *
  */
 class SearchList : public QListWidget {
   Q_OBJECT
@@ -29,12 +29,12 @@ private slots:
   void slot_user_search(std::shared_ptr<SearchInfo> si);
 
 signals:
+  void sig_switch_chat_item(std::shared_ptr<SearchInfo> si);
 
 private:
   bool send_pending_;
   std::shared_ptr<QDialog> find_dlg_;
   QWidget *search_edit_;
   LoadingDialog *loadingDialog_;
-
 };
 #endif

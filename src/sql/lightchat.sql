@@ -18,3 +18,18 @@ CREATE TABLE `friend_apply`  (
   CHARACTER SET = utf8mb4                           -- 字符集：utf8mb4，支持 emoji
   COLLATE = utf8mb4_unicode_ci                      -- 排序规则：不区分大小写的 Unicode 排序
   ROW_FORMAT = Dynamic;                             -- 行格式：动态，适合变长字段存储
+
+
+
+-- ----------------------------
+-- Table structure for friend
+-- ----------------------------
+DROP TABLE IF EXISTS `friend`;
+CREATE TABLE `friend`  (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `self_id` int NOT NULL,
+  `friend_id` int NOT NULL,
+  `back` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `self_friend`(`self_id` ASC, `friend_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 89 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;

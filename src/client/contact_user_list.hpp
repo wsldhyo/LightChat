@@ -1,11 +1,13 @@
 #ifndef CONTACT_USER_LIST_HPP
 #define CONTACT_USER_LIST_HPP
 #include <QListWidget>
+struct AuthRsp;
+struct AuthInfo;
 
 class ContactUserItem;
 /**
  * @brief 联系人列表组件（继承自 QListWidget）
- * 
+ *
  * 用于展示联系人、分组提示（GroupTipItem）、以及“新的朋友”入口。
  */
 class ContactUserList : public QListWidget {
@@ -28,6 +30,11 @@ public slots:
   /// 处理点击条目的逻辑
   void slot_item_clicked(QListWidgetItem *item);
 
+  // 对方处理完好友申请后的处理
+  void slot_recv_friend_auth(std::shared_ptr<AuthInfo> auth_info);
+  /// 处理对方好友请求后, 对服务器回包的处理
+  void slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp);
+
 signals:
   /// 通知界面加载更多联系人（滚动到底部时触发）
   void sig_loading_contact_user();
@@ -37,6 +44,8 @@ signals:
   void sig_switch_friend_info_page();
 
 private:
+  void create_connection();
+
   ContactUserItem *add_friend_item_; ///< “新的朋友”条目
   QListWidgetItem *group_item_;      ///< “联系人”分组提示条目
 };

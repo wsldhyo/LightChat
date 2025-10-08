@@ -8,6 +8,9 @@
 #include <QListWidgetItem>
 #include <memory>
 class AddFriendApply;
+struct AuthInfo;
+struct AuthRsp;
+class SearchInfo;
 namespace Ui {
 class ChatDialog;
 }
@@ -31,7 +34,6 @@ protected:
   // void UpdateChatMsg(std::vector<std::shared_ptr<TextChatData>> msgdata);
 
 private:
-
   void handle_global_mouse_press(QMouseEvent *event);
   /**
    * @brief 设置搜索框，输入时在最右边显示删除按钮
@@ -47,8 +49,8 @@ private:
   void add_lb_group(StateWidget *lb);
   // void loadMoreChatUser();
   // void loadMoreConUser();
-  // void SetSelectChatItem(int uid = 0);
-  // void SetSelectChatPage(int uid = 0);
+  void set_select_chat_item(int uid = 0);
+  void set_select_chat_page(int uid = 0);
   void show_search(bool bsearch = false);
 
   void create_connection();
@@ -63,11 +65,12 @@ public slots:
   // void slot_switch_apply_friend_page();
   // void slot_friend_info_page(std::shared_ptr<UserInfo> user_info);
   // void slot_show_search(bool show);
-   void slot_apply_friend(std::shared_ptr<AddFriendApply> apply);
-  // void slot_add_auth_friend(std::shared_ptr<AuthInfo> auth_info);
-  // void slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp);
-  // void slot_jump_chat_item(std::shared_ptr<SearchInfo> si);
-  // void slot_jump_chat_item_from_infopage(std::shared_ptr<UserInfo> ui);
+  void slot_handle_friend_apply(std::shared_ptr<AddFriendApply> apply);
+  // 对方处理完好友申请后的处理 （将对方加入到聊天会话列表）
+  void slot_recv_friend_auth(std::shared_ptr<AuthInfo> auth_info);
+  /// 处理对方好友请求后, 对服务器回包的处理（将对方加入到聊天会话列表）
+  void slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp);
+  void slot_switch_chat_item(std::shared_ptr<SearchInfo> si);
   // void slot_item_clicked(QListWidgetItem *item);
   // void slot_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
   // void slot_append_send_chat_msg(std::shared_ptr<TextChatData> msgdata);
@@ -79,7 +82,13 @@ private:
   ChatUIMode mode_; //根据sidebar显示不同的界面：如联系人界面、会话界面
   ChatUIMode state_; // 不同mode下的搜索框状态
   bool b_loading_;
-  QList<StateWidget *> lb_list_; // 侧边栏标签列表，一次仅有一个激活并显示对应标签的列表（会话列表、联系人列表）
+  // 侧边栏标签列表，一次仅有一个激活并显示对应标签的列表（会话列表、联系人列表）
+  QList<StateWidget *> lb_list_;
+
+  QMap<int, QListWidgetItem *>
+      chat_items_added_; // 已经加入到聊天会话列表的会话项
+
+  int cur_chat_uid_; /// 当前激活的聊天视图的uid（展示的是哪一个用户的聊天记录）
 };
 
 #endif // CHATDIALOG_H

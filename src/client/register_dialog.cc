@@ -4,6 +4,7 @@
 #include "http_manager.hpp"
 #include "ui_registerdialog.h"
 #include <QDebug>
+#include <QRandomGenerator>
 #include <QRegularExpression>
 #include <QTimer>
 RegisterDialog::RegisterDialog(QWidget *parent)
@@ -25,10 +26,10 @@ RegisterDialog::RegisterDialog(QWidget *parent)
   ui->confirm_visible->setCursor(Qt::PointingHandCursor);
 
   ui->pass_visible->set_state("unvisible", "unvisible_hover", "", "visible",
-                             "visible_hover", "");
+                              "visible_hover", "");
 
   ui->confirm_visible->set_state("unvisible", "unvisible_hover", "", "visible",
-                                "visible_hover", "");
+                                 "visible_hover", "");
 }
 
 RegisterDialog::~RegisterDialog() {
@@ -60,6 +61,11 @@ void RegisterDialog::on_get_code_clicked() {
     showTip(QString("邮箱地址不正确"), false);
   }
 }
+
+static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
+                                     ":/icons/head_3.jpg", ":/icons/head_4.jpg",
+                                     ":/icons/head_5.jpg"};
+
 void RegisterDialog::on_sure_btn_clicked() {
 
   // 检查输入是否都正确
@@ -87,8 +93,17 @@ void RegisterDialog::on_sure_btn_clicked() {
   QJsonObject json_obj;
   json_obj["user"] = ui->user_edit->text();
   json_obj["email"] = ui->email_edit->text();
+
   json_obj["pwd"] = xor_string(ui->pass_edit->text());
   json_obj["confirm"] = xor_string(ui->confirm_edit->text());
+  json_obj["sex"] = 0;
+  // 随机一个头像，测试用
+  int randomValue =
+      QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
+  int head_i = randomValue % heads.size();
+
+  json_obj["icon"] = heads[head_i];
+  json_obj["nick"] = ui->user_edit->text();
   json_obj["vertifycode"] = ui->varify_edit->text();
   HttpMgr::getinstance()->post_http_req(
       QUrl(g_gate_url_prefix +
@@ -289,7 +304,7 @@ void RegisterDialog::DelTipErr(TipErr te) {
 void RegisterDialog::ChangeTipPage() {
   countdown_timer_->stop();
   ui->stackedWidget->setCurrentWidget(ui->page_2);
-
+  countdown_ = 5;
   // 启动定时器，设置间隔为1000毫秒（1秒）
   countdown_timer_->start(1000);
 }
@@ -339,13 +354,13 @@ void RegisterDialog::create_connection() {
   countdown_timer_ = new QTimer(this);
   // 连接信号和槽
   connect(countdown_timer_, &QTimer::timeout, [this]() {
-    if (countdown_ == 0) {
+    if (countdown_ <= 0) {
       countdown_timer_->stop();
       emit sigSwitchLogin();
       return;
     }
-    countdown_--;
     auto str = QString("注册成功，%1 s后返回登录").arg(countdown_);
+    countdown_--;
     ui->tip_lb->setText(str);
   });
 }
