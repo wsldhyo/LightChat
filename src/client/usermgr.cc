@@ -23,6 +23,10 @@ std::vector<std::shared_ptr<ApplyInfo>> const &UserMgr::get_apply_list() const {
   return apply_list_;
 }
 
+std::shared_ptr<UserInfo> const UserMgr::get_user_info() const {
+  return user_info_;
+}
+
 void UserMgr::set_user_info(std::shared_ptr<UserInfo> user_info) {
   user_info_ = user_info;
 }
@@ -183,4 +187,15 @@ bool UserMgr::is_load_contact_finished() {
   }
 
   return false;
+}
+
+void UserMgr::append_friend_chat_msg(
+    int friend_id, std::vector<std::shared_ptr<TextChatData>> msgs) {
+  auto find_iter = friend_map_.find(friend_id);
+  if (find_iter == friend_map_.end()) {
+    qDebug() << "append friend uid  " << friend_id << " not found";
+    return;
+  }
+
+  find_iter.value()->AppendChatMsgs(msgs);
 }

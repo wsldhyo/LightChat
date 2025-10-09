@@ -145,16 +145,19 @@ struct UserInfo {
   std::vector<std::shared_ptr<TextChatData>> _chat_msgs;
 };
 
+// 每条聊天信息
 struct TextChatData {
   TextChatData(QString msg_id, QString msg_content, int fromuid, int touid)
       : _msg_id(msg_id), _msg_content(msg_content), _from_uid(fromuid),
         _to_uid(touid) {}
   QString _msg_id;
   QString _msg_content;
+  // TODO from和t是否可以优化掉，使用TextChatMsg里的信息
   int _from_uid;
   int _to_uid;
 };
 
+// 与该用户的所有聊天信息
 struct TextChatMsg {
   TextChatMsg(int fromuid, int touid, QJsonArray arrays)
       : _from_uid(fromuid), _to_uid(touid) {

@@ -15,9 +15,11 @@ enum class ReqId {
   ID_APPLY_FRIEND_REQ,        // 申请添加好友
   ID_NOTIFY_FRIEND_APPLY_REQ, // 通知对方有新好友申请
   ID_APPLY_FRIEND_RSP, // 申请添加好友的服务器处理回包（是否转发申请给被申请方或者有错误发生）
-  ID_AUTH_FRIEND_REQ,  // 被申请方的认证好友请求，服务器转发认证结果给好友申请方
-  ID_AUTH_FRIEND_RSP,  // 被申请方客户端根据服务器回包，可将对方显示到联系人列表（若同意成为好友）
+  ID_AUTH_FRIEND_REQ, // 被申请方的认证好友请求，服务器转发认证结果给好友申请方
+  ID_AUTH_FRIEND_RSP, // 被申请方客户端根据服务器回包，可将对方显示到联系人列表（若同意成为好友）
   ID_NOTIFY_AUTH_FRIEND_REQ, // 通知申请方0好友认证结果，对方客户端据此可将对方显示到联系人列表（若同意成为好友）
+  ID_TEXT_CHAT_MSG_REQ,  // 发送聊天消息请求
+  ID_TEXT_CHAT_MSG_RSP,  // 接收到聊天消息 
 };
 
 enum class ErrorCodes {

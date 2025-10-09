@@ -12,6 +12,7 @@ struct AuthInfo;
 struct AuthRsp;
 class SearchInfo;
 struct UserInfo;
+struct TextChatData;
 namespace Ui {
 class ChatDialog;
 }
@@ -76,12 +77,14 @@ public slots:
   /// 处理对方好友请求后, 对服务器回包的处理（将对方加入到聊天会话列表）
   void slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp);
   void slot_switch_chat_item(std::shared_ptr<SearchInfo> si);
-  // void slot_item_clicked(QListWidgetItem *item);
   // void slot_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
-  // void slot_append_send_chat_msg(std::shared_ptr<TextChatData> msgdata);
   void slot_show_friend_apply_red_point();
   // 从好友详细信息页面跳转到与该好友的聊天会话页面
   void slot_switch_chat_item_from_infopage(std::shared_ptr<UserInfo> user_info);
+  // 对界面内列表item的点击处理
+  void slot_item_clicked(QListWidgetItem *item);
+  // 添加聊天消息到本地，以便切换会话视图时可以切换消息记录
+  void slot_append_send_chat_msg(std::shared_ptr<TextChatData> msgdata);
 private slots:
 
 private:

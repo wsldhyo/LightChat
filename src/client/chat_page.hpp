@@ -1,6 +1,8 @@
 #ifndef CHAT_PAGE_HPP
 #define CHAT_PAGE_HPP
 #include <QWidget>
+struct UserInfo;
+struct TextChatData;
 namespace Ui {
 class ChatPage;
 }
@@ -14,6 +16,11 @@ class ChatPage : public QWidget {
 public:
   explicit ChatPage(QWidget *parent = nullptr);
   ~ChatPage();
+  void set_user_info(std::shared_ptr<UserInfo> user_info);
+  void append_chat_msg(std::shared_ptr<TextChatData> msg);
+
+signals:
+  void sig_append_send_chat_msg(std::shared_ptr<TextChatData>);
 
 protected:
   void paintEvent(QPaintEvent *event) override;
@@ -23,5 +30,6 @@ private slots:
 
 private:
   Ui::ChatPage *ui;
+  std::shared_ptr<UserInfo> user_info_;
 };
 #endif

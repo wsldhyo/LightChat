@@ -11,6 +11,7 @@ class UserInfo;
 class AuthRsp;
 class AuthInfo;
 class FriendInfo;
+struct TextChatData;
 
 class UserMgr : public QObject,
                 public Singleton<UserMgr>,
@@ -28,6 +29,7 @@ public:
   QString const &get_token() const;
   std::vector<std::shared_ptr<ApplyInfo>> const &get_apply_list() const;
 
+  std::shared_ptr<UserInfo> const get_user_info() const;
   void set_user_info(std::shared_ptr<UserInfo> user_info);
 
   // 登录状态下，收到的好友申请
@@ -55,6 +57,10 @@ public:
   void update_contact_loaded_count();
   bool is_load_contact_finished();
 
+  // 记录与对方的聊天消息到本地，以便在不同的会话切换时，切换会话视图中的消息记录
+  void append_friend_chat_msg(int friend_id,
+                           std::vector<std::shared_ptr<TextChatData>> msgs);
+
 private:
   UserMgr();
   QString token_;
@@ -64,7 +70,7 @@ private:
 
   std::vector<std::shared_ptr<FriendInfo>> friend_list_; // TODO 无必要
 
-  int chat_loaded_; // 聊天会话项目起始索引
+  int chat_loaded_;    // 聊天会话项目起始索引
   int contact_loaded_; // 联系人项起始索引
 };
 
