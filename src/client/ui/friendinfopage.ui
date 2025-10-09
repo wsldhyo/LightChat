@@ -416,7 +416,7 @@
   <customwidget>
    <class>ClickedBtn</class>
    <extends>QPushButton</extends>
-   <header>clickedbtn.h</header>
+   <header location="global">clicked_btn.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

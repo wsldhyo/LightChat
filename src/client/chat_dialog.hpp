@@ -11,6 +11,7 @@ class AddFriendApply;
 struct AuthInfo;
 struct AuthRsp;
 class SearchInfo;
+struct UserInfo;
 namespace Ui {
 class ChatDialog;
 }
@@ -64,8 +65,10 @@ public slots:
   // void slot_side_setting();
   void slot_text_changed(const QString &str);
   // void slot_focus_out();
-  // void slot_switch_apply_friend_page();
-  // void slot_friend_info_page(std::shared_ptr<UserInfo> user_info);
+  // 切换到好友详细信息页面
+  void slot_switch_friend_info_page(std::shared_ptr<UserInfo> user_info);
+
+  void slot_switch_apply_friend_page();
   // void slot_show_search(bool show);
   void slot_handle_friend_apply(std::shared_ptr<AddFriendApply> apply);
   // 对方处理完好友申请后的处理 （将对方加入到聊天会话列表）
@@ -77,6 +80,8 @@ public slots:
   // void slot_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
   // void slot_append_send_chat_msg(std::shared_ptr<TextChatData> msgdata);
   void slot_show_friend_apply_red_point();
+  // 从好友详细信息页面跳转到与该好友的聊天会话页面
+  void slot_switch_chat_item_from_infopage(std::shared_ptr<UserInfo> user_info);
 private slots:
 
 private:
@@ -91,6 +96,7 @@ private:
       chat_items_added_; // 已经加入到聊天会话列表的会话项
 
   int cur_chat_uid_; /// 当前激活的聊天视图的uid（展示的是哪一个用户的聊天记录）
+  QWidget *last_widget_; /// StackWidget中上次的Widget
 };
 
 #endif // CHATDIALOG_H

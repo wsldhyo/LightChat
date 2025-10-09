@@ -32,6 +32,8 @@ public:
   /// 显示/隐藏右上角的红点
   void ShowRedPoint(bool show = false);
 
+  std::shared_ptr<UserInfo>const get_user_info()const;
+
 private:
   Ui::ContactUserItem *ui;          ///< UI 界面指针
   std::shared_ptr<UserInfo> _info;  ///< 存储联系人信息

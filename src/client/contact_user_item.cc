@@ -8,7 +8,7 @@ ContactUserItem::ContactUserItem(QWidget *parent)
   SetItemType(ListItemType::CONTACT_USER_ITEM);
 
   ui->red_point->raise(); // 保证红点显示在最顶层
-  ShowRedPoint(false);     // 默认不显示红点
+  ShowRedPoint(false);    // 默认不显示红点
 }
 
 ContactUserItem::~ContactUserItem() { delete ui; }
@@ -61,4 +61,8 @@ void ContactUserItem::ShowRedPoint(bool show) {
   } else {
     ui->red_point->hide();
   }
+}
+
+std::shared_ptr<UserInfo> const ContactUserItem::get_user_info() const {
+  return _info;
 }

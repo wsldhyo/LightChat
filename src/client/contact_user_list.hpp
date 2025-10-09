@@ -3,6 +3,7 @@
 #include <QListWidget>
 struct AuthRsp;
 struct AuthInfo;
+struct UserInfo;
 
 class ContactUserItem;
 /**
@@ -42,7 +43,7 @@ signals:
   /// 切换到申请好友页面
   void sig_switch_apply_friend_page();
   /// 切换到好友信息页面
-  void sig_switch_friend_info_page();
+  void sig_switch_friend_info_page(std::shared_ptr<UserInfo> ui);
 
 private:
   void create_connection();

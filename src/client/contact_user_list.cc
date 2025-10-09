@@ -174,19 +174,16 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item) {
   if (itemType == ListItemType::INVALID_ITEM ||
       itemType == ListItemType::GROUP_TIP_ITEM) {
     qDebug() << "slot invalid item clicked ";
-    return;
   }
 
-  if (itemType == ListItemType::APPLY_FRIEND_ITEM) {
+  else if (itemType == ListItemType::APPLY_FRIEND_ITEM) {
     qDebug() << "apply friend item clicked ";
     emit sig_switch_apply_friend_page();
-    return;
   }
-
-  if (itemType == ListItemType::CONTACT_USER_ITEM) {
+  else if (itemType == ListItemType::CONTACT_USER_ITEM) {
     qDebug() << "contact user item clicked ";
-    emit sig_switch_friend_info_page();
-    return;
+
+    emit sig_switch_friend_info_page((qobject_cast<ContactUserItem*>(customItem))->get_user_info());
   }
 }
 

@@ -13,7 +13,8 @@
 #include <QRandomGenerator>
 ChatDialog::ChatDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::ChatDialog), mode_(ChatUIMode::CHAT_MODE),
-      state_(ChatUIMode::CHAT_MODE), b_loading_(false), cur_chat_uid_(0)
+      state_(ChatUIMode::CHAT_MODE), b_loading_(false), cur_chat_uid_(0),
+      last_widget_(nullptr)
 
 {
   ui->setupUi(this);
@@ -381,6 +382,16 @@ void ChatDialog::create_connection() {
 
   connect(ui->search_list, &SearchList::sig_switch_chat_item, this,
           &ChatDialog::slot_switch_chat_item);
+  // 跳转到联系人界面的好友详细信息页面
+  connect(ui->con_user_list, &ContactUserList::sig_switch_friend_info_page,
+          this, &ChatDialog::slot_switch_friend_info_page);
+  // 跳转到联系人界面的好友申请列表页面
+  connect(ui->con_user_list, &ContactUserList::sig_switch_apply_friend_page,
+          this, &ChatDialog::slot_switch_apply_friend_page);
+
+  //连接好友信息界面发送的点击事件
+  connect(ui->friend_info_page, &FriendInfoPage::sig_jump_chat_item, this,
+          &ChatDialog::slot_switch_chat_item_from_infopage);
 }
 
 void ChatDialog::slot_loading_chat_user() {
@@ -426,6 +437,7 @@ void ChatDialog::slot_loading_contact_user() {
 
   b_loading_ = false;
 }
+
 void ChatDialog::slot_side_chat() {
   qDebug() << "receive side chat clicked";
   clear_label_state(ui->side_chat_lb);
@@ -437,7 +449,12 @@ void ChatDialog::slot_side_chat() {
 void ChatDialog::slot_side_contact() {
   qDebug() << "receive side contact clicked";
   clear_label_state(ui->side_contact_lb);
-  ui->stackedWidget->setCurrentWidget(ui->friend_apply_page);
+  if (last_widget_ == nullptr) {
+    ui->stackedWidget->setCurrentWidget(ui->friend_apply_page);
+    last_widget_ = ui->friend_apply_page;
+  } else {
+    ui->stackedWidget->setCurrentWidget(last_widget_);
+  }
   state_ = ChatUIMode::CONTACT_MODE;
   show_search(false);
 }
@@ -447,6 +464,20 @@ void ChatDialog::slot_text_changed(const QString &str) {
   if (!str.isEmpty()) {
     show_search(true);
   }
+}
+
+void ChatDialog::slot_switch_friend_info_page(
+    std::shared_ptr<UserInfo> user_info) {
+  qDebug() << "receive switch friend info page sig";
+  last_widget_ = ui->friend_info_page;
+  ui->stackedWidget->setCurrentWidget(ui->friend_info_page);
+  ui->friend_info_page->SetInfo(user_info);
+}
+
+void ChatDialog::slot_switch_apply_friend_page() {
+  qDebug() << "receive switch apply friend page sig";
+  last_widget_ = ui->friend_apply_page;
+  ui->stackedWidget->setCurrentWidget(ui->friend_apply_page);
 }
 
 void ChatDialog::slot_handle_friend_apply(
@@ -468,6 +499,39 @@ void ChatDialog::slot_handle_friend_apply(
 void ChatDialog::slot_show_friend_apply_red_point() {
   ui->side_contact_lb->ShowRedPoint(true);
   ui->con_user_list->ShowRedPoint(true);
+}
+
+void ChatDialog::slot_switch_chat_item_from_infopage(std::shared_ptr<UserInfo> user_info) {
+  qDebug() << "slot jump chat item ";
+  auto find_iter = chat_items_added_.find(user_info->_uid);
+  if (find_iter != chat_items_added_.end()) {
+    qDebug() << "jump to chat item , uid is " << user_info->_uid;
+    ui->chat_user_list->scrollToItem(find_iter.value());
+    ui->side_chat_lb->SetSelected(true);
+    set_select_chat_item(user_info->_uid);
+    //更新聊天界面信息
+    set_select_chat_page(user_info->_uid);
+    slot_side_chat();
+    return;
+  }
+
+  //如果没找到，则创建新的插入listwidget
+
+  auto *chat_user_wid = new ChatUserWid();
+  chat_user_wid->set_user_info(user_info);
+  QListWidgetItem *item = new QListWidgetItem;
+  // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
+  item->setSizeHint(chat_user_wid->sizeHint());
+  ui->chat_user_list->insertItem(0, item);
+  ui->chat_user_list->setItemWidget(item, chat_user_wid);
+
+  chat_items_added_.insert(user_info->_uid, item);
+
+  ui->side_chat_lb->SetSelected(true);
+  set_select_chat_item(user_info->_uid);
+  //更新聊天界面信息
+  set_select_chat_page(user_info->_uid);
+  slot_side_chat();
 }
 
 void ChatDialog::slot_recv_friend_auth(std::shared_ptr<AuthInfo> auth_info) {
