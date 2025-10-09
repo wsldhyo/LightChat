@@ -47,8 +47,10 @@ private:
   void clear_label_state(StateWidget *lb);
 
   void add_lb_group(StateWidget *lb);
-  // void loadMoreChatUser();
-  // void loadMoreConUser();
+  // 聊天会话列表向下滚动时，加载更多会话项
+  void load_more_chat_user();
+  // 联系人列表向下滚动时，加载更多联系人项
+  void load_more_contact_user();
   void set_select_chat_item(int uid = 0);
   void set_select_chat_page(int uid = 0);
   void show_search(bool bsearch = false);
@@ -56,12 +58,12 @@ private:
   void create_connection();
 public slots:
   void slot_loading_chat_user();
+  void slot_loading_contact_user();
   void slot_side_chat();
   void slot_side_contact();
   // void slot_side_setting();
   void slot_text_changed(const QString &str);
   // void slot_focus_out();
-  // void slot_loading_contact_user();
   // void slot_switch_apply_friend_page();
   // void slot_friend_info_page(std::shared_ptr<UserInfo> user_info);
   // void slot_show_search(bool show);

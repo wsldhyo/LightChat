@@ -1,5 +1,6 @@
 #include "chat_dialog.hpp"
 #include "chat_user_wid.hpp"
+#include "contact_user_item.hpp"
 #include "loading_dialog.hpp"
 #include "state_widget.hpp"
 #include "tcp_manager.hpp"
@@ -217,6 +218,49 @@ void ChatDialog::set_select_chat_item(int uid) {
   cur_chat_uid_ = uid;
 }
 
+void ChatDialog::load_more_contact_user() {
+  auto friend_list = UserMgr::getinstance()->get_conlist_per_page();
+  if (friend_list.empty() == false) {
+    for (auto &friend_ele : friend_list) {
+      auto *chat_user_wid = new ContactUserItem();
+      chat_user_wid->SetInfo(friend_ele->_uid, friend_ele->_name,
+                             friend_ele->_icon);
+      QListWidgetItem *item = new QListWidgetItem;
+      // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
+      item->setSizeHint(chat_user_wid->sizeHint());
+      ui->con_user_list->addItem(item);
+      ui->con_user_list->setItemWidget(item, chat_user_wid);
+    }
+
+    //更新已加载条目
+    UserMgr::getinstance()->update_contact_loaded_count();
+  }
+}
+
+void ChatDialog::load_more_chat_user() {
+  auto friend_list = UserMgr::getinstance()->get_chat_list_per_page();
+  if (friend_list.empty() == false) {
+    for (auto &friend_ele : friend_list) {
+      auto find_iter = chat_items_added_.find(friend_ele->_uid);
+      if (find_iter != chat_items_added_.end()) {
+        continue;
+      }
+      auto *chat_user_wid = new ChatUserWid();
+      auto user_info = std::make_shared<UserInfo>(friend_ele);
+      chat_user_wid->set_user_info(user_info);
+      QListWidgetItem *item = new QListWidgetItem;
+      // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
+      item->setSizeHint(chat_user_wid->sizeHint());
+      ui->chat_user_list->addItem(item);
+      ui->chat_user_list->setItemWidget(item, chat_user_wid);
+      chat_items_added_.insert(friend_ele->_uid, item);
+    }
+
+    //更新已加载条目
+    UserMgr::getinstance()->update_chat_loaded_count();
+  }
+}
+
 void ChatDialog::set_select_chat_page(int uid) {
   //  if (ui->chat_user_list->count() <= 0) {
   // return;
@@ -312,6 +356,8 @@ void ChatDialog::clear_label_state(StateWidget *lb) {
 void ChatDialog::create_connection() {
   connect(ui->chat_user_list, &ChatUserList::sig_loading_chat_user, this,
           &ChatDialog::slot_loading_chat_user);
+  connect(ui->con_user_list, &ContactUserList::sig_loading_contact_user, this,
+          &ChatDialog::slot_loading_contact_user);
 
   connect(ui->side_chat_lb, &StateWidget::clicked, this,
           &ChatDialog::slot_side_chat);
@@ -347,7 +393,8 @@ void ChatDialog::slot_loading_chat_user() {
   LoadingDialog *loading_dlg = new LoadingDialog(this);
   loading_dlg->setModal(true);
   loading_dlg->show();
-  add_chat_user_list();
+  // add_chat_user_list(); // TODO 该函数应该无用了
+  load_more_chat_user();
   // 加载完成后关闭对话框
   loading_dlg->deleteLater();
 
@@ -362,6 +409,23 @@ void ChatDialog::slot_loading_chat_user() {
   // });
 }
 
+void ChatDialog::slot_loading_contact_user() {
+  qDebug() << "slot loading contact user";
+  if (b_loading_) {
+    return;
+  }
+
+  b_loading_ = true;
+  LoadingDialog *loadingDialog = new LoadingDialog(this);
+  loadingDialog->setModal(true);
+  loadingDialog->show();
+  qDebug() << "add new data to list.....";
+  load_more_contact_user();
+  // 加载完成后关闭对话框
+  loadingDialog->deleteLater();
+
+  b_loading_ = false;
+}
 void ChatDialog::slot_side_chat() {
   qDebug() << "receive side chat clicked";
   clear_label_state(ui->side_chat_lb);

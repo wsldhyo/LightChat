@@ -24,7 +24,8 @@ protected:
 
 private:
   /// 初始化并加载联系人列表数据
-  void addContactUserList();
+  void add_contact_user_list();
+
 
 public slots:
   /// 处理点击条目的逻辑
@@ -48,6 +49,8 @@ private:
 
   ContactUserItem *add_friend_item_; ///< “新的朋友”条目
   QListWidgetItem *group_item_;      ///< “联系人”分组提示条目
+
+  bool load_pending_;
 };
 
 #endif // CONTACT_USER_LIST_HPP

@@ -4,11 +4,14 @@
 #include "tcp_manager.hpp"
 #include "user_data.hpp"
 #include "usermgr.hpp"
+#include <QCoreApplication>
 #include <QDebug>
 #include <QRandomGenerator>
 #include <QScrollBar>
+#include <QTimer>
 #include <QWheelEvent>
-ContactUserList::ContactUserList(QWidget *parent) {
+ContactUserList::ContactUserList(QWidget *parent)
+    : QListWidget(parent), load_pending_(false) {
   Q_UNUSED(parent);
 
   // 默认关闭滚动条（鼠标悬浮时显示）
@@ -19,7 +22,7 @@ ContactUserList::ContactUserList(QWidget *parent) {
   this->viewport()->installEventFilter(this);
 
   // 模拟从数据库/后端获取数据并加载联系人
-  addContactUserList();
+  add_contact_user_list();
   create_connection();
 }
 
@@ -40,7 +43,7 @@ static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
 static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
                                      "java", "nodejs", "python", "rust"};
 
-void ContactUserList::addContactUserList() {
+void ContactUserList::add_contact_user_list() {
   // 添加“新的朋友”分组提示
   auto *groupTip = new GroupTipItem();
   QListWidgetItem *item = new QListWidgetItem;
@@ -72,8 +75,20 @@ void ContactUserList::addContactUserList() {
   this->addItem(group_item_);
   this->setItemWidget(group_item_, groupCon);
   group_item_->setFlags(group_item_->flags() & ~Qt::ItemIsSelectable);
+  //加载后端发送过来的好友列表
+  auto con_list = UserMgr::getinstance()->get_conlist_per_page();
+  for (auto &con_ele : con_list) {
+    auto *con_user_wid = new ContactUserItem();
+    con_user_wid->SetInfo(con_ele->_uid, con_ele->_name, con_ele->_icon);
+    QListWidgetItem *item = new QListWidgetItem;
+    // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
+    item->setSizeHint(con_user_wid->sizeHint());
+    this->addItem(item);
+    this->setItemWidget(item, con_user_wid);
+  }
 
-  // 模拟加载 13 个联系人
+  UserMgr::getinstance()->update_contact_loaded_count();
+  // 模拟数据，加载 13 个联系人
   for (int i = 0; i < 13; i++) {
     int randomValue = QRandomGenerator::global()->bounded(100); // 随机数
     int str_i = randomValue % strs.size();
@@ -114,8 +129,25 @@ bool ContactUserList::eventFilter(QObject *watched, QEvent *event) {
     // 判断是否滚动到底部
     QScrollBar *scrollBar = this->verticalScrollBar();
     if (scrollBar->maximum() - scrollBar->value() <= 0) {
+      if (UserMgr::getinstance()->is_load_contact_finished()) {
+        // 加载完所有好友了，无需继续加载，直接返回
+        return true;
+      }
+      // 已经在处理加载了，直接返回
+      if (load_pending_) {
+        return true;
+      }
+
+      load_pending_ = true;
+      // 延时结束，避免频繁发送信号
+      QTimer::singleShot(100, [this]() {
+        load_pending_ = false;
+        QCoreApplication::quit(); // 完成后退出应用程序
+      });
+      // 滚动到底部，加载新的联系人
       qDebug() << "load more contact user";
-      emit sig_loading_contact_user(); // 触发加载更多
+      //发送信号通知聊天界面加载更多聊天内容
+      emit sig_loading_contact_user();
     }
 
     return true; // 截断事件传递

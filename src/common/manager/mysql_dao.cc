@@ -429,7 +429,7 @@ bool MysqlDao::add_friend(int const from, int const to,
 }
 
 bool MysqlDao::get_friend_list(
-    int self_uid, std::vector<std::shared_ptr<UserInfo>> friend_list) {
+    int self_uid, std::vector<std::shared_ptr<UserInfo>> &friend_list) {
 
   auto con = pool_->get_connection();
   if (con == nullptr) {
@@ -442,7 +442,7 @@ bool MysqlDao::get_friend_list(
     std::unique_ptr<sql::PreparedStatement> pstmt(
         con->prepareStatement("select * from friend where self_id = ? "));
 
-    pstmt->setInt(1, self_uid); 
+    pstmt->setInt(1, self_uid);
 
     std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     // 将查询到的好友信息写入friend_list中
@@ -453,7 +453,6 @@ bool MysqlDao::get_friend_list(
       if (user_info == std::nullopt) {
         continue;
       }
-
       user_info->back = user_info->name;
       friend_list.push_back(std::make_shared<UserInfo>(user_info.value()));
     }

@@ -56,7 +56,7 @@ public:
   bool add_friend(int const from, int const to, std::string const &back_name);
 
   bool get_friend_list(int self_uid,
-                       std::vector<std::shared_ptr<UserInfo>> friend_list);
+                       std::vector<std::shared_ptr<UserInfo>>& friend_list);
 
 private:
   /**

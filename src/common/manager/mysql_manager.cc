@@ -51,6 +51,6 @@ bool MysqlMgr::add_friend(int const from, int const to,
 }
 
 bool MysqlMgr::get_friend_list(
-    int self_uid, std::vector<std::shared_ptr<UserInfo>> friend_list) {
+    int self_uid, std::vector<std::shared_ptr<UserInfo>>& friend_list) {
   return dao_.get_friend_list(self_uid, friend_list);
 }

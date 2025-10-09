@@ -15,6 +15,9 @@ protected:
 
 signals:
   void sig_loading_chat_user();
+
+private:
+  bool load_pending_; 
 };
 
 #endif
