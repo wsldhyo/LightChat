@@ -144,7 +144,7 @@ void ChatPage::on_send_btn_clicked() {
       auto txt_msg =
           std::make_shared<TextChatData>(uuidString, obj["content"].toString(),
                                          self_info->_uid, user_info_->_uid);
-      emit sig_append_send_chat_msg(txt_msg);
+      emit sig_append_send_chat_msg(txt_msg); 
     } else if (type == "image") {
       pBubble = new PictureBubble(QPixmap(msgList[i].content), role);
     } else if (type == "file") {

@@ -13,6 +13,7 @@ struct AuthRsp;
 class SearchInfo;
 struct UserInfo;
 struct TextChatData;
+struct TextChatMsg;
 namespace Ui {
 class ChatDialog;
 }
@@ -58,6 +59,7 @@ private:
   void show_search(bool bsearch = false);
 
   void create_connection();
+  void update_chat_msg(std::vector<std::shared_ptr<TextChatData>> msgdata);
 public slots:
   void slot_loading_chat_user();
   void slot_loading_contact_user();
@@ -85,6 +87,8 @@ public slots:
   void slot_item_clicked(QListWidgetItem *item);
   // 添加聊天消息到本地，以便切换会话视图时可以切换消息记录
   void slot_append_send_chat_msg(std::shared_ptr<TextChatData> msgdata);
+  // 收到他人的消息
+  void slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg);
 private slots:
 
 private:

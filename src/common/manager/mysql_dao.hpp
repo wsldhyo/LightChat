@@ -174,14 +174,32 @@ public:
                       std::vector<std::shared_ptr<ApplyInfo>> &applyList,
                       int begin, int limit);
 
-
-  
+  /**
+   * @brief 将好友申请状态更新为已认证
+   * @param from 申请发起方 UID
+   * @param to 申请接收方 UID
+   * @return 是否更新成功
+   */
   bool auth_friend_apply(int const from, int const to);
 
-  bool add_friend(int const from, int const to, std::string const& back_name);
+  /**
+   * @brief 双向添加好友关系
+   * @param from 发起方 UID
+   * @param to 接收方 UID
+   * @param back_name 发起方备注名
+   * @return 是否添加成功
+   */
+  bool add_friend(int const from, int const to, std::string const &back_name);
 
+  /**
+   * @brief 获取指定用户的好友列表
+   * @param self_uid 用户 UID
+   * @param friend_list 输出参数，存放好友信息列表
+   * @return 是否查询成功
+   */
   bool get_friend_list(int self_uid,
-                       std::vector<std::shared_ptr<UserInfo>>& friend_list);
+                       std::vector<std::shared_ptr<UserInfo>> &friend_list);
+
 private:
   std::unique_ptr<MysqlConnPool> pool_;
 };

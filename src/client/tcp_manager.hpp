@@ -8,6 +8,7 @@ class SearchInfo;
 class AddFriendApply;
 class AuthRsp;
 class AuthInfo;
+struct TextChatMsg;
 class TcpMgr : public QObject,
                public Singleton<TcpMgr>,
                public std::enable_shared_from_this<TcpMgr> {
@@ -30,7 +31,9 @@ signals:
   void sig_friend_apply_rsp(std::shared_ptr<AuthRsp>);
   // 对方处理完好友申请的答复
   void sig_recv_friend_auth(std::shared_ptr<AuthInfo>);
-   
+  // 收到他人消息的信号, 登录时可能收到多条消息
+  void sig_recv_text_msg(std::shared_ptr<TextChatMsg> msg);
+
 private:
   void initHandlers();
   void handle_msg(ReqId id, int len, QByteArray data);

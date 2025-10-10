@@ -47,7 +47,7 @@ void Session::send(char const *msg, std::size_t msg_len, std::uint16_t msg_id) {
     }
     send_que_.push(std::make_unique<SendMsgNode>(msg, msg_len, msg_id));
     std::cout << "send body len:" << msg_len << " total len:" << send_que_.back()->length_ << '\n';
-    std::cout << "send data is:" << msg;
+    std::cout << "send data is:" << msg << '\n';
     msg = send_que_.back()->data_;
   }
 

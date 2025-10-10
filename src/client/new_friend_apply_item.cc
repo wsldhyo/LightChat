@@ -3,7 +3,7 @@
 #include "user_data.hpp"
 
 NewFriendApplyItem::NewFriendApplyItem(QWidget *parent)
-    : ListItemBase(parent), added_(false), ui(new Ui::NewFriendApplyItem) {
+    : ListItemBase(parent), added_(false), ui(new Ui::NewFriendApplyItem) , apply_info_(nullptr){
   ui->setupUi(this);
   SetItemType(ListItemType::APPLY_FRIEND_ITEM);
 

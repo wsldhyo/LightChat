@@ -50,25 +50,31 @@ public:
   // 根据uid获取好友信息
   std::shared_ptr<FriendInfo> get_friend_infO_by_id(int uid);
 
+  // 从当前好友开始，往下提取一页好友信息，用于滚动时，展示好友会话
   std::vector<std::shared_ptr<FriendInfo>> get_chat_list_per_page();
+  // 好友信息是否提取完毕
   bool is_load_chat_finished();
+  // 更新最后提取到的好友信息
   void update_chat_loaded_count();
+  // 从当前好友开始，往下提取一页好友信息，用户滚动时，展示好友列表
   std::vector<std::shared_ptr<FriendInfo>> get_conlist_per_page();
+  // 更新最后提取到的好友信息
   void update_contact_loaded_count();
+  // 好友信息是否提前完毕
   bool is_load_contact_finished();
 
   // 记录与对方的聊天消息到本地，以便在不同的会话切换时，切换会话视图中的消息记录
   void append_friend_chat_msg(int friend_id,
-                           std::vector<std::shared_ptr<TextChatData>> msgs);
+                              std::vector<std::shared_ptr<TextChatData>> msgs);
 
 private:
   UserMgr();
   QString token_;
   std::vector<std::shared_ptr<ApplyInfo>> apply_list_; // TODO 改成hash map
-  std::shared_ptr<UserInfo> user_info_;
+  std::shared_ptr<UserInfo> user_info_;/// 当前登录的用户基本信息
   QMap<int, std::shared_ptr<FriendInfo>> friend_map_;
 
-  std::vector<std::shared_ptr<FriendInfo>> friend_list_; // TODO 无必要
+  std::vector<std::shared_ptr<FriendInfo>> friend_list_; // TODO 似乎无必要
 
   int chat_loaded_;    // 聊天会话项目起始索引
   int contact_loaded_; // 联系人项起始索引

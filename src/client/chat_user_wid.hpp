@@ -4,6 +4,8 @@
 #include "list_item_base.hpp"
 #include <memory>
 struct UserInfo;
+struct FriendInfo;
+struct TextChatData;
 namespace Ui {
 class ChatUserWid;
 }
@@ -23,12 +25,17 @@ public:
     return QSize(250, 70); // 返回自定义的尺寸
   }
 
-  void set_user_info(std::shared_ptr<UserInfo> user_info);
-  
+  void set_friend_info(std::shared_ptr<UserInfo> user_info);
+  void set_friend_info(std::shared_ptr<FriendInfo> user_info);
+
   std::shared_ptr<UserInfo> const get_user_info() const;
+
+  // 更新当前会话项中的最后一条消息，用于在聊天会话列表中展示。
+  // 登录时可能收到多条消息。
+  void update_last_msg(std::vector<std::shared_ptr<TextChatData>> msgs);
 
 private:
   Ui::ChatUserWid *ui;
-  std::shared_ptr<UserInfo> user_info_;
+  std::shared_ptr<UserInfo> friend_info_;
 };
 #endif

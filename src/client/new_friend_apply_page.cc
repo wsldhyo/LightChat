@@ -76,11 +76,7 @@ void NewFriendApplyPage::load_apply_list() {
   auto apply_list = UserMgr::getinstance()->get_apply_list();
   bool has_new_apply{false};
   for (auto &apply : apply_list) {
-    int randomValue = QRandomGenerator::global()->bounded(100);
-    int head_i = randomValue % heads.size();
-
     auto *apply_item = new NewFriendApplyItem();
-    apply->SetIcon(heads[head_i]); // 设置头像
     apply_item->set_info(apply);
 
     QListWidgetItem *item = new QListWidgetItem;
