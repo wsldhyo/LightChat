@@ -67,6 +67,7 @@ public:
   bool release(redisContext *context, const std::string &lockName,
                const std::string &identifier);
 
+
 private:
   DistLock() = default;
 };

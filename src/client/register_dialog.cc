@@ -52,7 +52,7 @@ void RegisterDialog::on_get_code_clicked() {
     QString url(g_gate_url_prefix);
     url += QString::fromLatin1(POST_GET_VERFIY_CODE.data(),
                                static_cast<int>(POST_GET_VERFIY_CODE.size()));
-    HttpMgr::getinstance()->post_http_req(
+    HttpMgr::get_instance()->post_http_req(
         QUrl(url), json_obj, ReqId::ID_GET_VERTIFY_CODE, Modules::REGISTERMOD);
 
   } else {
@@ -105,7 +105,7 @@ void RegisterDialog::on_sure_btn_clicked() {
   json_obj["icon"] = heads[head_i];
   json_obj["nick"] = ui->user_edit->text();
   json_obj["vertifycode"] = ui->varify_edit->text();
-  HttpMgr::getinstance()->post_http_req(
+  HttpMgr::get_instance()->post_http_req(
       QUrl(g_gate_url_prefix +
            QString::fromLatin1(POST_REG_USER.data(),
                                static_cast<int>(POST_REG_USER.size()))),
@@ -310,7 +310,7 @@ void RegisterDialog::ChangeTipPage() {
 }
 
 void RegisterDialog::create_connection() {
-  connect(HttpMgr::getinstance().get(), &HttpMgr::sig_reg_mod_finish, this,
+  connect(HttpMgr::get_instance().get(), &HttpMgr::sig_reg_mod_finish, this,
           &RegisterDialog::slot_reg_mod_finish);
   ui->err_tip->clear();
 

@@ -158,19 +158,19 @@ void TcpMgr::initHandlers() {
       return;
     }
     // 设置服务器返回的用户的基本信息
-    UserMgr::getinstance()->set_user_info(std::make_shared<UserInfo>(
+    UserMgr::get_instance()->set_user_info(std::make_shared<UserInfo>(
         jsonObj["uid"].toInt(), jsonObj["name"].toString(),
         jsonObj["nick"].toString(), jsonObj["icon"].toString(),
         jsonObj["sex"].toInt()));
     // 尝试获取好友申请列表（可能包好离线时的申请）
     if (jsonObj.contains("apply_list")) { //如果服务器返回了好友申请列表，则添加
-      UserMgr::getinstance()->append_apply_list(
+      UserMgr::get_instance()->append_apply_list(
           jsonObj["apply_list"].toArray());
     }
 
     if (jsonObj.contains(
             "friend_list")) { //如果服务器返回了好友申请列表，则添加
-      UserMgr::getinstance()->append_friend_list(
+      UserMgr::get_instance()->append_friend_list(
           jsonObj["friend_list"].toArray());
     }
     emit sig_switch_chatdlg();

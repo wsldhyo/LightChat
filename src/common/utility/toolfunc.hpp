@@ -1,10 +1,11 @@
 #ifndef TOOL_FUNC_HPP
 #define TOOL_FUNC_HPP
 #include "constant.hpp"
+#include "userinfo.hpp"
 #include <charconv>
-#include <string>
 #include <iostream>
-
+#include <json/value.h>
+#include <string>
 /**
   @brief 将整数转换为对应的 ASCII 十六进制字符 ('0'-'9', 'A'-'F')
 
@@ -90,8 +91,7 @@ ErrorCodes get_executable_path(std::string &_res);
  */
 template <std::integral Int>
 ErrorCodes string_to_int(const std::string &str, Int &out) {
-  if(str.empty())
-  {
+  if (str.empty()) {
     std::cout << "arg is nullstr\n";
     return ErrorCodes::INVALID_ARGUMENT;
   }
@@ -112,6 +112,50 @@ ErrorCodes string_to_int(const std::string &str, Int &out) {
   }
 }
 
-
 std::string generate_unique_string();
+
+/**
+ * @brief 将UserInfo转换为Json::Value
+ *
+ * @param user 待转换的UserInfo
+ * @return Json::Value
+ */
+Json::Value userinfo_to_json(const UserInfo &user);
+
+/**
+ * @brief 将Json::Value转换为UserInfo
+ * @param root
+ * @return UserInfo
+ */
+UserInfo json_to_userinfo(const Json::Value &root);
+
+/**
+ * @brief 将ApplyInfo转为Json::Value
+ * @param root
+ * @return Json::Value
+ */
+Json::Value applyinfo_to_json(const ApplyInfo &apply);
+
+/**
+ * @brief 解析 JSON 字符串
+ *
+ * 使用 JsonCpp 将输入的 JSON 字符串解析为 Json::Value 对象。
+ *
+ * @param msg 待解析的 JSON 字符串
+ * @param root 输出参数，解析成功后保存 JSON 数据
+ * @return true 解析成功
+ * @return false 解析失败
+ *
+ */
+bool parse_json(std::string_view msg, Json::Value &root);
+
+/**
+ * @brief 将 Json::Value 转换为紧凑格式的 JSON 字符串
+ *
+ * 使用 JsonCpp 序列化 Json::Value 对象为字符串，去掉缩进和换行。
+ *
+ * @param val 要序列化的 Json::Value 对象
+ * @return std::string 序列化后的紧凑 JSON 字符串
+ */
+std::string json_compact(const Json::Value &val);
 #endif

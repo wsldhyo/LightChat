@@ -25,7 +25,7 @@ ResetDialog::ResetDialog(QWidget *parent)
 
   //连接reset相关信号和注册处理回调
   initHandlers();
-  connect(HttpMgr::getinstance().get(), &HttpMgr::sig_reset_mod_finish, this,
+  connect(HttpMgr::get_instance().get(), &HttpMgr::sig_reset_mod_finish, this,
           &ResetDialog::slot_reset_mod_finish);
 }
 
@@ -137,7 +137,7 @@ void ResetDialog::on_varify_btn_clicked() {
   //发送http请求获取验证码
   QJsonObject json_obj;
   json_obj["email"] = email;
-  HttpMgr::getinstance()->post_http_req(
+  HttpMgr::get_instance()->post_http_req(
       QUrl(g_gate_url_prefix +
            QString::fromLatin1(POST_GET_VERFIY_CODE.data(),
                                POST_GET_VERFIY_CODE.length())),
@@ -224,7 +224,7 @@ void ResetDialog::on_sure_btn_clicked() {
   json_obj["email"] = ui->email_edit->text();
   json_obj["passwd"] = xor_string(ui->pwd_edit->text());
   json_obj["vertifycode"] = ui->varify_edit->text();
-  HttpMgr::getinstance()->post_http_req(
+  HttpMgr::get_instance()->post_http_req(
       QUrl(g_gate_url_prefix +
            QString::fromLatin1(POST_RESET_PWD.data(), POST_RESET_PWD.length())),
       json_obj, ReqId::ID_RESET_PWD, Modules::RESETMOD);

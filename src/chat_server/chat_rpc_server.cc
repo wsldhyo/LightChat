@@ -1,6 +1,7 @@
 #include "chat_rpc_server.hpp"
 #include "manager/mysql_manager.hpp"
 #include "manager/redis_manager.hpp"
+#include "server.hpp"
 #include "session.hpp"
 #include "user_manager.hpp"
 #include "utility/constant.hpp"
@@ -17,7 +18,7 @@ Status ChatServiceImpl::NotifyAddFriend(ServerContext *context,
                                         AddFriendRsp *response) {
   // 查找目标用户是否在当前服务器
   auto touid = request->touid();
-  auto session = UserManager::getinstance()->get_session(touid);
+  auto session = UserManager::get_instance()->get_session(touid);
 
   Defer defer([request, response]() {
     response->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
@@ -59,7 +60,7 @@ Status ChatServiceImpl::NotifyAuthFriend(ServerContext *context,
   // 获取对端会话
   auto touid = request->touid();
   auto fromuid = request->fromuid();
-  auto session = UserManager::getinstance()->get_session(touid);
+  auto session = UserManager::get_instance()->get_session(touid);
 
   Defer defer([request, response]() {
     response->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
@@ -108,7 +109,7 @@ Status ChatServiceImpl::NotifyTextChatMsg(ServerContext *context,
                                           const TextChatMsgReq *request,
                                           TextChatMsgRsp *response) {
   auto touid = request->touid();
-  auto session = UserManager::getinstance()->get_session(touid);
+  auto session = UserManager::get_instance()->get_session(touid);
 
   Defer defer([response, request]() {
     response->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
@@ -149,7 +150,7 @@ bool ChatServiceImpl::GetBaseInfo(std::string base_key, int uid,
                                   std::shared_ptr<UserInfo> &userinfo) {
   // 尝试从 Redis 获取缓存的用户基础信息
   std::string info_str = "";
-  bool b_base = RedisMgr::getinstance()->get(base_key, info_str);
+  bool b_base = RedisMgr::get_instance()->get(base_key, info_str);
   if (b_base) {
     // 从 JSON 中提取用户字段
     Json::Reader reader;
@@ -169,7 +170,7 @@ bool ChatServiceImpl::GetBaseInfo(std::string base_key, int uid,
               << userinfo->icon << ".\n";
   } else {
     // Redis 缓存中没有，从 MySQL 查询用户信息
-    auto user_info = MysqlMgr::getinstance()->get_user(uid);
+    auto user_info = MysqlMgr::get_instance()->get_user(uid);
     if (user_info == std::nullopt) {
       return false;
     }
@@ -189,8 +190,37 @@ bool ChatServiceImpl::GetBaseInfo(std::string base_key, int uid,
               << userinfo->pwd << " email is " << userinfo->email << " icon is "
               << userinfo->icon << ".\n";
     // 存入Redis，以便下次直接通过Reids查找
-    RedisMgr::getinstance()->set(base_key, redis_root.toStyledString());
+    RedisMgr::get_instance()->set(base_key, redis_root.toStyledString());
   }
 
   return true;
+}
+
+Status ChatServiceImpl::NotifyKickUser(::grpc::ServerContext *context,
+                                       const KickUserReq *request,
+                                       KickUserRsp *reply) {
+  //查找用户是否在本服务器
+  auto uid = request->uid();
+  auto session = UserManager::get_instance()->get_session(uid);
+
+  Defer defer([request, reply]() {
+    reply->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
+    reply->set_uid(request->uid());
+  });
+
+  //用户不在内存中则直接返回
+  if (session == nullptr) {
+    return Status::OK;
+  }
+
+  //在内存中则直接发送通知客户端下线, 并清除旧的连接
+  // 客户端端口连接后，session捕获异常，析构并closesocket
+  session->notify_offline(uid);
+  server_->remove_session(session->get_session_id());
+
+  return Status::OK;
+}
+
+void ChatServiceImpl::RegisterServer(std::shared_ptr<Server> server) {
+  server_ = server;
 }

@@ -14,7 +14,7 @@
  *
  * 使用方式：
  * @code
- * auto redis = RedisMgr::getinstance();
+ * auto redis = RedisMgr::get_instance();
  * redis->connect("127.0.0.1", 6379);
  * redis->set("key", "value");
  * std::string val;
@@ -34,7 +34,7 @@ public:
   /**
    * @brief 获取指定键的值
    * @param key 待获取的键
-   * @param value 输出参数，返回对应键值
+   * @param value 输出参数，返回对应键zM值
    * @return true 获取成功，false 获取失败
    */
   bool get(std::string const &key, std::string &value);
@@ -46,7 +46,6 @@ public:
    * @return true 设置成功，false 设置失败
    */
   bool set(std::string const &key, const std::string &value);
-
 
   /**
    * @brief 插入Redis队列左边（队头）
@@ -107,7 +106,7 @@ public:
    * @param hkey 哈希表中字段，内层key
    * @return 字段对应的值，如果不存在返回空字符串
    */
-  std::string h_get(std::string_view key,std::string const &hkey);
+  std::string h_get(std::string_view key, std::string const &hkey);
 
   /**
    * @brief 删除指定键
@@ -115,8 +114,6 @@ public:
    * @return true 成功，false 失败
    */
   bool del(std::string const &key);
-
-
 
   bool h_del(std::string_view key, std::string const &field);
 
@@ -131,6 +128,24 @@ public:
    * @brief 关闭 Redis 连接
    */
   void close();
+
+  std::string acquire_lock(const std::string &lock_name, int lock_timeout,
+                           int acquire_timeout);
+
+  bool release_lock(const std::string &lock_name,
+                    const std::string &identifier);
+
+  // 增加登录计数
+  void increase_count(std::string const &server_name);
+
+  // 减少登录计数
+  void decrease_count(std::string const &server_name);
+
+  // 初始化登录计数
+  void init_count(std::string const &server_name);
+
+  // 删除某服务器的登录计数缓存
+  void del_count(std::string const &server_name);
 
 private:
   RedisMgr();

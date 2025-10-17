@@ -134,7 +134,7 @@ bool ApplyFriendDlg::eventFilter(QObject *obj, QEvent *event) {
 
 void ApplyFriendDlg::set_search_info(std::shared_ptr<SearchInfo> si) {
   si_ = si;
-  auto applyname = UserMgr::getinstance()->get_name();
+  auto applyname = UserMgr::get_instance()->get_name();
   auto bakname = si->_name;
   ui->name_ed->setText(applyname);
   ui->back_ed->setText(bakname);
@@ -509,7 +509,7 @@ void ApplyFriendDlg::slot_apply_sure() {
   // 点击确认 -> ，向服务器发起请求
   // 申请人的数据
   QJsonObject jsonObj;
-  auto uid = UserMgr::getinstance()->get_uid();
+  auto uid = UserMgr::get_instance()->get_uid();
   jsonObj["uid"] = uid;
   auto name = ui->name_ed->text();
   if (name.isEmpty()) {
@@ -529,7 +529,7 @@ void ApplyFriendDlg::slot_apply_sure() {
   QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
   //发送tcp请求给chat server
-  emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_APPLY_FRIEND_REQ,
+  emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_APPLY_FRIEND_REQ,
                                             jsonData);
   this->hide();
   deleteLater();

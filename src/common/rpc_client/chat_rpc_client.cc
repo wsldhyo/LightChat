@@ -8,7 +8,7 @@
 ChatGrpcClient::ChatGrpcClient() {
   // 读取配置，获取所有对端聊天服务器信息
   // TODO，通过状态服务器获取活跃的聊天服务器，而不是通过硬配置
-  auto cfg = ConfigManager::getinstance();
+  auto cfg = ConfigManager::get_instance();
   auto server_list = (*cfg)["PeerServer"]["servers"];
   std::vector<std::string> words;
   std::stringstream ss(server_list);
@@ -69,12 +69,13 @@ AuthFriendRsp ChatGrpcClient::notify_auth_friend(std::string server_ip,
   AuthFriendRsp rsp;
   rsp.set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
 
-  // 确保结束时填充响应中的用户信息
+  // 确保函数退出时填充必要的响应信息
   Defer defer([&rsp, &req]() {
     rsp.set_fromuid(req.fromuid());
     rsp.set_touid(req.touid());
   });
 
+  // 查找目标服务器连接池
   auto find_iter = pools_.find(server_ip);
   if (find_iter == pools_.end()) {
     return rsp;
@@ -82,12 +83,17 @@ AuthFriendRsp ChatGrpcClient::notify_auth_friend(std::string server_ip,
 
   auto &pool = find_iter->second;
   grpc::ClientContext context;
-  auto stub = pool->get_connection();
-  grpc::Status status = stub->NotifyAuthFriend(&context, req, &rsp);
 
-  // 调用结束后归还连接到池
-  Defer defercon(
-      [&stub, this, &pool]() { pool->return_connection(std::move(stub)); });
+  // 从连接池获取连接 stub
+  auto stub = pool->get_connection();
+
+  // 调用结束后自动归还连接
+  Defer defercon([&stub, this, &pool]() {
+    pool->return_connection(std::move(stub));
+  });
+
+  // 发起 RPC 调用
+  grpc::Status status = stub->NotifyAuthFriend(&context, req, &rsp);
 
   if (!status.ok()) {
     rsp.set_error(static_cast<int32_t>(ErrorCodes::RPC_CALL_FAILED));
@@ -99,10 +105,9 @@ AuthFriendRsp ChatGrpcClient::notify_auth_friend(std::string server_ip,
 
 bool ChatGrpcClient::get_base_info(std::string base_key, int uid,
                                    std::shared_ptr<UserInfo> &userinfo) {
-  // TODO 够GRPC？
   // 尝试从 Redis 获取用户信息
   std::string info_str = "";
-  bool b_base = RedisMgr::getinstance()->get(base_key, info_str);
+  bool b_base = RedisMgr::get_instance()->get(base_key, info_str);
   if (b_base) {
     Json::Reader reader;
     Json::Value root;
@@ -118,12 +123,13 @@ bool ChatGrpcClient::get_base_info(std::string base_key, int uid,
     userinfo->sex = root["sex"].asInt();
     userinfo->icon = root["icon"].asString();
 
-    std::cout << "user login uid is  " << userinfo->uid << " name  is "
-              << userinfo->name << " pwd is " << userinfo->pwd << " email is "
-              << userinfo->email << std::endl;
+    std::cout << "user login uid is  " << userinfo->uid
+              << " name is " << userinfo->name
+              << " pwd is " << userinfo->pwd
+              << " email is " << userinfo->email << std::endl;
   } else {
-    // Redis 中没有，从数据库获取
-    auto user_info = MysqlMgr::getinstance()->get_user(uid);
+    // Redis 缓存不存在，从 MySQL 获取
+    auto user_info = MysqlMgr::get_instance()->get_user(uid);
     if (user_info == std::nullopt) {
       return false;
     }
@@ -140,10 +146,11 @@ bool ChatGrpcClient::get_base_info(std::string base_key, int uid,
     redis_root["desc"] = userinfo->desc;
     redis_root["sex"] = userinfo->sex;
     redis_root["icon"] = userinfo->icon;
-    RedisMgr::getinstance()->set(base_key, redis_root.toStyledString());
+    RedisMgr::get_instance()->set(base_key, redis_root.toStyledString());
   }
   return true;
 }
+
 
 TextChatMsgRsp
 ChatGrpcClient::notify_text_chat_msg(std::string server_ip,
@@ -153,7 +160,7 @@ ChatGrpcClient::notify_text_chat_msg(std::string server_ip,
   TextChatMsgRsp rsp;
   rsp.set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
 
-  // 确保结束时填充响应信息
+  // 确保退出时设置响应中的消息数据
   Defer defer([&rsp, &req]() {
     rsp.set_fromuid(req.fromuid());
     rsp.set_touid(req.touid());
@@ -164,6 +171,7 @@ ChatGrpcClient::notify_text_chat_msg(std::string server_ip,
     }
   });
 
+  // 查找目标服务器连接池
   auto find_iter = pools_.find(server_ip);
   if (find_iter == pools_.end()) {
     return rsp;
@@ -171,12 +179,16 @@ ChatGrpcClient::notify_text_chat_msg(std::string server_ip,
 
   auto &pool = find_iter->second;
   grpc::ClientContext context;
-  auto stub = pool->get_connection();
-  grpc::Status status = stub->NotifyTextChatMsg(&context, req, &rsp);
 
-  // 调用结束后归还连接到池
-  Defer defercon(
-      [&stub, this, &pool]() { pool->return_connection(std::move(stub)); });
+  // 从连接池获取连接 ， 并进行RPC调用
+  auto stub = pool->get_connection();
+
+  Defer defercon([&stub, this, &pool]() {
+    pool->return_connection(std::move(stub));
+  });
+
+  // 发起 RPC 调用
+  grpc::Status status = stub->NotifyTextChatMsg(&context, req, &rsp);
 
   if (!status.ok()) {
     rsp.set_error(static_cast<int32_t>(ErrorCodes::RPC_CALL_FAILED));
@@ -184,4 +196,43 @@ ChatGrpcClient::notify_text_chat_msg(std::string server_ip,
   }
 
   return rsp;
+}
+
+KickUserRsp ChatGrpcClient::NotifyKickUser(std::string server_ip, const KickUserReq& req)
+{
+    // 构造Grpc响应
+    KickUserRsp rsp;
+    Defer defer([&rsp, &req]() {
+        rsp.set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
+        rsp.set_uid(req.uid());
+    });
+
+    // 查找目标服务器的连接池
+    auto find_iter = pools_.find(server_ip);
+    if (find_iter == pools_.end()) {
+        // 未找到对应连接池，认为踢人成功。 // NOTE 这里也可以返回错误码，让grpc客户端进行处理
+        return rsp;
+    }
+
+    // 从连接池获取一个 gRPC 连接，进行rpc调用
+    auto& pool = find_iter->second;
+    grpc::ClientContext context;
+
+    auto stub = pool->get_connection();
+
+    // 确保使用完毕后归还连接
+    Defer defercon([&stub, this, &pool]() {
+        pool->return_connection(std::move(stub));
+    });
+
+    // 调用远程的 NotifyKickUser RPC
+    grpc::Status status = stub->NotifyKickUser(&context, req, &rsp);
+
+    // 调用失败则设置错误码
+    if (!status.ok()) {
+        rsp.set_error(static_cast<int32_t>(ErrorCodes::RPC_CALL_FAILED));
+        return rsp;
+    }
+
+    return rsp;
 }

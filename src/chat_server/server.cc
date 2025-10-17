@@ -13,23 +13,17 @@ Server::~Server() { close(); }
 void Server::remove_session(std::string const &session_id) {
   // 同步移除UserManager中的绑定信息
   if (sessions_.find(session_id) != sessions_.end()) {
-    UserManager::getinstance()->remove_user_session(
+    UserManager::get_instance()->remove_user_session(
         sessions_[session_id]->get_user_id());
   }
   std::lock_guard<std::mutex> lock(mutex_);
   sessions_.erase(session_id);
 }
-// 专门用于 Session 请求移除 id 的方法（更语义化）
-void Server::post_remove_session(std::string id) {
-  post([self = shared_from_this(), id = std::move(id)]() {
-    self->remove_session(id);
-  });
-}
 
 void Server::start_accept() {
 
   auto self = shared_from_this();
-  auto &ioc = IoContextPool::getinstance()->get_iocontext();
+  auto &ioc = IoContextPool::get_instance()->get_iocontext();
   auto peer = std::make_shared<tcp::socket>(
       ioc); // 这里要用shared_ptr，保证回调调用前socket有效，不能move到lambda内
   acceptor_.async_accept(*peer, [self, peer](boost::system::error_code ec) {
@@ -48,6 +42,11 @@ void Server::start_accept() {
     }
     self->start_accept();
   });
+}
+
+bool Server::check_session_vaild(std::string const &session_id) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return sessions_.find(session_id) != sessions_.end();
 }
 
 void Server::close() {

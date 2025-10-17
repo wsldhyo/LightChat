@@ -4,6 +4,7 @@
 #include "manager/redis_manager.hpp"
 #include "rpc_client/chat_rpc_client.hpp"
 #include "rpc_client/status_rpc_client.hpp"
+#include "server.hpp"
 #include "session.hpp"
 #include "user_manager.hpp"
 #include "utility/constant.hpp"
@@ -13,94 +14,8 @@
 #include <iostream>
 #include <json/reader.h>
 #include <json/writer.h>
-/**
- * @brief 将UserInfo转换为Json::Value
- *
- * @param user 待转换的UserInfo
- * @return Json::Value
- */
-Json::Value userinfo_to_json(const UserInfo &user) {
-  Json::Value root;
-  root["uid"] = user.uid;
-  root["name"] = user.name;
-  root["pwd"] = user.pwd;
-  root["email"] = user.email;
-  root["nick"] = user.nick;
-  root["desc"] = user.desc;
-  root["sex"] = user.sex;
-  root["icon"] = user.icon;
-  root["error"] = static_cast<int32_t>(ErrorCodes::NO_ERROR);
-  return root;
-}
 
-/**
- * @brief 将Json::Value转换为UserInfo
- * @param root
- * @return UserInfo
- */
-UserInfo json_to_userinfo(const Json::Value &root) {
-  UserInfo user;
-  user.uid = root["uid"].asInt();
-  user.name = root["name"].asString();
-  user.pwd = root["pwd"].asString();
-  user.email = root["email"].asString();
-  user.nick = root["nick"].asString();
-  user.desc = root["desc"].asString();
-  user.sex = root["sex"].asInt();
-  user.icon = root["icon"].asString();
-  return user;
-}
-
-/**
- * @brief 将ApplyInfo转为Json::Value
- * @param root
- * @return Json::Value
- */
-Json::Value applyinfo_to_json(const ApplyInfo &apply) {
-  Json::Value obj;
-  obj["name"] = apply._name;
-  obj["uid"] = apply._uid;
-  obj["icon"] = apply._icon;
-  obj["nick"] = apply._nick;
-  obj["sex"] = apply._sex;
-  obj["desc"] = apply._desc;
-  obj["status"] = apply._status;
-  obj["error"] = static_cast<int32_t>(ErrorCodes::NO_ERROR);
-  return obj;
-}
-
-/**
- * @brief 解析 JSON 字符串
- *
- * 使用 JsonCpp 将输入的 JSON 字符串解析为 Json::Value 对象。
- *
- * @param msg 待解析的 JSON 字符串
- * @param root 输出参数，解析成功后保存 JSON 数据
- * @return true 解析成功
- * @return false 解析失败
- *
- */
-bool parse_json(std::string_view msg, Json::Value &root) {
-  Json::CharReaderBuilder builder;
-  std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-  return reader->parse(msg.data(), msg.data() + msg.size(), &root, nullptr);
-}
-
-/**
- * @brief 将 Json::Value 转换为紧凑格式的 JSON 字符串
- *
- * 使用 JsonCpp 序列化 Json::Value 对象为字符串，去掉缩进和换行。
- *
- * @param val 要序列化的 Json::Value 对象
- * @return std::string 序列化后的紧凑 JSON 字符串
- */
-std::string json_compact(const Json::Value &val) {
-  Json::StreamWriterBuilder wbuilder;
-  wbuilder["indentation"] = ""; // 紧凑格式
-  return Json::writeString(wbuilder, val);
-}
-
-LogicSystem::LogicSystem() : b_stop_(false) {
+LogicSystem::LogicSystem() : b_stop_(false), server_(nullptr) {
   register_msg_handler();
   work_thread_ = std::thread(&LogicSystem::deal_msg, this);
 }
@@ -131,6 +46,9 @@ void LogicSystem::post_msg(std::unique_ptr<RecvMsgNode> msg,
   }
 }
 
+void LogicSystem::set_server(std::shared_ptr<Server> server) {
+  server_ = server;
+}
 void LogicSystem::deal_msg() {
   decltype(recv_msg_que_) batch_msg;
   LogicNode logic_node;
@@ -189,12 +107,15 @@ void LogicSystem::register_msg_handler() {
 
         // 从 JSON 中获取用户 ID 和 token
         int uid = root["uid"].asInt();
+        auto uid_str = root["uid"].asString();
         std::string token = root["token"].asString();
         std::cout << "user login uid: " << uid << ", token: " << token
                   << std::endl;
 
-        // 调用 gRPC 接口验证用户身份
-        auto rsp = StatusGrpcClient::getinstance()->login(uid, token);
+        // TODO，直接在这里验证Token，不必走状态服务器
+        // 调用 gRPC
+        // 接口验证用户身份(验证用户传递的Token和Redis中存储的是否一致)
+        auto rsp = StatusGrpcClient::get_instance()->login(uid, token);
         if (rsp.error() != static_cast<int>(ErrorCodes::NO_ERROR)) {
           rtvalue["error"] = rsp.error();
           return;
@@ -203,10 +124,55 @@ void LogicSystem::register_msg_handler() {
         // 获取用户基础信息
         UserInfo user_info;
         std::string base_key =
-            std::string(REDIS_USER_BASE_INFO_PREFIX) + std::to_string(uid);
+            std::string(REDIS_USER_BASE_INFO_PREFIX) + uid_str;
         if (!get_base_info(base_key, uid, user_info)) {
           rtvalue["error"] = static_cast<int>(ErrorCodes::UID_INVALID);
           return;
+        }
+
+        //此处添加分布式锁，让该线程独占登录
+        // ***
+        // 先加分布式锁，保证对Redis的操作不受污染。TODO，锁粒度较大，可对一些允许接受旧值数据访问移除到锁保护范围外
+        //拼接用户ip对应的key
+        auto lock_key = std::string(REDIS_LOCK_PREFIX) + uid_str;
+        auto identifier = RedisMgr::get_instance()->acquire_lock(
+            lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+        //利用defer解锁
+        Defer defer2([this, identifier, lock_key]() {
+          RedisMgr::get_instance()->release_lock(lock_key, identifier);
+        });
+        // 先查询用户是否登录（Redis中记录了uid的登录ip），如果已经登录，则需要进行踢人处理
+        std::string uid_ip_value = "";
+        auto uid_ip_key = std::string(REDIS_USER_IP_PREFIX) + uid_str;
+        bool b_ip = RedisMgr::get_instance()->get(uid_ip_key, uid_ip_value);
+        if (b_ip) {
+          // 用户已经登录
+          //获取当前服务器ip信息
+          auto cfg = ConfigManager::get_instance();
+          auto self_name = (*cfg)["SelfServer"]["Name"];
+          //如果之前登录的服务器和当前相同，则直接在本服务器踢掉
+          if (uid_ip_value == self_name) {
+            // 在同一服务器登录，直接清除旧的会话
+
+            //查找旧有的连接
+            auto old_session = UserManager::get_instance()->get_session(uid);
+
+            //此处应该发送踢人消息
+            if (old_session) {
+              old_session->notify_offline(uid);
+              //清除旧的连接
+              server_->remove_session(old_session->get_session_id());
+            }
+
+          } else {
+            //跨服踢人，如果不是本服务器，则通知grpc通知其他服务器踢掉
+            //如果不是本服务器，则通知grpc通知其他服务器踢掉
+            //发送通知
+            message::KickUserReq kick_req;
+            kick_req.set_uid(uid);
+            ChatGrpcClient::get_instance()->NotifyKickUser(uid_ip_value,
+                                                           kick_req);
+          }
         }
 
         // 构造返回 JSON 包含用户信息和好友信息
@@ -215,22 +181,18 @@ void LogicSystem::register_msg_handler() {
         get_friend_list(uid, rtvalue);
 
         // 更新当前服务器登录计数
-        auto cfg = ConfigManager::getinstance();
+        auto cfg = ConfigManager::get_instance();
         auto server_name = cfg->get_value("SelfServer", "name");
         int count = 0;
-        auto login_count = RedisMgr::getinstance()->h_get(
+        auto login_count = RedisMgr::get_instance()->h_get(
             REDIS_LOGIN_COUNT_PREFIX, server_name);
-        if (!login_count.empty())
-          string_to_int(login_count, count);
-        RedisMgr::getinstance()->h_set(REDIS_LOGIN_COUNT_PREFIX, server_name,
-                                       std::to_string(++count));
-
+        RedisMgr::get_instance()->increase_count(server_name);
         // 缓存用户 session 和所在服务器信息
         session->set_user_id(uid);
-        RedisMgr::getinstance()->set(std::string(REDIS_USER_IP_PREFIX) +
-                                         std::to_string(uid),
-                                     server_name);
-        UserManager::getinstance()->set_user_session(uid, session);
+        RedisMgr::get_instance()->set(std::string(REDIS_USER_IP_PREFIX) +
+                                          std::to_string(uid),
+                                      server_name);
+        UserManager::get_instance()->set_user_session(uid, session);
 
         // 登录成功返回 NO_ERROR
         rtvalue["error"] = static_cast<int>(ErrorCodes::NO_ERROR);
@@ -295,19 +257,19 @@ void LogicSystem::register_msg_handler() {
         std::cout << "user apply uid=" << uid << " to=" << touid << std::endl;
 
         // 将好友申请写入数据库
-        MysqlMgr::getinstance()->add_friend_apply(uid, touid);
+        MysqlMgr::get_instance()->add_friend_apply(uid, touid);
 
         // 查询目标用户是否在线
         std::string to_ip_key =
             std::string(REDIS_USER_IP_PREFIX) + std::to_string(touid);
         std::string to_ip_value;
-        if (!RedisMgr::getinstance()->get(to_ip_key, to_ip_value)) {
+        if (!RedisMgr::get_instance()->get(to_ip_key, to_ip_value)) {
           std::cout << "The other user has not logged in." << std::endl;
           return;
         }
 
         // 获取申请用户信息
-        auto cfg = ConfigManager::getinstance();
+        auto cfg = ConfigManager::get_instance();
         auto self_name = cfg->get_value("SelfServer", "name");
         std::string base_key =
             std::string(REDIS_USER_BASE_INFO_PREFIX) + std::to_string(uid);
@@ -317,7 +279,7 @@ void LogicSystem::register_msg_handler() {
         // 如果目标用户在同一服务器，直接发送通知
         if (to_ip_value == self_name) {
           if (auto peer_session =
-                  UserManager::getinstance()->get_session(touid)) {
+                  UserManager::get_instance()->get_session(touid)) {
             Json::Value notify;
             notify["applyuid"] = uid;
             notify["name"] = applyname;
@@ -343,7 +305,7 @@ void LogicSystem::register_msg_handler() {
           add_req.set_sex(apply_info.sex);
           add_req.set_nick(apply_info.nick);
         }
-        ChatGrpcClient::getinstance()->notify_add_friend(to_ip_value, add_req);
+        ChatGrpcClient::get_instance()->notify_add_friend(to_ip_value, add_req);
       });
   // =======================================
   // 好友认证请求
@@ -383,22 +345,22 @@ void LogicSystem::register_msg_handler() {
           rtvalue["error"] = static_cast<int32_t>(ErrorCodes::UID_INVALID);
         }
         // 更新数据库认证申请和好友关系
-        MysqlMgr::getinstance()->auth_friend_apply(uid, touid);
-        MysqlMgr::getinstance()->add_friend(uid, touid, back_name);
+        MysqlMgr::get_instance()->auth_friend_apply(uid, touid);
+        MysqlMgr::get_instance()->add_friend(uid, touid, back_name);
 
         // 查询目标用户是否在线
         std::string to_ip_key =
             std::string(REDIS_USER_IP_PREFIX) + std::to_string(touid);
         std::string to_ip_value;
-        if (!RedisMgr::getinstance()->get(to_ip_key, to_ip_value))
+        if (!RedisMgr::get_instance()->get(to_ip_key, to_ip_value))
           return;
 
-        auto cfg = ConfigManager::getinstance();
+        auto cfg = ConfigManager::get_instance();
         auto self_name = cfg->get_value("SelfServer", "name");
 
         // 如果目标用户在同一服务器，直接发送通知
         if (to_ip_value == self_name) {
-          if (auto peer = UserManager::getinstance()->get_session(touid)) {
+          if (auto peer = UserManager::get_instance()->get_session(touid)) {
             Json::Value notify;
             notify["error"] = static_cast<int>(ErrorCodes::NO_ERROR);
             notify["fromuid"] = uid;
@@ -425,8 +387,8 @@ void LogicSystem::register_msg_handler() {
         AuthFriendReq auth_req;
         auth_req.set_fromuid(uid);
         auth_req.set_touid(touid);
-        ChatGrpcClient::getinstance()->notify_auth_friend(to_ip_value,
-                                                          auth_req);
+        ChatGrpcClient::get_instance()->notify_auth_friend(to_ip_value,
+                                                           auth_req);
       });
   // =======================================
   // 聊天消息请求
@@ -460,17 +422,17 @@ void LogicSystem::register_msg_handler() {
 
         // 查询目标用户所在服务器
         std::string to_ip_value;
-        if (!RedisMgr::getinstance()->get(std::string(REDIS_USER_IP_PREFIX) +
-                                              std::to_string(touid),
-                                          to_ip_value))
+        if (!RedisMgr::get_instance()->get(std::string(REDIS_USER_IP_PREFIX) +
+                                               std::to_string(touid),
+                                           to_ip_value))
           return;
 
-        auto cfg = ConfigManager::getinstance();
+        auto cfg = ConfigManager::get_instance();
         auto self_name = cfg->get_value("SelfServer", "name");
 
         // 如果目标用户在同一服务器，直接发送消息
         if (to_ip_value == self_name) {
-          if (auto peer = UserManager::getinstance()->get_session(touid)) {
+          if (auto peer = UserManager::get_instance()->get_session(touid)) {
             peer->send(
                 json_compact(rtvalue),
                 static_cast<uint16_t>(ReqId::ID_NOTIFY_TEXT_CHAT_MSG_REQ));
@@ -487,8 +449,8 @@ void LogicSystem::register_msg_handler() {
           msg_ptr->set_msgid(txt_obj["msgid"].asString());
           msg_ptr->set_msgcontent(txt_obj["content"].asString());
         }
-        ChatGrpcClient::getinstance()->notify_text_chat_msg(to_ip_value,
-                                                            text_req, rtvalue);
+        ChatGrpcClient::get_instance()->notify_text_chat_msg(to_ip_value,
+                                                             text_req, rtvalue);
       });
 }
 
@@ -496,7 +458,7 @@ bool LogicSystem::get_base_info(const std::string &base_key, int uid,
                                 UserInfo &userinfo) {
   std::string info_str;
   //  Redis中的可能是旧的，先不从Redis中取数据
-  if (RedisMgr::getinstance()->get(base_key, info_str)) {
+  if (RedisMgr::get_instance()->get(base_key, info_str)) {
     Json::CharReaderBuilder reader_builder;
     std::unique_ptr<Json::CharReader> reader(reader_builder.newCharReader());
     Json::Value root;
@@ -513,14 +475,14 @@ bool LogicSystem::get_base_info(const std::string &base_key, int uid,
               << " email is " << userinfo.email << " icon is " << userinfo.icon
               << ".\n";
   } else {
-    auto find_res = MysqlMgr::getinstance()->get_user(uid);
+    auto find_res = MysqlMgr::get_instance()->get_user(uid);
     if (!find_res)
       return false;
 
     userinfo = std::move(find_res.value());
     // 将用户的Base Info 写入Redis
-    RedisMgr::getinstance()->set(base_key,
-                                 userinfo_to_json(userinfo).toStyledString());
+    RedisMgr::get_instance()->set(base_key,
+                                  userinfo_to_json(userinfo).toStyledString());
 
     std::cout << "set user info to redis. user login uid is  " << userinfo.uid
               << " name  is " << userinfo.name << " pwd is " << userinfo.pwd
@@ -536,7 +498,7 @@ void LogicSystem::get_user_by_uid(const std::string &uid_str, int32_t uid,
 
   std::string info_str;
   // 先去Redis查找用户信息
-  if (RedisMgr::getinstance()->get(base_key, info_str)) {
+  if (RedisMgr::get_instance()->get(base_key, info_str)) {
     // Redis中有用户信息
     Json::CharReaderBuilder reader_builder;
     std::unique_ptr<Json::CharReader> reader(reader_builder.newCharReader());
@@ -551,7 +513,7 @@ void LogicSystem::get_user_by_uid(const std::string &uid_str, int32_t uid,
     return;
   }
   // Redis中没有，去MySQL查找
-  auto find_res = MysqlMgr::getinstance()->get_user(uid);
+  auto find_res = MysqlMgr::get_instance()->get_user(uid);
   if (!find_res) {
     rtvalue["error"] = static_cast<int32_t>(ErrorCodes::UID_INVALID);
     return;
@@ -564,7 +526,7 @@ void LogicSystem::get_user_by_uid(const std::string &uid_str, int32_t uid,
   Json::StreamWriterBuilder writer;
   writer["indentation"] = ""; // 紧凑格式
   std::string json_str = Json::writeString(writer, user_json);
-  RedisMgr::getinstance()->set(base_key, json_str);
+  RedisMgr::get_instance()->set(base_key, json_str);
   std::cout << "set user base info to redis@" << json_str << '\n';
   // 返回结果，同时带上 error=0
   rtvalue = user_json;
@@ -576,7 +538,7 @@ void LogicSystem::get_user_by_name(const std::string &name,
   std::string base_key = std::string(REDIS_NAME_INFO_PREFIX) + name;
 
   std::string info_str;
-  if (RedisMgr::getinstance()->get(base_key, info_str)) {
+  if (RedisMgr::get_instance()->get(base_key, info_str)) {
     // Redis中存在对应的用户信息
     Json::Reader reader;
     if (!reader.parse(info_str, rtvalue)) {
@@ -588,7 +550,7 @@ void LogicSystem::get_user_by_name(const std::string &name,
     return;
   }
   // Redis中没有，去MySQL查找
-  auto find_res = MysqlMgr::getinstance()->get_user(name);
+  auto find_res = MysqlMgr::get_instance()->get_user(name);
   if (find_res == std::nullopt) {
     rtvalue["error"] = static_cast<int32_t>(ErrorCodes::UID_INVALID);
     return;
@@ -600,7 +562,7 @@ void LogicSystem::get_user_by_name(const std::string &name,
   Json::StreamWriterBuilder writer;
   writer["indentation"] = "";
   std::string json_str = Json::writeString(writer, redis_root);
-  RedisMgr::getinstance()->set(base_key, json_str);
+  RedisMgr::get_instance()->set(base_key, json_str);
 
   rtvalue = redis_root;
   rtvalue["error"] = static_cast<int32_t>(ErrorCodes::NO_ERROR);
@@ -610,7 +572,7 @@ void LogicSystem::get_friend_apply_info(int const to_uid,
                                         Json::Value &rtvalue) const {
 
   std::vector<std::shared_ptr<ApplyInfo>> apply_list;
-  if (MysqlMgr::getinstance()->get_apply_list(to_uid, apply_list, 0, 10)) {
+  if (MysqlMgr::get_instance()->get_apply_list(to_uid, apply_list, 0, 10)) {
     std::cout << "add apply freind list.\n";
     // 将好友申请列表中的信息序列化为Json
     Json::Value arr(Json::arrayValue);
@@ -628,7 +590,7 @@ bool LogicSystem::get_friend_list(int self_id, Json::Value &rtvalue) {
   // 从数据库查询好友列表
 
   std::vector<std::shared_ptr<UserInfo>> friend_list;
-  if (MysqlMgr::getinstance()->get_friend_list(self_id, friend_list)) {
+  if (MysqlMgr::get_instance()->get_friend_list(self_id, friend_list)) {
     // 将好友列表对象序列化为Json
     for (auto &friend_ele : friend_list) {
       Json::Value obj;

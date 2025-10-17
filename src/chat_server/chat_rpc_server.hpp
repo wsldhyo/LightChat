@@ -9,9 +9,12 @@ using message::AddFriendRsp;
 using message::AuthFriendReq;
 using message::AuthFriendRsp;
 using message::ChatService;
+using message::KickUserReq;
+using message::KickUserRsp;
 using message::TextChatMsgReq;
 using message::TextChatMsgRsp;
 class UserInfo;
+class Server;
 
 class ChatServiceImpl final : public ChatService::Service {
 public:
@@ -88,7 +91,27 @@ public:
   bool GetBaseInfo(std::string base_key, int uid,
                    std::shared_ptr<UserInfo> &userinfo);
 
+  /**
+   * @brief 处理踢用户下线的通知请求（由其他服务器发起）
+   *
+   * 当其他节点通知本服务器踢出指定用户时，
+   * 本函数会检查该用户是否在当前服务器的会话列表中：
+   * - 若用户在线，则立即通知其下线并清理对应会话；
+   * - 若用户不在本服务器内存中，则直接返回成功。
+   *
+   * @param context  gRPC 服务上下文
+   * @param request  踢人请求对象，包含用户 UID
+   * @param reply    响应对象，用于返回错误码和用户 UID
+   * @return ::grpc::Status 调用状态（始终返回 OK）
+   */
+  Status NotifyKickUser(::grpc::ServerContext *context,
+                        const KickUserReq *request,
+                        KickUserRsp *reply) override;
+
+  void RegisterServer(std::shared_ptr<Server> server);
+
 private:
+  std::shared_ptr<Server> server_;
 };
 
 #endif // CHAT_RPC_SERVER_HPP

@@ -44,7 +44,7 @@ bool ChatUserList::eventFilter(QObject *watched, QEvent *event) {
 
     // 滚动到底部，加载新的聊天对话
     if (maxScrollValue - currentValue <= 0) {
-      if (UserMgr::getinstance()->is_load_chat_finished()) {
+      if (UserMgr::get_instance()->is_load_chat_finished()) {
         // 已经加载完所有联系人，停止继续加载
         return true;
       }

@@ -45,7 +45,7 @@ void HttpConn::handle_req() {
 void HttpConn::handle_get_req() {
   pre_parse_get_param();
   bool success =
-      LogicSystem::getinstance()->handle_get_req(get_url_, shared_from_this());
+      LogicSystem::get_instance()->handle_get_req(get_url_, shared_from_this());
   if (!success) {
     // 请求处理失败，设置错误的回包信息
     response_.result(http::status::not_found);
@@ -65,7 +65,7 @@ void HttpConn::handle_post_req() {
   // POST 请求的数据放在 请求体（body), 无需调用pre_parse_get_param解析URL
   // LogicSystem直接通过jsoncpp解析请求体中的数据
   // 逻辑类似handle_get_req，只是调用LogicSystem的handle_post_req函数
-  bool success = LogicSystem::getinstance()->handle_post_req(
+  bool success = LogicSystem::get_instance()->handle_post_req(
       request_.target(), shared_from_this());
   if (!success) {
     response_.result(http::status::not_found);

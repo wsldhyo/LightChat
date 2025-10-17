@@ -8,7 +8,7 @@
 #include "manager/redis_manager.hpp"
 #include "utility/defer.hpp"
 void runserver() {
-  auto cfg = ConfigManager::getinstance();
+  auto cfg = ConfigManager::get_instance();
   cfg->parse("status_server_config.ini"sv);
   cfg->parse("basic_config.ini"sv);
   cfg->print();
@@ -49,7 +49,7 @@ void runserver() {
 }
 
 int main(int argc, char **argv) {
-  Defer defer([]() { RedisMgr::getinstance()->close(); });
+  Defer defer([]() { RedisMgr::get_instance()->close(); });
   try {
     runserver();
   } catch (std::exception const &e) {

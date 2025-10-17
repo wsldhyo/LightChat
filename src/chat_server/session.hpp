@@ -78,7 +78,7 @@ public:
 
   void set_user_id(int32_t uid);
 
-  int32_t get_user_id()const;
+  int32_t get_user_id() const;
   /**
    * @brief 发送字符串消息,
    * @param msg 消息内容
@@ -101,6 +101,8 @@ public:
    * - 通知 Server 移除该 Session
    */
   void close();
+
+  void notify_offline(int32_t uid);
 
 private:
   /**
@@ -215,16 +217,32 @@ private:
    */
   void send_callback(boost::system::error_code ec,
                      std::size_t bytes_transferred);
+  /**
+   * @brief 处理未使用或异常会话的清理工作
+   *
+   * 当会话异常关闭、客户端断开、心跳超时或者其他情况下，
+   * 需要清理与该 session 相关的资源，包括：
+   * 1. 从 Redis 中删除用户 session 信息
+   * 2. 删除用户登录信息
+   * 3. 通知 Server 从内存 map 中移除该 session
+   *
+   * 该函数会先尝试获取 Redis 分布式锁，确保在多节点环境下安全操作，
+   * 避免误删除其他服务器上活跃的 session。
+   *
+   * 锁释放和 Server 移除 session 的操作通过 Defer 机制保证即使中途 return
+   * 也能执行。
+   */
+  void deal_unused_session();
 
 private:
-  tcp::socket peer_;                                  ///< 与客户端通信的 socket
-  std::weak_ptr<Server> server_;                      ///< 关联的服务器实例（弱引用）
-  std::string session_id_;                            ///< 会话唯一 ID（UUID）
+  tcp::socket peer_;             ///< 与客户端通信的 socket
+  std::weak_ptr<Server> server_; ///< 关联的服务器实例（弱引用）
+  std::string session_id_;       ///< 会话唯一 ID（UUID）
   std::unique_ptr<TcpMsgNode> recv_head_node_;        ///< 消息头缓冲区
   std::unique_ptr<RecvMsgNode> recv_msg_node_;        ///< 消息体缓冲区
   std::mutex send_que_mutex_;                         ///< 发送队列互斥锁
   std::queue<std::unique_ptr<SendMsgNode>> send_que_; ///< 发送队列
-  std::atomic_bool closing_{false};                   ///< 会话是否正在关闭（幂等保护）
+  std::atomic_bool closing_{false}; ///< 会话是否正在关闭（幂等保护）
   int32_t user_id_;
 };
 #endif

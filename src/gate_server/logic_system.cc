@@ -106,7 +106,7 @@ bool LogicSystem::handle_post_get_vertify_code(
   }
 
   auto email = src_root["email"].asString();
-  GetVertifyRsp rsp = VertifyRPCClient::getinstance()->GetVertifyCode(email);
+  GetVertifyRsp rsp = VertifyRPCClient::get_instance()->GetVertifyCode(email);
   std::cout << "email is " << email << '\n';
   root["error"] = rsp.error();
   root["email"] = src_root["email"];
@@ -149,7 +149,7 @@ bool LogicSystem::handle_post_register_user(
 
   // 验证验证是否匹配
   std::string vertify_code;
-  bool b_get_vertify = RedisMgr::getinstance()->get(
+  bool b_get_vertify = RedisMgr::get_instance()->get(
       std::string(REDIS_VERTIFY_CODE_PREFIX) + src_root["email"].asString(),
       vertify_code);
   if (!b_get_vertify) {
@@ -170,7 +170,7 @@ bool LogicSystem::handle_post_register_user(
   }
 
   //查找数据库判断用户是否存在
-  int uid = MysqlMgr::getinstance()->reg_user(name, email, pwd);
+  int uid = MysqlMgr::get_instance()->reg_user(name, email, pwd);
   if (uid == 0 || uid == -1) {
     std::cout << " user or email exist" << std::endl;
     root["error"] = static_cast<int32_t>(ErrorCodes::REG_USER_EXISTS);
@@ -214,7 +214,7 @@ bool LogicSystem::handle_post_reset_pwd(std::shared_ptr<HttpConn> connection) {
 
   //先查找redis中email对应的验证码是否合理
   std::string vertify_code;
-  bool b_get_vertify = RedisMgr::getinstance()->get(
+  bool b_get_vertify = RedisMgr::get_instance()->get(
       std::string(REDIS_VERTIFY_CODE_PREFIX) + src_root["email"].asString(),
       vertify_code);
   if (!b_get_vertify) {
@@ -233,7 +233,7 @@ bool LogicSystem::handle_post_reset_pwd(std::shared_ptr<HttpConn> connection) {
     return false;
   }
   //查询数据库判断用户名和邮箱是否匹配
-  bool email_valid = MysqlMgr::getinstance()->check_email(name, email);
+  bool email_valid = MysqlMgr::get_instance()->check_email(name, email);
   if (!email_valid) {
     std::cout << " user email not match" << std::endl;
     root["error"] = static_cast<int32_t>(ErrorCodes::EMAIL_DISMATCH);
@@ -244,7 +244,7 @@ bool LogicSystem::handle_post_reset_pwd(std::shared_ptr<HttpConn> connection) {
 
   //更新密码为最新密码
   std::cout << "reset new pwd:" << pwd << '\n';
-  bool b_up = MysqlMgr::getinstance()->update_pwd(name, pwd);
+  bool b_up = MysqlMgr::get_instance()->update_pwd(name, pwd);
   if (!b_up) {
     std::cout << " update pwd failed" << std::endl;
     root["error"] = static_cast<int32_t>(ErrorCodes::PWD_UPDATE_FAILED);
@@ -286,7 +286,7 @@ bool LogicSystem::handle_post_user_login(std::shared_ptr<HttpConn> connection) {
   auto pwd = src_root["passwd"].asString();
   UserInfo userInfo;
   //查询数据库判断用户名和密码是否匹配
-  bool pwd_valid = MysqlMgr::getinstance()->check_pwd(email, pwd, userInfo);
+  bool pwd_valid = MysqlMgr::get_instance()->check_pwd(email, pwd, userInfo);
   if (!pwd_valid) {
     std::cout << " user pwd not match" << std::endl;
     root["error"] = static_cast<int32_t>(ErrorCodes::PWD_INCORRECT);
@@ -297,7 +297,7 @@ bool LogicSystem::handle_post_user_login(std::shared_ptr<HttpConn> connection) {
 
   //查询StatusServer找到合适的连接
   std::cout << "search chat server\n";
-  auto reply = StatusGrpcClient::getinstance()->get_chatserver(userInfo.uid);
+  auto reply = StatusGrpcClient::get_instance()->get_chatserver(userInfo.uid);
   if (reply.error()) {
     std::cout << " grpc get chat server failed, error is " << reply.error()
               << std::endl;

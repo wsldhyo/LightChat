@@ -1,17 +1,19 @@
 #include "redis_manager.hpp"
 #include "config_manager.hpp"
+#include "distributed_lock.hpp"
 #include "utility/defer.hpp"
 #include "utility/toolfunc.hpp"
 #include <cstring>
 #include <iostream>
 RedisMgr::RedisMgr() {
-  auto config_mgr = ConfigManager::getinstance();
+  auto config_mgr = ConfigManager::get_instance();
   auto host = (*config_mgr)["Redis"]["host"];
   auto port = (*config_mgr)["Redis"]["port"];
   auto pwd = (*config_mgr)["Redis"]["pwd"];
   int port_num{0};
   string_to_int(port, port_num);
-  pool_ = std::make_unique<RedisConnPool>(5, host, port_num, pwd);
+  // 连接数量扩容至10，扩容的额外连接给分布式锁使用
+  pool_ = std::make_unique<RedisConnPool>(10, host, port_num, pwd);
 }
 
 RedisMgr::~RedisMgr() { close(); }
@@ -351,3 +353,107 @@ bool RedisMgr::existskey(std::string const &key) {
 }
 
 void RedisMgr::close() { pool_->close(); }
+
+std::string RedisMgr::acquire_lock(const std::string &lock_name,
+                                   int lock_timeout, int acquire_timeout) {
+
+  auto connect = pool_->get_connection();
+  if (connect == nullptr) {
+    return "";
+  }
+
+  Defer defer([&connect, this]() { pool_->return_connection(connect); });
+
+  return DistLock::get_instance().acquire(connect, lock_name, lock_timeout,
+                                          acquire_timeout);
+}
+
+bool RedisMgr::release_lock(const std::string &lock_name,
+                            const std::string &identifier) {
+  if (identifier.empty()) {
+    return true;
+  }
+  auto connect = pool_->get_connection();
+  if (connect == nullptr) {
+    return false;
+  }
+
+  Defer defer([&connect, this]() { pool_->return_connection(connect); });
+
+  return DistLock::get_instance().release(connect, lock_name, identifier);
+}
+
+void RedisMgr::increase_count(std::string const &server_name) {
+  // 获取分布式锁
+  auto lock_key = std::string(REDIS_LOCK_COUNT_PREFIX);
+  auto identifier = RedisMgr::get_instance()->acquire_lock(
+      lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+  Defer defer([this, identifier, lock_key]() {
+    RedisMgr::get_instance()->release_lock(lock_key, identifier);
+  });
+
+  // 读取登录计数
+  auto rd_res =
+      RedisMgr::get_instance()->h_get(REDIS_LOGIN_COUNT_PREFIX, server_name);
+  int count = 0;
+  if (!rd_res.empty()) {
+    count = std::stoi(rd_res);
+  }
+
+  // 登录计数加1并写回Redis
+  count++;
+  auto count_str = std::to_string(count);
+  RedisMgr::get_instance()->h_set(REDIS_LOGIN_COUNT_PREFIX, server_name,
+                                  count_str);
+}
+
+void RedisMgr::decrease_count(std::string const &server_name) {
+  // 获取分布式锁
+  auto lock_key = std::string(REDIS_LOCK_COUNT_PREFIX);
+  auto identifier = RedisMgr::get_instance()->acquire_lock(
+      lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+  Defer defer([this, identifier, lock_key]() {
+    RedisMgr::get_instance()->release_lock(lock_key, identifier);
+  });
+
+  // 读取登录计数，并减1
+  auto rd_res =
+      RedisMgr::get_instance()->h_get(REDIS_LOGIN_COUNT_PREFIX, server_name);
+  int count = 0;
+  if (!rd_res.empty()) {
+    count = std::stoi(rd_res);
+    if (count > 0) {
+      count--;
+    }
+  }
+
+  //将减1后的登录计数写回Redis
+  auto count_str = std::to_string(count);
+  RedisMgr::get_instance()->h_set(REDIS_LOGIN_COUNT_PREFIX, server_name,
+                                  count_str);
+}
+
+void RedisMgr::init_count(std::string const &server_name) {
+  // 获取分布式锁，
+  auto lock_key = std::string(REDIS_LOCK_COUNT_PREFIX);
+  auto identifier = RedisMgr::get_instance()->acquire_lock(
+      lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+  Defer defer([this, identifier, lock_key]() {
+    RedisMgr::get_instance()->release_lock(lock_key, identifier);
+  });
+
+  // 将登录计数初始化为0
+  RedisMgr::get_instance()->h_set(REDIS_LOGIN_COUNT_PREFIX, server_name, "0");
+}
+
+void RedisMgr::del_count(std::string const &server_name) {
+  // 获取分布式锁
+  auto lock_key = std::string(REDIS_LOCK_COUNT_PREFIX);
+  auto identifier = RedisMgr::get_instance()->acquire_lock(
+      lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+  Defer defer([this, identifier, lock_key]() {
+    RedisMgr::get_instance()->release_lock(lock_key, identifier);
+  });
+  // 删除登录计数的缓存
+  RedisMgr::get_instance()->h_del(REDIS_LOGIN_COUNT_PREFIX, server_name);
+}

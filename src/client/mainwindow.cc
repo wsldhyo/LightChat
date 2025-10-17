@@ -106,6 +106,6 @@ void MainWindow::create_connection() {
   connect(login_dlg_, &LoginDialog::switchReset, this,
           &MainWindow::SlotSwitchReset);
   //连接创建聊天界面信号
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_switch_chatdlg, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_switch_chatdlg, this,
           &MainWindow::SlotSwitchChat);
 }

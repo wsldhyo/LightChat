@@ -30,19 +30,6 @@ public:
   ~Server();
 
   /**
-   * @brief 异步请求移除某个 Session
-   * @param id Session 的 UUID
-   *
-   * 使用场景：
-   * - Session::close() 中调用，用于通知 Server 移除自己
-   *
-   * - 如果在持有 mutex_ 的情况下直接调用 remove_session()
-   *   而 Session::close() 又可能反过来触发 Server 的逻辑，就容易死锁
-   * - post 保证移除逻辑在 acceptor 的 executor 上排队执行，避免锁重入
-   */
-  void post_remove_session(std::string id);
-
-  /**
    * @brief 启动异步 accept 循环
    *
    * - 每 accept 一个新连接，就创建一个 Session 并放入 sessions_
@@ -50,16 +37,18 @@ public:
    */
   void start_accept();
 
+  /**
+   * @brief 真正移除某个 Session（仅限在 io_context 线程中调用）
+   */
+  void remove_session(std::string const &session_id);
+
+  bool check_session_vaild(std::string const& session_id);
 private:
   /// 将函数投递到 acceptor 的执行上下文
   template <typename F> void post(F &&f) {
     asio::post(acceptor_.get_executor(), std::forward<F>(f));
   }
 
-  /**
-   * @brief 真正移除某个 Session（仅限在 io_context 线程中调用）
-   */
-  void remove_session(std::string const &session_id);
 
   /**
    * @brief 关闭服务器

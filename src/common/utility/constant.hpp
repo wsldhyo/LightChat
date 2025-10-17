@@ -18,9 +18,10 @@ enum class ReqId {
   ID_AUTH_FRIEND_REQ, // 被申请方的认证好友请求，服务器转发认证结果给好友申请方
   ID_AUTH_FRIEND_RSP, // 服务器响应：被申请方客户端根据服务器回包，可将对方显示到联系人列表（若同意成为好友）
   ID_NOTIFY_AUTH_FRIEND_REQ, // 通知申请方0好友认证结果，对方客户端据此可将对方显示到联系人列表（若同意成为好友）
-  ID_TEXT_CHAT_MSG_REQ,  // 发送聊天消息请求
-  ID_TEXT_CHAT_MSG_RSP,  // 服务器响应了聊天消息的转发 
-  ID_NOTIFY_TEXT_CHAT_MSG_REQ,  // 通知有有聊天消息到来
+  ID_TEXT_CHAT_MSG_REQ,      // 发送聊天消息请求
+  ID_TEXT_CHAT_MSG_RSP,      // 服务器响应了聊天消息的转发
+  ID_NOTIFY_TEXT_CHAT_MSG_REQ, // 通知有有聊天消息到来
+  ID_NOTIFY_OFFLINE_REQ,       // 通知客户端下线
 };
 
 enum class ErrorCodes {
@@ -79,7 +80,16 @@ constexpr std::string_view REDIS_USER_BASE_INFO_PREFIX{"ubaseinfo_"sv};
 constexpr std::string_view REDIS_NAME_INFO_PREFIX{"nameinfo_"sv};
 // 查询每台服务器当前登录用户数目
 constexpr std::string_view REDIS_LOGIN_COUNT_PREFIX{"logincount"sv};
+// 查询每台服务器当前登录用户数目
+constexpr std::string_view REDIS_LOCK_PREFIX{"lock_"sv};
+// 查询每台服务器当前登录用户数目
+constexpr int32_t REDIS_LOCK_TIMEOUT{10};
+// 查询每台服务器当前登录用户数目
+constexpr int32_t REDIS_ACQUIRE_TIMEOUT{5};
+// 与uid拼接，查询Redis中缓存的维持该用户的Session ID
+constexpr std::string_view REDIS_USER_SESSION_PREFIX{"usession_"};
 
+constexpr std::string_view REDIS_LOCK_COUNT_PREFIX{"lockcount"};
 // http请求路由
 constexpr std::string_view GET_TEST_URL{"/get_test"sv};
 constexpr std::string_view POST_GET_VERFIY_CODE{"/get_vertify_code"sv};

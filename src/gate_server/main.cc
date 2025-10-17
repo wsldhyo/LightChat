@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
   port_t port{0};
   {
 
-    auto config_mgr = ConfigManager::getinstance();
+    auto config_mgr = ConfigManager::get_instance();
     config_mgr->parse("basic_config.ini"sv);
     config_mgr->print();
     string_to_int((*config_mgr)["GateServer"]["port"], port);

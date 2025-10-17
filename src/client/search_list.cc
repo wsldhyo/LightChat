@@ -98,7 +98,7 @@ void SearchList::create_connection() {
           &SearchList::slot_item_clicked);
 
   //连接搜索条目
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_user_search, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_user_search, this,
           &SearchList::slot_user_search);
 
 }
@@ -144,7 +144,7 @@ void SearchList::slot_item_clicked(QListWidgetItem *item) {
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
     //发送tcp请求给chat server
-    emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ,
+    emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_SEARCH_USER_REQ,
                                               jsonData);
 
     return;
@@ -159,13 +159,13 @@ void SearchList::slot_user_search(std::shared_ptr<SearchInfo> si) {
   if (si == nullptr) {
     find_dlg_ = std::make_shared<FindFailedDlg>(this);
   } else {
-    auto self_uid = UserMgr::getinstance()->get_uid();
+    auto self_uid = UserMgr::get_instance()->get_uid();
     if(self_uid == si->_uid){
       // 查找的是自己，就什么也不做
       return;
     }
 
-    if(UserMgr::getinstance()->check_friend_by_id(si->_uid)){
+    if(UserMgr::get_instance()->check_friend_by_id(si->_uid)){
       // 如果已经是好友，就跳转到好友聊天界面
       emit sig_switch_chat_item(si);
       return;

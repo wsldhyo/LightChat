@@ -43,7 +43,7 @@ void ChatPage::set_user_info(std::shared_ptr<UserInfo> user_info) {
 }
 
 void ChatPage::append_chat_msg(std::shared_ptr<TextChatData> msg) {
-  auto self_info = UserMgr::getinstance()->get_user_info();
+  auto self_info = UserMgr::get_instance()->get_user_info();
   ChatRole role;
   // todo... 添加聊天显示
   if (msg->_from_uid == self_info->_uid) {
@@ -60,7 +60,7 @@ void ChatPage::append_chat_msg(std::shared_ptr<TextChatData> msg) {
     role = ChatRole::OTHERS;
     ChatItemBase *pChatItem = new ChatItemBase(role);
     auto friend_info =
-        UserMgr::getinstance()->get_friend_infO_by_id(msg->_from_uid);
+        UserMgr::get_instance()->get_friend_infO_by_id(msg->_from_uid);
     if (friend_info == nullptr) {
       return;
     }
@@ -86,7 +86,7 @@ void ChatPage::on_send_btn_clicked() {
     return;
   }
 
-  auto self_info = UserMgr::getinstance()->get_user_info();
+  auto self_info = UserMgr::get_instance()->get_user_info();
   auto pTextEdit = ui->chatEdit;
   ChatRole role = ChatRole::SELF;
   QString userName = self_info->_name;
@@ -127,7 +127,7 @@ void ChatPage::on_send_btn_clicked() {
         textArray = QJsonArray();
         textObj = QJsonObject();
         //发送tcp请求给chat server
-        emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ,
+        emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ,
                                                   jsonData);
       }
 
@@ -168,6 +168,6 @@ void ChatPage::on_send_btn_clicked() {
   textArray = QJsonArray();
   textObj = QJsonObject();
   //发送tcp请求给chat server
-  emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ,
+  emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ,
                                             jsonData);
 }

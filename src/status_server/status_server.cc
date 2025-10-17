@@ -2,9 +2,9 @@
 #include "manager/config_manager.hpp"
 #include "manager/redis_manager.hpp"
 #include "utility/constant.hpp"
-#include <climits>
-#include "utility/constant.hpp"
+#include "utility/defer.hpp"
 #include "utility/toolfunc.hpp"
+#include <climits>
 StatusServer::StatusServer() { init_servers(); }
 
 StatusServer::~StatusServer() {}
@@ -17,7 +17,8 @@ Status StatusServer::GetChatServer(ServerContext *context,
   reply->set_host(server.host);
   reply->set_port(server.port);
   reply->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
-  // 生成Token，用户密码验证通过后，使用Token作为凭证，后续客户端请求都用 token 证明身份，不必每次带密码
+  // 生成Token，用户密码验证通过后，使用Token作为凭证，后续客户端请求都用 token
+  // 证明身份，不必每次带密码
   reply->set_token(generate_unique_string());
   insertToken(request->uid(), reply->token());
   return Status::OK;
@@ -26,7 +27,18 @@ Status StatusServer::GetChatServer(ServerContext *context,
 ChatServer StatusServer::getChatServer() {
   std::lock_guard<std::mutex> guard(server_mtx_);
   auto minServer = servers_.begin()->second;
-  auto count_str = RedisMgr::getinstance()->h_get(REDIS_LOGIN_COUNT_PREFIX, minServer.name);
+  auto lock_key = std::string(REDIS_LOCK_PREFIX);
+
+  // 获取分布式锁
+  auto identifier = RedisMgr::get_instance()->acquire_lock(
+      lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+  //利用defer解锁
+  Defer defer([this, identifier, lock_key]() {
+    RedisMgr::get_instance()->release_lock(lock_key, identifier);
+  });
+
+  auto count_str =
+      RedisMgr::get_instance()->h_get(REDIS_LOGIN_COUNT_PREFIX, minServer.name);
   if (count_str.empty()) {
     //不存在则默认设置为最大
     minServer.con_count = INT_MAX;
@@ -41,8 +53,8 @@ ChatServer StatusServer::getChatServer() {
       continue;
     }
 
-    auto count_str =
-        RedisMgr::getinstance()->h_get(REDIS_LOGIN_COUNT_PREFIX, server.second.name);
+    auto count_str = RedisMgr::get_instance()->h_get(REDIS_LOGIN_COUNT_PREFIX,
+                                                     server.second.name);
     if (count_str.empty()) {
       server.second.con_count = INT_MAX;
     } else {
@@ -65,7 +77,7 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
   std::string uid_str = std::to_string(uid);
   std::string token_key = std::string(REDIS_USER_TOKEN_PREFIX) + uid_str;
   std::string token_value = "";
-  bool success = RedisMgr::getinstance()->get(token_key, token_value);
+  bool success = RedisMgr::get_instance()->get(token_key, token_value);
   if (!success) {
     std::cout << "uid invalid\n";
     reply->set_error(static_cast<int32_t>(ErrorCodes::UID_INVALID));
@@ -78,8 +90,6 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
     return Status::OK;
   }
 
-
-
   reply->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
   reply->set_uid(uid);
   reply->set_token(token);
@@ -89,12 +99,12 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
 void StatusServer::insertToken(int uid, std::string token) {
   std::string uid_str = std::to_string(uid);
   std::string token_key = std::string(REDIS_USER_TOKEN_PREFIX) + uid_str;
-  RedisMgr::getinstance()->set(token_key, token);
+  RedisMgr::get_instance()->set(token_key, token);
 }
 
 void StatusServer::init_servers() {
   std::cout << "init servers...\n";
-  auto cfg = ConfigManager::getinstance();
+  auto cfg = ConfigManager::get_instance();
   auto server_list = (*cfg)["ChatServers"]["name"];
   std::cout << "ChatServers: " << server_list << '\n';
   std::vector<std::string> words;

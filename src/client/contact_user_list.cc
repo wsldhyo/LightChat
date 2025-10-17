@@ -76,7 +76,7 @@ void ContactUserList::add_contact_user_list() {
   this->setItemWidget(group_item_, groupCon);
   group_item_->setFlags(group_item_->flags() & ~Qt::ItemIsSelectable);
   //加载后端发送过来的好友列表
-  auto con_list = UserMgr::getinstance()->get_conlist_per_page();
+  auto con_list = UserMgr::get_instance()->get_conlist_per_page();
   for (auto &con_ele : con_list) {
     auto *con_user_wid = new ContactUserItem();
     con_user_wid->SetInfo(con_ele->_uid, con_ele->_name, con_ele->_icon);
@@ -87,7 +87,7 @@ void ContactUserList::add_contact_user_list() {
     this->setItemWidget(item, con_user_wid);
   }
 
-  UserMgr::getinstance()->update_contact_loaded_count();
+  UserMgr::get_instance()->update_contact_loaded_count();
   // 模拟数据，加载 13 个联系人
   for (int i = 0; i < 13; i++) {
     int randomValue = QRandomGenerator::global()->bounded(100); // 随机数
@@ -129,7 +129,7 @@ bool ContactUserList::eventFilter(QObject *watched, QEvent *event) {
     // 判断是否滚动到底部
     QScrollBar *scrollBar = this->verticalScrollBar();
     if (scrollBar->maximum() - scrollBar->value() <= 0) {
-      if (UserMgr::getinstance()->is_load_contact_finished()) {
+      if (UserMgr::get_instance()->is_load_contact_finished()) {
         // 加载完所有好友了，无需继续加载，直接返回
         return true;
       }
@@ -190,7 +190,7 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item) {
 void ContactUserList::slot_recv_friend_auth(
     std::shared_ptr<AuthInfo> auth_info) {
   qDebug() << "slot add auth friend ";
-  bool isFriend = UserMgr::getinstance()->check_friend_by_id(auth_info->_uid);
+  bool isFriend = UserMgr::get_instance()->check_friend_by_id(auth_info->_uid);
   if (isFriend) {
     return;
   }
@@ -217,7 +217,7 @@ void ContactUserList::slot_recv_friend_auth(
 void ContactUserList::slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
   qDebug() << "slot auth rsp called";
   // 检查是否已经是好友
-  bool isFriend = UserMgr::getinstance()->check_friend_by_id(auth_rsp->_uid);
+  bool isFriend = UserMgr::get_instance()->check_friend_by_id(auth_rsp->_uid);
   if (isFriend) {
     return;
   }
@@ -246,10 +246,10 @@ void ContactUserList::create_connection() {
   connect(this, &QListWidget::itemClicked, this,
           &ContactUserList::slot_item_clicked);
   // 收到对方好友认证后, 将对方(被申请方)加入自己的好友列表
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_recv_friend_auth, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_friend_auth, this,
           &ContactUserList::slot_recv_friend_auth);
   //自己处理方对方的好友申请,
   //服务器通知对方后，根据处理结果决定是否将对方（申请方）加入自己的好友列表
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_friend_apply_rsp, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_friend_apply_rsp, this,
           &ContactUserList::slot_friend_auth_rsp);
 }

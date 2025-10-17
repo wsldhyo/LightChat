@@ -10,9 +10,10 @@ using message::AddFriendReq;
 using message::AddFriendRsp;
 using message::AuthFriendReq;
 using message::AuthFriendRsp;
+using message::KickUserReq;
+using message::KickUserRsp;
 using message::TextChatMsgReq;
 using message::TextChatMsgRsp;
-
 using server_name_t = std::string;
 class UserInfo;
 class ChatGrpcClient : public Singleton<ChatGrpcClient> {
@@ -46,13 +47,62 @@ public:
 
   AddFriendRsp notify_add_friend(std::string server_ip,
                                  const AddFriendReq &req);
+  /**
+   * @brief 通知指定服务器执行好友认证操作
+   *
+   * 通过 gRPC 调用目标服务器的 NotifyAuthFriend 接口，
+   * 用于处理好友请求的授权或确认逻辑。
+   * 若目标服务器连接不可用或 RPC 调用失败，则返回错误码。
+   *
+   * @param server_ip  目标服务器 IP 地址
+   * @param req        好友认证请求对象
+   * @return AuthFriendRsp  响应结果，包含错误码及双方 UID
+   */
   AuthFriendRsp notify_auth_friend(std::string server_ip,
                                    const AuthFriendReq &req);
+  /**
+   * @brief 获取用户基础信息（优先从 Redis 缓存获取）
+   *
+   * 该函数先尝试从 Redis 获取用户信息；
+   * 若缓存不存在，则从 MySQL 读取用户信息，
+   * 并将结果回写到 Redis 缓存中。
+   *
+   * @param base_key  Redis 中用户信息键名
+   * @param uid       用户 UID
+   * @param userinfo  输出参数，用于返回用户信息
+   * @return true     成功获取用户信息
+   * @return false    数据库中不存在该用户
+   */
   bool get_base_info(std::string base_key, int uid,
                      std::shared_ptr<UserInfo> &userinfo);
+
+  /**
+   * @brief 通知指定服务器分发文本聊天消息
+   *
+   * 通过 gRPC 调用目标服务器的 NotifyTextChatMsg 接口，
+   * 用于在分布式环境中转发或广播聊天消息。
+   * 若 RPC 调用失败，则返回 RPC 调用错误。
+   *
+   * @param server_ip  目标服务器 IP 地址
+   * @param req        文本聊天请求对象
+   * @param rtvalue    预留参数（扩展消息内容）
+   * @return TextChatMsgRsp 响应结果，包含错误码及消息内容
+   */
   TextChatMsgRsp notify_text_chat_msg(std::string server_ip,
                                       const TextChatMsgReq &req,
                                       const Json::Value &rtvalue);
+  /**
+   * @brief 通过 gRPC 通知指定服务器踢出某用户
+   *
+   * 该函数会根据 server_ip 从连接池中获取 gRPC 连接，
+   * 向目标服务器发送 KickUser 请求并返回响应结果。
+   * 若 RPC 调用失败或连接池中不存在对应服务器连接，则返回错误码。
+   *
+   * @param server_ip  目标服务器的 IP 地址
+   * @param req        KickUser 请求对象，包含用户 UID 等信息
+   * @return KickUserRsp 响应结果，包含错误码及用户 UID
+   */
+  KickUserRsp NotifyKickUser(std::string server_ip, const KickUserReq &req);
 
 private:
   ChatGrpcClient();

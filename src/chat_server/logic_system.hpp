@@ -13,6 +13,7 @@
 #include <string_view>
 #include <thread>
 class Session;
+class Server;
 class UserInfo;
 class ApplyInfo;
 /**
@@ -133,6 +134,8 @@ public:
   void post_msg(std::unique_ptr<RecvMsgNode> msg,
                 std::shared_ptr<Session> session);
 
+  void set_server(std::shared_ptr<Server> server);
+
 private:
   /**
    * @brief 逻辑处理线程的主循环。
@@ -221,13 +224,14 @@ private:
    * @return false
    *    查询好友列表失败
    */
-  bool get_friend_list(int self_id,Json::Value &rtvalue);
+  bool get_friend_list(int self_id, Json::Value &rtvalue);
   std::mutex msg_que_mutex_;
   bool b_stop_;
   std::condition_variable deal_msg_cond_;
   std::queue<LogicNode> recv_msg_que_;
   std::unordered_map<ReqId, CallbackRef> handlers_;
   std::thread work_thread_;
+  std::shared_ptr<Server> server_;
 };
 
 #endif

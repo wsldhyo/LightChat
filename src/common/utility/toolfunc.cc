@@ -5,14 +5,16 @@
 #elif __APPLE__
 #include <mach-o/dyld.h>
 #elif __linux__
-#include <limits.h>
-#include <unistd.h>
 #include <array>
 #include <filesystem>
+#include <limits.h>
+#include <unistd.h>
 #endif
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <json/reader.h>
+#include <json/writer.h>
 
 unsigned char to_hex(int _num) { return _num > 9 ? _num + 55 : _num + 48; }
 
@@ -103,9 +105,6 @@ ErrorCodes get_executable_path(std::string &_res) {
 #endif
 }
 
-
-
-
 std::string generate_unique_string() {
   // 创建UUID对象
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -113,4 +112,91 @@ std::string generate_unique_string() {
   // 将UUID转换为字符串
   std::string unique_string = to_string(uuid);
   return unique_string;
+}
+
+/**
+ * @brief 将UserInfo转换为Json::Value
+ *
+ * @param user 待转换的UserInfo
+ * @return Json::Value
+ */
+Json::Value userinfo_to_json(const UserInfo &user) {
+  Json::Value root;
+  root["uid"] = user.uid;
+  root["name"] = user.name;
+  root["pwd"] = user.pwd;
+  root["email"] = user.email;
+  root["nick"] = user.nick;
+  root["desc"] = user.desc;
+  root["sex"] = user.sex;
+  root["icon"] = user.icon;
+  root["error"] = static_cast<int32_t>(ErrorCodes::NO_ERROR);
+  return root;
+}
+
+/**
+ * @brief 将Json::Value转换为UserInfo
+ * @param root
+ * @return UserInfo
+ */
+UserInfo json_to_userinfo(const Json::Value &root) {
+  UserInfo user;
+  user.uid = root["uid"].asInt();
+  user.name = root["name"].asString();
+  user.pwd = root["pwd"].asString();
+  user.email = root["email"].asString();
+  user.nick = root["nick"].asString();
+  user.desc = root["desc"].asString();
+  user.sex = root["sex"].asInt();
+  user.icon = root["icon"].asString();
+  return user;
+}
+
+/**
+ * @brief 将ApplyInfo转为Json::Value
+ * @param root
+ * @return Json::Value
+ */
+Json::Value applyinfo_to_json(const ApplyInfo &apply) {
+  Json::Value obj;
+  obj["name"] = apply._name;
+  obj["uid"] = apply._uid;
+  obj["icon"] = apply._icon;
+  obj["nick"] = apply._nick;
+  obj["sex"] = apply._sex;
+  obj["desc"] = apply._desc;
+  obj["status"] = apply._status;
+  obj["error"] = static_cast<int32_t>(ErrorCodes::NO_ERROR);
+  return obj;
+}
+
+/**
+ * @brief 解析 JSON 字符串
+ *
+ * 使用 JsonCpp 将输入的 JSON 字符串解析为 Json::Value 对象。
+ *
+ * @param msg 待解析的 JSON 字符串
+ * @param root 输出参数，解析成功后保存 JSON 数据
+ * @return true 解析成功
+ * @return false 解析失败
+ *
+ */
+bool parse_json(std::string_view msg, Json::Value &root) {
+  Json::CharReaderBuilder builder;
+  std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+  return reader->parse(msg.data(), msg.data() + msg.size(), &root, nullptr);
+}
+
+/**
+ * @brief 将 Json::Value 转换为紧凑格式的 JSON 字符串
+ *
+ * 使用 JsonCpp 序列化 Json::Value 对象为字符串，去掉缩进和换行。
+ *
+ * @param val 要序列化的 Json::Value 对象
+ * @return std::string 序列化后的紧凑 JSON 字符串
+ */
+std::string json_compact(const Json::Value &val) {
+  Json::StreamWriterBuilder wbuilder;
+  wbuilder["indentation"] = ""; // 紧凑格式
+  return Json::writeString(wbuilder, val);
 }

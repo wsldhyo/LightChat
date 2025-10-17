@@ -417,7 +417,7 @@ void AuthenFriendDlg::slot_apply_sure()
     qDebug() << "Slot Apply Sure ";
     //添加发送逻辑
     QJsonObject jsonObj;
-    auto uid = UserMgr::getinstance()->get_uid();
+    auto uid = UserMgr::get_instance()->get_uid();
     jsonObj["fromuid"] = uid;
     jsonObj["touid"] = _apply_info->_uid;
     QString back_name = "";
@@ -433,7 +433,7 @@ void AuthenFriendDlg::slot_apply_sure()
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
     //发送tcp请求给chat server
-    emit TcpMgr::getinstance()->sig_send_data(ReqId::ID_AUTH_FRIEND_REQ, jsonData);
+    emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_AUTH_FRIEND_REQ, jsonData);
 
     this->hide();
     deleteLater();

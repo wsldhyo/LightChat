@@ -24,7 +24,7 @@ ChatDialog::ChatDialog(QWidget *parent)
   ui->stackedWidget->setCurrentWidget(ui->chat_page);
 
   // 设置侧边栏
-  QPixmap pixmap(UserMgr::getinstance()->get_icon());
+  QPixmap pixmap(UserMgr::get_instance()->get_icon());
   ui->side_head_lb->setPixmap(pixmap); // 将图片设置到QLabel上
   QPixmap scaledPixmap = pixmap.scaled(
       ui->side_head_lb->size(), Qt::KeepAspectRatio); // 将图片缩放到label的大小
@@ -139,7 +139,7 @@ static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
                                      "java", "nodejs", "python", "rust"};
 void ChatDialog::add_chat_user_list() {
   // 加载服务器传递过来的聊天会话项
-  auto friend_list = UserMgr::getinstance()->get_chat_list_per_page();
+  auto friend_list = UserMgr::get_instance()->get_chat_list_per_page();
   if (friend_list.empty() == false) {
     for (auto &friend_ele : friend_list) {
       auto find_iter = chat_items_added_.find(friend_ele->_uid);
@@ -158,7 +158,7 @@ void ChatDialog::add_chat_user_list() {
     }
 
     //更新已加载条目
-    UserMgr::getinstance()->update_chat_loaded_count();
+    UserMgr::get_instance()->update_chat_loaded_count();
   }
 
   // 模拟测试数据
@@ -227,7 +227,7 @@ void ChatDialog::set_select_chat_item(int uid) {
 }
 
 void ChatDialog::load_more_contact_user() {
-  auto friend_list = UserMgr::getinstance()->get_conlist_per_page();
+  auto friend_list = UserMgr::get_instance()->get_conlist_per_page();
   if (friend_list.empty() == false) {
     for (auto &friend_ele : friend_list) {
       auto *chat_user_wid = new ContactUserItem();
@@ -241,12 +241,12 @@ void ChatDialog::load_more_contact_user() {
     }
 
     //更新已加载条目
-    UserMgr::getinstance()->update_contact_loaded_count();
+    UserMgr::get_instance()->update_contact_loaded_count();
   }
 }
 
 void ChatDialog::load_more_chat_user() {
-  auto friend_list = UserMgr::getinstance()->get_chat_list_per_page();
+  auto friend_list = UserMgr::get_instance()->get_chat_list_per_page();
   if (friend_list.empty() == false) {
     for (auto &friend_ele : friend_list) {
       auto find_iter = chat_items_added_.find(friend_ele->_uid);
@@ -265,7 +265,7 @@ void ChatDialog::load_more_chat_user() {
     }
 
     //更新已加载条目
-    UserMgr::getinstance()->update_chat_loaded_count();
+    UserMgr::get_instance()->update_chat_loaded_count();
   }
 }
 
@@ -375,17 +375,17 @@ void ChatDialog::create_connection() {
   connect(ui->search_edit, &QLineEdit::textChanged, this,
           &ChatDialog::slot_text_changed);
 
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_recv_friend_apply, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_friend_apply, this,
           &ChatDialog::slot_handle_friend_apply);
 
   connect(ui->friend_apply_page, &NewFriendApplyPage::sig_recv_new_friend_apply,
           this, &ChatDialog::slot_show_friend_apply_red_point);
 
   // 收到对方好友认证后, 将对方(被申请方)加入自己的聊天会话列表
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_recv_friend_auth, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_friend_auth, this,
           &ChatDialog::slot_recv_friend_auth);
   //自己处理方对方的好友申请后，将对方（申请方）加入自己的聊天会话列表
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_friend_apply_rsp, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_friend_apply_rsp, this,
           &ChatDialog::slot_friend_auth_rsp);
 
   connect(ui->search_list, &SearchList::sig_switch_chat_item, this,
@@ -407,7 +407,7 @@ void ChatDialog::create_connection() {
   connect(ui->chat_page, &ChatPage::sig_append_send_chat_msg, this,
           &ChatDialog::slot_append_send_chat_msg);
 
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_recv_text_msg, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_text_msg, this,
           &ChatDialog::slot_recv_text_msg);
 }
 
@@ -511,13 +511,13 @@ void ChatDialog::slot_switch_apply_friend_page() {
 void ChatDialog::slot_handle_friend_apply(
     std::shared_ptr<AddFriendApply> apply) {
   // 判断是否已经申请过了，只显示同一申请者的申请信息
-  bool b_already = UserMgr::getinstance()->already_apply(apply->_from_uid);
+  bool b_already = UserMgr::get_instance()->already_apply(apply->_from_uid);
   if (b_already) {
     return;
   }
   qDebug() << "receive apply friend slot, applyuid is " << apply->_from_uid
            << " name is " << apply->_name << " desc is " << apply->_desc;
-  UserMgr::getinstance()->add_apply_list(std::make_shared<ApplyInfo>(apply));
+  UserMgr::get_instance()->add_apply_list(std::make_shared<ApplyInfo>(apply));
   // 显示红点，表示有未处理信息
   slot_show_friend_apply_red_point();
   // 将好友申请项显示到好友申请页面
@@ -530,12 +530,12 @@ void ChatDialog::slot_recv_friend_auth(std::shared_ptr<AuthInfo> auth_info) {
            << auth_info->_nick;
 
   //判断如果已经是好友则跳过
-  auto bfriend = UserMgr::getinstance()->check_friend_by_id(auth_info->_uid);
+  auto bfriend = UserMgr::get_instance()->check_friend_by_id(auth_info->_uid);
   if (bfriend) {
     return;
   }
   // 加入到好友列表中
-  UserMgr::getinstance()->add_friend(auth_info);
+  UserMgr::get_instance()->add_friend(auth_info);
 
   int randomValue =
       QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
@@ -593,12 +593,12 @@ void ChatDialog::slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
            << auth_rsp->_name << " nick is " << auth_rsp->_nick;
 
   //判断如果已经是好友则跳过
-  auto bfriend = UserMgr::getinstance()->check_friend_by_id(auth_rsp->_uid);
+  auto bfriend = UserMgr::get_instance()->check_friend_by_id(auth_rsp->_uid);
   if (bfriend) {
     return;
   }
   // 加入到好友列表中
-  UserMgr::getinstance()->add_friend(auth_rsp);
+  UserMgr::get_instance()->add_friend(auth_rsp);
   // int randomValue =
   //    QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
   // int str_i = randomValue % strs.size();
@@ -729,7 +729,7 @@ void ChatDialog::slot_append_send_chat_msg(
     user_info->_chat_msgs.push_back(msgdata);
     std::vector<std::shared_ptr<TextChatData>> msg_vec;
     msg_vec.push_back(msgdata);
-    UserMgr::getinstance()->append_friend_chat_msg(cur_chat_uid_, msg_vec);
+    UserMgr::get_instance()->append_friend_chat_msg(cur_chat_uid_, msg_vec);
     return;
   }
 }
@@ -755,7 +755,7 @@ void ChatDialog::slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg) {
     update_chat_msg(msg->_chat_msgs);
 
     // 将消息追加到用户管理器的聊天记录中
-    UserMgr::getinstance()->append_friend_chat_msg(msg->_from_uid,
+    UserMgr::get_instance()->append_friend_chat_msg(msg->_from_uid,
                                                    msg->_chat_msgs);
     return;
   }
@@ -764,7 +764,7 @@ void ChatDialog::slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg) {
   auto *chat_user_wid = new ChatUserWid();
 
   // 查询好友信息并设置到聊天项中
-  auto fi_ptr = UserMgr::getinstance()->get_friend_infO_by_id(msg->_from_uid);
+  auto fi_ptr = UserMgr::get_instance()->get_friend_infO_by_id(msg->_from_uid);
   chat_user_wid->set_friend_info(fi_ptr);
 
   // 创建新的 QListWidgetItem 并设置大小
@@ -775,7 +775,7 @@ void ChatDialog::slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg) {
   chat_user_wid->update_last_msg(msg->_chat_msgs);
 
   // 将消息追加到用户管理器的聊天记录中
-  UserMgr::getinstance()->append_friend_chat_msg(msg->_from_uid,
+  UserMgr::get_instance()->append_friend_chat_msg(msg->_from_uid,
                                                  msg->_chat_msgs);
 
   // 将新创建的聊天项插入到聊天列表顶部

@@ -4,7 +4,7 @@
 #include <iostream>
 StatusGrpcClient::StatusGrpcClient()
 {
-	auto cfg = ConfigManager::getinstance();
+	auto cfg = ConfigManager::get_instance();
 	std::string host = (*cfg)["StatusServer"]["host"];
 	std::string port = (*cfg)["StatusServer"]["port"];
 	pool_ = std::make_unique<StatusConnPool>(5, host, port);

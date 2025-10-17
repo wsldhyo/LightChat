@@ -77,7 +77,7 @@ void LoginDialog::slot_tcp_con_finish(bool bsuccess) {
     QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
 
     //发送tcp请求给chat server
-    TcpMgr::getinstance()->sig_send_data(ReqId::ID_CHAT_LOGIN_REQ, jsonData);
+    TcpMgr::get_instance()->sig_send_data(ReqId::ID_CHAT_LOGIN_REQ, jsonData);
 
   } else {
     showTip(tr("网络异常"), false);
@@ -103,7 +103,7 @@ void LoginDialog::on_login_btn_clicked() {
   QJsonObject json_obj;
   json_obj["email"] = email;
   json_obj["passwd"] = xor_string(pwd);
-  HttpMgr::getinstance()->post_http_req(
+  HttpMgr::get_instance()->post_http_req(
       QUrl(g_gate_url_prefix + QString::fromLatin1(POST_USER_LOGIN.data(),
                                                    POST_USER_LOGIN.length())),
       json_obj, ReqId::ID_LOGIN_USER, Modules::LOGINMOD);
@@ -241,16 +241,16 @@ void LoginDialog::create_connection() {
   connect(ui->forget_label, &ClickedLabel::clicked, this,
           &LoginDialog::slot_forget_pwd);
   //连接登录回包信号
-  connect(HttpMgr::getinstance().get(), &HttpMgr::sig_login_mod_finish, this,
+  connect(HttpMgr::get_instance().get(), &HttpMgr::sig_login_mod_finish, this,
           &LoginDialog::slot_login_mod_finish);
 
   //连接tcp连接请求的信号和槽函数
-  connect(this, &LoginDialog::sig_connect_tcp, TcpMgr::getinstance().get(),
+  connect(this, &LoginDialog::sig_connect_tcp, TcpMgr::get_instance().get(),
           &TcpMgr::slot_tcp_connect);
   //连接tcp管理者发出的连接成功信号
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_con_success, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_con_success, this,
           &LoginDialog::slot_tcp_con_finish);
   //连接tcp管理者发出的登陆失败信号
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_login_failed, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_login_failed, this,
           &LoginDialog::slot_login_failed);
 }

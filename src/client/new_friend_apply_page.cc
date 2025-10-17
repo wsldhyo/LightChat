@@ -17,7 +17,7 @@ NewFriendApplyPage::NewFriendApplyPage(QWidget *parent)
           &NewFriendApplyPage::sig_show_search);
 
   // 连接 TCP 模块的好友认证响应信号
-  connect(TcpMgr::getinstance().get(), &TcpMgr::sig_friend_apply_rsp, this,
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_friend_apply_rsp, this,
           &NewFriendApplyPage::slot_handle_auth_rsp);
 }
 
@@ -73,7 +73,7 @@ void NewFriendApplyPage::paintEvent(QPaintEvent *event) {
 
 void NewFriendApplyPage::load_apply_list() {
   // --- 加载真实好友申请 ---
-  auto apply_list = UserMgr::getinstance()->get_apply_list();
+  auto apply_list = UserMgr::get_instance()->get_apply_list();
   bool has_new_apply{false};
   for (auto &apply : apply_list) {
     auto *apply_item = new NewFriendApplyItem();

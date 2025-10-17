@@ -14,6 +14,9 @@ target_include_directories(common_utility
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_link_libraries(common_utility
+    PRIVATE jsoncpp_lib           
+)
 # =========================
 # Pool 模块
 # =========================

@@ -15,7 +15,7 @@ protected:
     static std::shared_ptr<T> instance_;
 
 public:
-    static std::shared_ptr<T> getinstance() {
+    static std::shared_ptr<T> get_instance() {
         static std::once_flag s_flag;  // 保证只执行一次
         std::call_once(s_flag, [&]() {
             // 构造函数是protected的，make_shared无法调用, 所以new

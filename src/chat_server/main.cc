@@ -1,4 +1,5 @@
 #include "chat_rpc_server.hpp"
+#include "logic_system.hpp"
 #include "manager/config_manager.hpp"
 #include "manager/redis_manager.hpp"
 #include "pool/iocontext_pool.hpp"
@@ -26,7 +27,7 @@ int read_config(int argc, char *argv[]) {
       return 1;
     }
   }
-  auto cfg = ConfigManager::getinstance();
+  auto cfg = ConfigManager::get_instance();
   cfg->parse(chat_config);
   cfg->parse("basic_config.ini"sv);
   return 0;
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
   std::string server_name;
   {
 
-    auto cfg = ConfigManager::getinstance();
+    auto cfg = ConfigManager::get_instance();
     auto res = string_to_int((*cfg)["SelfServer"]["port"], port);
     if (res != ErrorCodes::NO_ERROR || port <= 0 || port > 65535) {
       std::cout << "Get port error: port is " << port << '\n';
@@ -52,14 +53,14 @@ int main(int argc, char *argv[]) {
 
   try {
     //将登录数设置为0
-    RedisMgr::getinstance()->h_set(REDIS_LOGIN_COUNT_PREFIX, server_name, "0");
+    RedisMgr::get_instance()->init_count(server_name);
     Defer derfer([server_name]() {
-      RedisMgr::getinstance()->h_del(REDIS_LOGIN_COUNT_PREFIX, server_name);
-      RedisMgr::getinstance()->close();
+      RedisMgr::get_instance()->del_count(server_name);
+      RedisMgr::get_instance()->close();
     });
 
     boost::asio::io_context io_context;
-    auto pool = IoContextPool::getinstance();
+    auto pool = IoContextPool::get_instance();
     //定义一个GrpcServer
     ChatServiceImpl service;
     grpc::ServerBuilder builder;
@@ -81,6 +82,8 @@ int main(int argc, char *argv[]) {
     });
 
     auto s = std::make_shared<Server>(io_context, port);
+    LogicSystem::get_instance()->set_server(s);
+    service.RegisterServer(s);
     s->start_accept();
     io_context.run();
     grpc_server_thread.join();

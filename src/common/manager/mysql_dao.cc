@@ -4,7 +4,7 @@
 
 MysqlDao::MysqlDao() {
   // 读取配置文件，获取数据库相关信息
-  auto cfg = ConfigManager::getinstance();
+  auto cfg = ConfigManager::get_instance();
   const auto &host = (*cfg)["Mysql"]["host"];
   const auto &port = (*cfg)["Mysql"]["port"];
   const auto &pwd = (*cfg)["Mysql"]["pwd"];

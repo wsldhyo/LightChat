@@ -10,7 +10,7 @@ Server::Server(boost::asio::io_context &ioc, unsigned short &port)
 
 void Server::start() {
   auto self = shared_from_this();
-  auto &io_context = IoContextPool::getinstance()->get_iocontext();
+  auto &io_context = IoContextPool::get_instance()->get_iocontext();
   std::shared_ptr<HttpConn> new_con = std::make_shared<HttpConn>(io_context);
   acceptor_.async_accept(
       new_con->get_socket(), [self, new_con](beast::error_code ec) {
