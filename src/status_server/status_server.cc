@@ -2,20 +2,9 @@
 #include "manager/config_manager.hpp"
 #include "manager/redis_manager.hpp"
 #include "utility/constant.hpp"
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <climits>
 #include "utility/constant.hpp"
-std::string generate_unique_string() {
-  // 创建UUID对象
-  boost::uuids::uuid uuid = boost::uuids::random_generator()();
-
-  // 将UUID转换为字符串
-  std::string unique_string = to_string(uuid);
-  return unique_string;
-}
-
+#include "utility/toolfunc.hpp"
 StatusServer::StatusServer() { init_servers(); }
 
 StatusServer::~StatusServer() {}

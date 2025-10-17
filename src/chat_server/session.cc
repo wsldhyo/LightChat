@@ -5,12 +5,10 @@
 #include "utility/constant.hpp"
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include "utility/toolfunc.hpp"
 Session::Session(tcp::socket peer, std::shared_ptr<Server> server)
     : peer_(std::move(peer)), server_(server) {
-  boost::uuids::uuid a_uuid = boost::uuids::random_generator()();
-  session_id_ = boost::uuids::to_string(a_uuid);
+  session_id_ = generate_unique_string(); 
   recv_head_node_ = std::make_unique<TcpMsgNode>(TCP_MSG_HEAD_MEM_SIZE);
 }
 

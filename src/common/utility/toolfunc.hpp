@@ -112,4 +112,6 @@ ErrorCodes string_to_int(const std::string &str, Int &out) {
   }
 }
 
+
+std::string generate_unique_string();
 #endif

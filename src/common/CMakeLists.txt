@@ -47,6 +47,7 @@ add_library(common_manager STATIC
     manager/mysql_manager.cc
     manager/redis_manager.cc
     manager/mysql_dao.cc
+    manager/distributed_lock.cc
 )
 
 # 链接 pool 模块
