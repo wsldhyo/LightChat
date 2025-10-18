@@ -36,7 +36,7 @@ public slots:
   void slot_switch_reset();
   // 登录成功后，切换到聊天界面
   void slot_switch_chat();
-
+  void slot_switch_login_from_chat();
 private:
   void create_connection();
 

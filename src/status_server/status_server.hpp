@@ -45,8 +45,8 @@ public:
                LoginRsp *reply) override;
 
 private:
-  void insertToken(int uid, std::string token);
-  ChatServer getChatServer();
+  void insert_token(int uid, std::string token);
+  ChatServer get_chat_server();
   void init_servers();
   std::unordered_map<std::string, ChatServer> servers_;
   std::mutex server_mtx_;

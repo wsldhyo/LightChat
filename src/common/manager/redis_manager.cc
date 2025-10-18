@@ -456,4 +456,5 @@ void RedisMgr::del_count(std::string const &server_name) {
   });
   // 删除登录计数的缓存
   RedisMgr::get_instance()->h_del(REDIS_LOGIN_COUNT_PREFIX, server_name);
+  std::cout << "del count:" << server_name << '\n';
 }

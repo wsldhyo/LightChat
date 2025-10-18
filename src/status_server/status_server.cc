@@ -13,18 +13,18 @@ Status StatusServer::GetChatServer(ServerContext *context,
                                    const GetChatServerReq *request,
                                    GetChatServerRsp *reply) {
   std::string prefix("status server has received :  ");
-  const auto &server = getChatServer();
+  const auto &server = get_chat_server();
   reply->set_host(server.host);
   reply->set_port(server.port);
   reply->set_error(static_cast<int32_t>(ErrorCodes::NO_ERROR));
   // 生成Token，用户密码验证通过后，使用Token作为凭证，后续客户端请求都用 token
   // 证明身份，不必每次带密码
   reply->set_token(generate_unique_string());
-  insertToken(request->uid(), reply->token());
+  insert_token(request->uid(), reply->token());
   return Status::OK;
 }
 
-ChatServer StatusServer::getChatServer() {
+ChatServer StatusServer::get_chat_server() {
   std::lock_guard<std::mutex> guard(server_mtx_);
   auto minServer = servers_.begin()->second;
   auto lock_key = std::string(REDIS_LOCK_PREFIX);
@@ -96,7 +96,7 @@ Status StatusServer::Login(ServerContext *context, const LoginReq *request,
   return Status::OK;
 }
 
-void StatusServer::insertToken(int uid, std::string token) {
+void StatusServer::insert_token(int uid, std::string token) {
   std::string uid_str = std::to_string(uid);
   std::string token_key = std::string(REDIS_USER_TOKEN_PREFIX) + uid_str;
   RedisMgr::get_instance()->set(token_key, token);

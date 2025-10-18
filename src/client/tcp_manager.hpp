@@ -33,7 +33,8 @@ signals:
   void sig_recv_friend_auth(std::shared_ptr<AuthInfo>);
   // 收到他人消息的信号, 登录时可能收到多条消息
   void sig_recv_text_msg(std::shared_ptr<TextChatMsg> msg);
-
+  // 收到下线通知
+  void sig_recv_offline();
 private:
   void init_handlers();
   void handle_msg(ReqId id, int len, QByteArray data);

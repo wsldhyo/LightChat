@@ -4,6 +4,7 @@
 #include "register_dialog.hpp"
 #include "reset_dialog.hpp"
 #include "tcp_manager.hpp"
+#include <QMessageBox>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), chat_dlg_(nullptr) {
   ui->setupUi(this);
@@ -95,6 +96,33 @@ void MainWindow::slot_switch_chat() {
   this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
 }
 
+void MainWindow::slot_switch_login_from_chat() {
+
+  QMessageBox::information(
+      this,                        // 父窗口
+      QStringLiteral(u"下线通知"), // 对话框标题
+      QStringLiteral(u"检测到账号异地登录，本客户端即将下线"), // 对话框标题
+      QMessageBox::StandardButton::Ok,        // 对话框按钮
+      QMessageBox::StandardButton::NoButton); // 对话框默认按钮
+
+  //创建一个CentralWidget, 并将其设置为MainWindow的中心部件
+  login_dlg_ = new LoginDialog(this);
+  login_dlg_->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+  setCentralWidget(login_dlg_);
+  this->setMinimumSize(300, 500);
+  this->setMaximumSize(300, 500);
+  this->resize(300, 500);
+  setCentralWidget(login_dlg_);
+  chat_dlg_->hide();
+  login_dlg_->show();
+  //连接登录界面注册信号
+  connect(login_dlg_, &LoginDialog::switch_register, this,
+          &MainWindow::slot_switch_reg);
+  //连接登录界面忘记密码信号
+  // connect( login_dlg_, &LoginDialog::switch_reset, this,
+  // &MainWindow::slot_switch_reset);
+}
+
 void MainWindow::create_connection() {
   //创建和注册消息的链接
   connect(login_dlg_, &LoginDialog::switch_register, this,
@@ -108,4 +136,7 @@ void MainWindow::create_connection() {
   //连接创建聊天界面信号
   connect(TcpMgr::get_instance().get(), &TcpMgr::sig_switch_chatdlg, this,
           &MainWindow::slot_switch_chat);
+
+  connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_offline, this,
+          &MainWindow::slot_switch_login_from_chat);
 }

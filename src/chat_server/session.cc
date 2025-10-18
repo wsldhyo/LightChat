@@ -21,7 +21,7 @@ Session::~Session() {
   close();
   auto cfg = ConfigManager::get_instance();
   auto self_name = (*cfg)["SelfServer"]["name"];
-  RedisMgr::get_instance()->del_count(self_name);
+  RedisMgr::get_instance()->decrease_count(self_name);
 }
 
 void Session::start() {

@@ -106,7 +106,7 @@ bool LogicSystem::handle_post_get_vertify_code(
   }
 
   auto email = src_root["email"].asString();
-  GetVertifyRsp rsp = VertifyRPCClient::get_instance()->GetVertifyCode(email);
+  GetVertifyRsp rsp = VertifyRPCClient::get_instance()->get_vertify_code(email);
   std::cout << "email is " << email << '\n';
   root["error"] = rsp.error();
   root["email"] = src_root["email"];

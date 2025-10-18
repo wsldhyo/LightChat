@@ -439,6 +439,45 @@ void TcpMgr::init_handlers() {
         jsonObj["text_array"].toArray());
     emit sig_recv_text_msg(msg_ptr);
   });
+
+  // 同账号客户端异地登录
+  handlers_.insert(
+      ReqId::ID_NOTIFY_OFFLINE_REQ, [this](ReqId id, int len, QByteArray data) {
+        Q_UNUSED(len);
+        qDebug() << "handle id is " << static_cast<int32_t>(id) << " data is "
+                 << data;
+        // 将QByteArray转换为QJsonDocument
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        // 检查转换是否成功
+        if (jsonDoc.isNull()) {
+          qDebug() << "Failed to create QJsonDocument.";
+          return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+
+        if (!jsonObj.contains("error")) {
+          int err = static_cast<int32_t>(ErrorCodes::PARSE_JSON_FAILED);
+          qDebug() << "Notify Offline Failed, json obj missing \"error\" field"
+                   << err;
+          return;
+        }
+
+        int err = jsonObj["error"].toInt();
+        if (err != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
+          qDebug() << "Notify Offline Failed, err is " << err;
+          return;
+        }
+
+        qDebug() << "Receive Notify Offline Success ";
+        emit sig_recv_offline();
+        if (socket_.isOpen()) {
+          qDebug() << "Client closing TCP connection after offline notify";
+          socket_.disconnectFromHost();
+          // 若要立即关闭，可改为 socket_->close(); 不会等四次挥手结束
+        }
+      });
 }
 
 void TcpMgr::handle_msg(ReqId id, int len, QByteArray data) {

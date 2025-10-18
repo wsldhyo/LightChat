@@ -14,7 +14,7 @@ VertifyRPCClient::VertifyRPCClient() {
   pool_.reset(new RPCConnPool(5, host, port));
 }
 
-GetVertifyRsp VertifyRPCClient::GetVertifyCode(std::string const &email) {
+GetVertifyRsp VertifyRPCClient::get_vertify_code(std::string const &email) {
   ClientContext context;
   GetVertifyRsp response;
   GetVertifyReq request;

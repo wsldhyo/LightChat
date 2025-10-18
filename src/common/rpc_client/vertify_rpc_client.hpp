@@ -19,7 +19,7 @@ public:
    * @param email 待发送验证码的邮箱
    * @return GetVertifyRsp RPC 响应对象，包含错误码
    */
-  GetVertifyRsp GetVertifyCode(std::string const &email);
+  GetVertifyRsp get_vertify_code(std::string const &email);
 
 private:
   VertifyRPCClient();
