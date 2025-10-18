@@ -32,14 +32,14 @@ public slots:
   void slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err);
 
 private:
-  bool checkUserValid();
-  bool checkEmailValid();
-  bool checkPassValid();
-  bool checkVarifyValid();
-  bool checkConfirmValid();
+  bool check_user_valid();
+  bool check_email_valid();
+  bool check_pass_valid();
+  bool check_vertify_valid();
+  bool check_confirm_valid();
 
   // 初始化回调函数集
-  void initHttpHandlers();
+  void init_http_handlers();
 
   /**
     @brief 设置err_tip的提示信息和样式
@@ -49,15 +49,15 @@ private:
           false: 错误，样式为红色
     @return void
   */
-  void showTip(QString str, bool b_ok);
+  void show_tip(QString str, bool b_ok);
   void create_connection();
 
-  void AddTipErr(TipErr te, QString tips);
-  void DelTipErr(TipErr te);
-  void ChangeTipPage();
+  void add_tip_err(TipErr te, QString tips);
+  void del_tip_err(TipErr te);
+  void change_tip_page();
 
 signals:
-  void sigSwitchLogin();
+  void sig_switch_login();
 
 private:
   Ui::RegisterDialog *ui;

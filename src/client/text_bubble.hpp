@@ -15,9 +15,9 @@ protected:
   //bool eventFilter(QObject *o, QEvent *e) override;
 
 private:
-  void adjustTextHeight();
-  void setPlainText(const QString &text);
-  void initStyleSheet();
+  void adjust_text_height();
+  void set_plain_text(const QString &text);
+  void init_style_sheet();
 
 private:
   QTextEdit *text_edit_;

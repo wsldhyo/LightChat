@@ -8,7 +8,7 @@ NewFriendApplyItem::NewFriendApplyItem(QWidget *parent)
   SetItemType(ListItemType::APPLY_FRIEND_ITEM);
 
   // 设置按钮状态图片
-  ui->addBtn->SetState("normal", "hover", "press");
+  ui->addBtn->set_state("normal", "hover", "press");
   ui->addBtn->hide(); // 初始隐藏
 
   // 点击“添加好友”按钮时发出信号
@@ -22,14 +22,14 @@ void NewFriendApplyItem::set_info(std::shared_ptr<ApplyInfo> apply_info) {
   apply_info_ = apply_info;
 
   // 设置头像，并自适应 QLabel
-  QPixmap pixmap(apply_info_->_icon);
+  QPixmap pixmap(apply_info_->icon_);
   ui->icon_lb->setPixmap(pixmap.scaled(ui->icon_lb->size(), Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation));
   ui->icon_lb->setScaledContents(true);
 
   // 设置昵称和描述
-  ui->user_name_lb->setText(apply_info_->_name);
-  ui->user_chat_lb->setText(apply_info_->_desc);
+  ui->user_name_lb->setText(apply_info_->name_);
+  ui->user_chat_lb->setText(apply_info_->desc_);
 }
 
 void NewFriendApplyItem::show_add_btn(bool bshow) {
@@ -45,4 +45,4 @@ void NewFriendApplyItem::show_add_btn(bool bshow) {
   }
 }
 
-int NewFriendApplyItem::get_uid() { return apply_info_->_uid; }
+int NewFriendApplyItem::get_uid() { return apply_info_->uid_; }

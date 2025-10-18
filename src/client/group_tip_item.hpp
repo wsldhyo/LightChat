@@ -21,10 +21,10 @@ public:
   QSize sizeHint() const override;
 
   /// 设置分组提示文本
-  void SetGroupTip(QString str);
+  void set_group_tip(QString str);
 
 private:
-  QString _tip;         ///< 存储分组提示文字
+  QString tip_;         ///< 存储分组提示文字
   Ui::GroupTipItem *ui; 
 };
 #endif // GROUP_TIP_ITEM

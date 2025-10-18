@@ -1,10 +1,10 @@
 #include "customize_edit.hpp"
 
-CustomizeEdit::CustomizeEdit(QWidget *parent) : QLineEdit(parent), _max_len(0) {
-  connect(this, &QLineEdit::textChanged, this, &CustomizeEdit::limitTextLength);
+CustomizeEdit::CustomizeEdit(QWidget *parent) : QLineEdit(parent), max_len_(0) {
+  connect(this, &QLineEdit::textChanged, this, &CustomizeEdit::limit_text_length);
 }
 
-void CustomizeEdit::SetMaxLength(int maxLen) { _max_len = maxLen; }
+void CustomizeEdit::set_max_length(int maxLen) { max_len_ = maxLen; }
 
 void CustomizeEdit::focusOutEvent(QFocusEvent *event) {
   // 执行失去焦点时的处理逻辑
@@ -15,15 +15,15 @@ void CustomizeEdit::focusOutEvent(QFocusEvent *event) {
   emit sig_foucus_out();
 }
 
-void CustomizeEdit::limitTextLength(QString text) {
-  if (_max_len <= 0) {
+void CustomizeEdit::limit_text_length(QString text) {
+  if (max_len_ <= 0) {
     return;
   }
 
   QByteArray byteArray = text.toUtf8();
   // 输入的可能是多字节数据如中文，所以按照字节数截取
-  if (byteArray.size() > _max_len) {
-    byteArray = byteArray.left(_max_len);
+  if (byteArray.size() > max_len_) {
+    byteArray = byteArray.left(max_len_);
     this->setText(QString::fromUtf8(byteArray));
   }
 }

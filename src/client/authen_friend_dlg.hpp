@@ -52,16 +52,16 @@ private:
   void add_label(QString name);
 
 private:
-  std::shared_ptr<ApplyInfo> _apply_info;
+  std::shared_ptr<ApplyInfo> apply_info_;
   Ui::AuthenFriendDlg *ui;
   //已经创建好的标签
-  QMap<QString, ClickedLabel *> _add_labels;
-  std::vector<QString> _add_label_keys;
-  QPoint _label_point;
+  QMap<QString, ClickedLabel *> add_labels_;
+  std::vector<QString> add_label_keys_;
+  QPoint label_point_;
   //用来在输入框显示添加新好友的标签
-  QMap<QString, FriendLabel *> _friend_labels;
-  std::vector<QString> _friend_label_keys;
-  std::vector<QString> _tip_data;
-  QPoint _tip_cur_point;
+  QMap<QString, FriendLabel *> friend_labels_;
+  std::vector<QString> friend_label_keys_;
+  std::vector<QString> tip_data_;
+  QPoint tip_cur_point_;
 };
 #endif // AUTHEN_FRIEND_DLG_HPP

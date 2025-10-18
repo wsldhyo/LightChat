@@ -26,8 +26,8 @@ ContactUserList::ContactUserList(QWidget *parent)
   create_connection();
 }
 
-void ContactUserList::ShowRedPoint(bool bshow /*= true*/) {
-  add_friend_item_->ShowRedPoint(bshow);
+void ContactUserList::show_red_point(bool bshow /*= true*/) {
+  add_friend_item_->show_red_point(bshow);
 }
 
 // ------------------ 模拟数据 ------------------
@@ -56,7 +56,7 @@ void ContactUserList::add_contact_user_list() {
   // 添加“新的朋友”条目
   add_friend_item_ = new ContactUserItem();
   add_friend_item_->setObjectName("new_friend_item");
-  add_friend_item_->SetInfo(0, tr("新的朋友"), ":/icons/add_friend.png");
+  add_friend_item_->set_info(0, tr("新的朋友"), ":/icons/add_friend.png");
   add_friend_item_->SetItemType(ListItemType::APPLY_FRIEND_ITEM);
 
   QListWidgetItem *add_item = new QListWidgetItem;
@@ -69,7 +69,7 @@ void ContactUserList::add_contact_user_list() {
 
   // 添加“联系人”分组提示
   auto *groupCon = new GroupTipItem();
-  groupCon->SetGroupTip(tr("联系人"));
+  groupCon->set_group_tip(tr("联系人"));
   group_item_ = new QListWidgetItem;
   group_item_->setSizeHint(groupCon->sizeHint());
   this->addItem(group_item_);
@@ -79,7 +79,7 @@ void ContactUserList::add_contact_user_list() {
   auto con_list = UserMgr::get_instance()->get_conlist_per_page();
   for (auto &con_ele : con_list) {
     auto *con_user_wid = new ContactUserItem();
-    con_user_wid->SetInfo(con_ele->_uid, con_ele->_name, con_ele->_icon);
+    con_user_wid->set_info(con_ele->uid_, con_ele->name_, con_ele->icon_);
     QListWidgetItem *item = new QListWidgetItem;
     // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
     item->setSizeHint(con_user_wid->sizeHint());
@@ -96,7 +96,7 @@ void ContactUserList::add_contact_user_list() {
     int name_i = randomValue % names.size();
 
     auto *con_user_wid = new ContactUserItem();
-    con_user_wid->SetInfo(0, names[name_i], heads[head_i]);
+    con_user_wid->set_info(0, names[name_i], heads[head_i]);
 
     QListWidgetItem *item = new QListWidgetItem;
     item->setSizeHint(con_user_wid->sizeHint());
@@ -190,7 +190,7 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item) {
 void ContactUserList::slot_recv_friend_auth(
     std::shared_ptr<AuthInfo> auth_info) {
   qDebug() << "slot add auth friend ";
-  bool isFriend = UserMgr::get_instance()->check_friend_by_id(auth_info->_uid);
+  bool isFriend = UserMgr::get_instance()->check_friend_by_id(auth_info->uid_);
   if (isFriend) {
     return;
   }
@@ -201,7 +201,7 @@ void ContactUserList::slot_recv_friend_auth(
   int head_i = randomValue % heads.size();
 
   auto *con_user_wid = new ContactUserItem();
-  con_user_wid->SetInfo(auth_info);
+  con_user_wid->set_info(auth_info);
   QListWidgetItem *item = new QListWidgetItem;
   // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
   item->setSizeHint(con_user_wid->sizeHint());
@@ -217,7 +217,7 @@ void ContactUserList::slot_recv_friend_auth(
 void ContactUserList::slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
   qDebug() << "slot auth rsp called";
   // 检查是否已经是好友
-  bool isFriend = UserMgr::get_instance()->check_friend_by_id(auth_rsp->_uid);
+  bool isFriend = UserMgr::get_instance()->check_friend_by_id(auth_rsp->uid_);
   if (isFriend) {
     return;
   }
@@ -228,7 +228,7 @@ void ContactUserList::slot_friend_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
   // int head_i = randomValue % heads.size();
 
   auto *con_user_wid = new ContactUserItem();
-  con_user_wid->SetInfo(auth_rsp->_uid, auth_rsp->_name, auth_rsp->_icon);
+  con_user_wid->set_info(auth_rsp->uid_, auth_rsp->name_, auth_rsp->icon_);
   QListWidgetItem *item = new QListWidgetItem;
   // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
   item->setSizeHint(con_user_wid->sizeHint());

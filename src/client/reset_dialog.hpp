@@ -25,19 +25,19 @@ private slots:
   void slot_reset_mod_finish(ReqId id, QString res, ErrorCodes err);
   void on_sure_btn_clicked();
 
+signals:
+  void sig_switch_login();
 private:
-  bool checkUserValid();
-  bool checkPassValid();
-  void showTip(QString str, bool b_ok);
-  bool checkEmailValid();
-  bool checkVarifyValid();
-  void AddTipErr(TipErr te, QString tips);
-  void DelTipErr(TipErr te);
-  void initHandlers();
+  bool check_user_valid();
+  bool check_pass_valid();
+  void show_tip(QString str, bool b_ok);
+  bool check_email_valid();
+  bool check_veritfy_valid();
+  void add_tip_err(TipErr te, QString tips);
+  void del_tip_err(TipErr te);
+  void init_handlers();
   Ui::ResetDialog *ui;
   QMap<TipErr, QString> tip_errs_;
   QMap<ReqId, std::function<void(const QJsonObject &)>> handlers_;
-signals:
-  void switchLogin();
 };
 #endif

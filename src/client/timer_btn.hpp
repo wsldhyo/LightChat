@@ -12,8 +12,8 @@ public:
   virtual void mouseReleaseEvent(QMouseEvent *e) override;
 
 private:
-  QTimer *_timer;
-  int _counter;
+  QTimer *timer_;
+  int counter_;
 };
 
 #endif // TIMERBTN_H

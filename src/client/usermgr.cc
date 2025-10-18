@@ -7,17 +7,17 @@ UserMgr::~UserMgr() {}
 
 // void UserMgr::set_name(QString name) { name_ = name; }
 
-QString const &UserMgr::get_name() const { return user_info_->_name; }
+QString const &UserMgr::get_name() const { return user_info_->name_; }
 
 // void UserMgr::set_uid(int uid) { uid_ = uid; }
 
-int UserMgr::get_uid() const { return user_info_->_uid; }
+int UserMgr::get_uid() const { return user_info_->uid_; }
 
 void UserMgr::set_token(QString token) { token_ = token; }
 
 QString const &UserMgr::get_token() const { return token_; }
 
-QString const &UserMgr::get_icon() const { return user_info_->_icon; }
+QString const &UserMgr::get_icon() const { return user_info_->icon_; }
 
 std::vector<std::shared_ptr<ApplyInfo>> const &UserMgr::get_apply_list() const {
   return apply_list_;
@@ -57,7 +57,7 @@ void UserMgr::add_apply_list(std::shared_ptr<ApplyInfo> apply_info) {
 bool UserMgr::already_apply(int uid) {
   auto find_res = std::find_if(apply_list_.begin(), apply_list_.end(),
                                [uid](std::shared_ptr<ApplyInfo> apply_info) {
-                                 return apply_info->_uid == uid;
+                                 return apply_info->uid_ == uid;
                                });
   return find_res != apply_list_.end();
 }
@@ -81,11 +81,11 @@ void UserMgr::append_friend_list(QJsonArray array) {
 }
 
 void UserMgr::add_friend(std::shared_ptr<AuthRsp> auth_rsp) {
-  friend_map_[auth_rsp->_uid] = std::make_shared<FriendInfo>(auth_rsp);
+  friend_map_[auth_rsp->uid_] = std::make_shared<FriendInfo>(auth_rsp);
 }
 
 void UserMgr::add_friend(std::shared_ptr<AuthInfo> auth_info) {
-  friend_map_[auth_info->_uid] = std::make_shared<FriendInfo>(auth_info);
+  friend_map_[auth_info->uid_] = std::make_shared<FriendInfo>(auth_info);
 }
 
 bool UserMgr::check_friend_by_id(int uid) {
@@ -197,5 +197,5 @@ void UserMgr::append_friend_chat_msg(
     return;
   }
 
-  find_iter.value()->AppendChatMsgs(msgs);
+  find_iter.value()->append_chat_msgs(msgs);
 }

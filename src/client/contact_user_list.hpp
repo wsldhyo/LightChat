@@ -17,7 +17,7 @@ public:
   ContactUserList(QWidget *parent = nullptr);
 
   /// 显示或隐藏“新的朋友”条目右上角的红点
-  void ShowRedPoint(bool bshow = true);
+  void show_red_point(bool bshow = true);
 
 protected:
   /// 事件过滤器：处理鼠标进入、离开和滚轮事件

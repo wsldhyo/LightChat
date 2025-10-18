@@ -8,7 +8,7 @@ ClickedBtn::ClickedBtn(QWidget *parent) : QPushButton(parent) {
 
 ClickedBtn::~ClickedBtn() {}
 
-void ClickedBtn::SetState(QString normal, QString hover, QString press) {
+void ClickedBtn::set_state(QString normal, QString hover, QString press) {
   hover_ = hover;
   normal_ = normal;
   press_ = press;

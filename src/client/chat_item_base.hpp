@@ -24,17 +24,17 @@ class ChatItemBase : public QWidget {
   Q_OBJECT
 public:
   explicit ChatItemBase(ChatRole role, QWidget *parent = nullptr);
-  void setUserName(const QString &name);
-  void setUserIcon(const QPixmap &icon);
-  void setWidget(QWidget *w);
+  void set_user_name(const QString &name);
+  void set_user_icon(const QPixmap &icon);
+  void set_widget(QWidget *w);
   int name_width() const;
   void set_spacer_width(int width);
 
 private:
-  ChatRole m_role;
-  QLabel *m_pNameLabel;
-  QLabel *m_pIconLabel;
-  QWidget *m_pBubble;
+  ChatRole role_;
+  QLabel *name_label_;
+  QLabel *icon_label_;
+  QWidget *bubble_;
 };
 
 #endif

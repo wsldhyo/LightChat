@@ -93,16 +93,16 @@ TcpMgr::TcpMgr()
                    [&]() { qDebug() << "Disconnected from server."; });
 
   QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
-  initHandlers();
+  init_handlers();
 }
 
 void TcpMgr::slot_tcp_connect(ServerInfo si) {
   qDebug() << "receive tcp connect signal";
   // 尝试连接到服务器
-  qDebug() << "Connecting to server...host" << si.Host << ":" << si.Port;
-  host_ = si.Host;
-  port_ = static_cast<uint16_t>(si.Port.toUInt());
-  socket_.connectToHost(si.Host, port_);
+  qDebug() << "Connecting to server...host" << si.host << ":" << si.port;
+  host_ = si.host;
+  port_ = static_cast<uint16_t>(si.port.toUInt());
+  socket_.connectToHost(si.host, port_);
 }
 
 void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes) {
@@ -128,7 +128,7 @@ void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes) {
   socket_.write(block);
 }
 
-void TcpMgr::initHandlers() {
+void TcpMgr::init_handlers() {
   //注册获取登录回包逻辑
   handlers_.insert(ReqId::ID_CHAT_LOGIN_RSP, [this](ReqId id, int len,
                                                     QByteArray data) {

@@ -17,6 +17,7 @@ Session::Session(tcp::socket peer, std::shared_ptr<Server> server)
 }
 
 Session::~Session() {
+  std::cout << "~session\n";
   close();
   auto cfg = ConfigManager::get_instance();
   auto self_name = (*cfg)["SelfServer"]["name"];

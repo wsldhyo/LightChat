@@ -35,7 +35,7 @@ signals:
   void sig_recv_text_msg(std::shared_ptr<TextChatMsg> msg);
 
 private:
-  void initHandlers();
+  void init_handlers();
   void handle_msg(ReqId id, int len, QByteArray data);
 
 private:

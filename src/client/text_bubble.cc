@@ -20,9 +20,9 @@ TextBubble::TextBubble(ChatRole role, const QString &text, QWidget *parent)
   font.setPointSize(12);
   text_edit_->setFont(font);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  setPlainText(text);
-  setWidget(text_edit_);
-  initStyleSheet();
+  set_plain_text(text);
+  BubbleFrame::set_widget(text_edit_);
+  init_style_sheet();
 
   // 文本文档排版完成后，自动调整气泡高度
   connect(text_edit_->document()->documentLayout(),
@@ -44,7 +44,7 @@ TextBubble::TextBubble(ChatRole role, const QString &text, QWidget *parent)
 }
 
 // 设置文本（只负责宽度，不再强制算高度）
-void TextBubble::setPlainText(const QString &text) {
+void TextBubble::set_plain_text(const QString &text) {
   text_edit_->setPlainText(text);
 
   // 计算文本的理想宽度
@@ -70,7 +70,7 @@ void TextBubble::setPlainText(const QString &text) {
 }
 
 // 样式
-void TextBubble::initStyleSheet() {
+void TextBubble::init_style_sheet() {
   text_edit_->setStyleSheet(
       "QTextEdit { background: transparent; border: none }");
 }

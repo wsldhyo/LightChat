@@ -160,12 +160,12 @@ void SearchList::slot_user_search(std::shared_ptr<SearchInfo> si) {
     find_dlg_ = std::make_shared<FindFailedDlg>(this);
   } else {
     auto self_uid = UserMgr::get_instance()->get_uid();
-    if(self_uid == si->_uid){
+    if(self_uid == si->uid_){
       // 查找的是自己，就什么也不做
       return;
     }
 
-    if(UserMgr::get_instance()->check_friend_by_id(si->_uid)){
+    if(UserMgr::get_instance()->check_friend_by_id(si->uid_)){
       // 如果已经是好友，就跳转到好友聊天界面
       emit sig_switch_chat_item(si);
       return;

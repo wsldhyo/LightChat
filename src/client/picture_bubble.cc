@@ -11,7 +11,7 @@ PictureBubble::PictureBubble(const QPixmap &picture, ChatRole role,
   QPixmap pix =
       picture.scaled(QSize(PIC_MAX_WIDTH, PIC_MAX_HEIGHT), Qt::KeepAspectRatio);
   lb->setPixmap(pix);
-  this->setWidget(lb);
+  this->set_widget(lb);
 
   int left_margin = this->layout()->contentsMargins().left();
   int right_margin = this->layout()->contentsMargins().right();

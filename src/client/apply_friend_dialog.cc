@@ -22,7 +22,7 @@ ApplyFriendDlg::ApplyFriendDlg(QWidget *parent)
 
   // 标签输入框属性
   ui->lb_ed->setPlaceholderText("搜索、添加标签");
-  ui->lb_ed->SetMaxLength(21); // 自定义长度限制
+  ui->lb_ed->set_max_length(21); // 自定义长度限制
   ui->lb_ed->move(2, 2);
   ui->lb_ed->setFixedHeight(20);
   ui->lb_ed->setMaxLength(10); // Qt 原生长度限制
@@ -64,8 +64,8 @@ ApplyFriendDlg::ApplyFriendDlg(QWidget *parent)
   ui->scrollArea->installEventFilter(this);
 
   // 确认/取消按钮状态设置 & 事件绑定
-  ui->sure_btn->SetState("normal", "hover", "press");
-  ui->cancel_btn->SetState("normal", "hover", "press");
+  ui->sure_btn->set_state("normal", "hover", "press");
+  ui->cancel_btn->set_state("normal", "hover", "press");
   connect(ui->cancel_btn, &QPushButton::clicked, this,
           &ApplyFriendDlg::slot_apply_cancel);
   connect(ui->sure_btn, &QPushButton::clicked, this,
@@ -135,7 +135,7 @@ bool ApplyFriendDlg::eventFilter(QObject *obj, QEvent *event) {
 void ApplyFriendDlg::set_search_info(std::shared_ptr<SearchInfo> si) {
   si_ = si;
   auto applyname = UserMgr::get_instance()->get_name();
-  auto bakname = si->_name;
+  auto bakname = si->name_;
   ui->name_ed->setText(applyname);
   ui->back_ed->setText(bakname);
 }
@@ -523,14 +523,14 @@ void ApplyFriendDlg::slot_apply_sure() {
     bakname = ui->back_ed->placeholderText();
   }
   jsonObj["bakname"] = bakname; // 添加成功后，对方的备注名
-  jsonObj["touid"] = si_->_uid; // 对方uid
+  jsonObj["touid"] = si_->uid_; // 对方uid
 
   QJsonDocument doc(jsonObj);
   QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
 
   //发送tcp请求给chat server
   emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_APPLY_FRIEND_REQ,
-                                            jsonData);
+                                             jsonData);
   this->hide();
   deleteLater();
 }

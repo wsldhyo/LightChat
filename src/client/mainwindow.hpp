@@ -30,12 +30,12 @@ public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 public slots:
-  void SlotSwitchReg();
-  void SlotSwitchLogin();
-  void SlotSwitchLogin2();
-  void SlotSwitchReset();
+  void slot_switch_reg();
+  void slot_switch_login();
+  void slot_switch_login2();
+  void slot_switch_reset();
   // 登录成功后，切换到聊天界面
-  void SlotSwitchChat();
+  void slot_switch_chat();
 
 private:
   void create_connection();

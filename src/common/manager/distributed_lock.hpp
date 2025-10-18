@@ -45,12 +45,12 @@ public:
    * 若超时仍未能获取锁，则返回空字符串。
    *
    * @param context        Redis 连接上下文。
-   * @param lockName       锁的名称（逻辑标识）。
+   * @param lock_name       锁的名称（逻辑标识）。
    * @param lockTimeout    锁的过期时间（秒），防止死锁。
    * @param acquireTimeout 获取锁的最大等待时间（秒）。
    * @return std::string   成功时返回唯一标识符（UUID），失败时返回空字符串。
    */
-  std::string acquire(redisContext *context, const std::string &lockName,
+  std::string acquire(redisContext *context, const std::string &lock_name,
                       int lockTimeout, int acquireTimeout);
 
   /**
@@ -60,11 +60,11 @@ public:
    * 才能删除对应的锁，避免误删其他客户端的锁。
    *
    * @param context      Redis 连接上下文。
-   * @param lockName     锁的名称（逻辑标识）。
+   * @param lock_name     锁的名称（逻辑标识）。
    * @param identifier   获取锁时返回的唯一标识符。
    * @return bool        若成功释放锁返回 true，否则返回 false。
    */
-  bool release(redisContext *context, const std::string &lockName,
+  bool release(redisContext *context, const std::string &lock_name,
                const std::string &identifier);
 
 

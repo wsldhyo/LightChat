@@ -1,60 +1,62 @@
 #ifndef MSG_TEXT_EDIT_HPP
 #define MSG_TEXT_EDIT_HPP
-#include <QObject>
-#include <QTextEdit>
-#include <QMouseEvent>
+#include "client_struct_def.hpp"
 #include <QApplication>
 #include <QDrag>
+#include <QFileIconProvider>
+#include <QFileInfo>
 #include <QMimeData>
 #include <QMimeType>
-#include <QFileInfo>
-#include <QFileIconProvider>
+#include <QMouseEvent>
+#include <QObject>
 #include <QPainter>
+#include <QTextEdit>
 #include <QVector>
-#include "client_struct_def.hpp"
 /**
  * @brief 聊天界面ChatPage中的的消息编辑框
- * 
+ *
  */
-class MessageTextEdit : public QTextEdit
-{
-    Q_OBJECT
+class MessageTextEdit : public QTextEdit {
+  Q_OBJECT
 public:
-    explicit MessageTextEdit(QWidget *parent = nullptr);
+  explicit MessageTextEdit(QWidget *parent = nullptr);
 
-    ~MessageTextEdit();
+  ~MessageTextEdit();
 
-    QVector<MsgInfo> getMsgList();
+  QVector<MsgInfo> get_msg_list();
 
-    void insertFileFromUrl(const QStringList &urls);
+  void insert_file_from_url(const QStringList &urls);
 signals:
-    void send();
+  void send();
 
 protected:
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dropEvent(QDropEvent *event);
-    void keyPressEvent(QKeyEvent *e);
+  void dragEnterEvent(QDragEnterEvent *event) override;
+  void dropEvent(QDropEvent *event) override;
+  void keyPressEvent(QKeyEvent *e) override;
 
 private:
-    void insertImages(const QString &url);
-    void insertTextFile(const QString &url);
-    bool canInsertFromMimeData(const QMimeData *source) const;
-    void insertFromMimeData(const QMimeData *source);
+  bool canInsertFromMimeData(const QMimeData *source) const override;
+  void insertFromMimeData(const QMimeData *source) override;
+
+  void insert_images(const QString &url);
+  void insert_text_file(const QString &url);
 
 private:
-    bool isImage(QString url);//判断文件是否为图片
-    void insertMsgList(QVector<MsgInfo> &list,QString flag, QString text, QPixmap pix);
+  bool is_image(QString url); //判断文件是否为图片
+  void insert_msg_list(QVector<MsgInfo> &list, QString flag, QString text,
+                     QPixmap pix);
 
-    QStringList getUrl(QString text);
-    QPixmap getFileIconPixmap(const QString &url);//获取文件图标及大小信息，并转化成图片
-    QString getFileSize(qint64 size);//获取文件大小
+  QStringList get_url(QString text);
+  QPixmap
+  get_file_icon_pixmap(const QString &url); //获取文件图标及大小信息，并转化成图片
+  QString get_file_size(qint64 size); //获取文件大小
 
 private slots:
-    void textEditChanged();
+  void slot_text_edit_changed();
 
 private:
-    QVector<MsgInfo> mMsgList;   // 发送消息缓冲
-    QVector<MsgInfo> mGetMsgList; // 接受消息缓冲
+  QVector<MsgInfo> msg_list_;    // 发送消息缓冲
+  QVector<MsgInfo> get_msg_list_; // 接受消息缓冲
 };
 
 #endif

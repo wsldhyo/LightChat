@@ -16,7 +16,7 @@ void HttpMgr::post_http_req(QUrl url, QJsonObject json, ReqId req_id,
                     QByteArray::number(data.length()));
   //发送请求，并处理响应, 获取自己的智能指针，构造伪闭包并增加智能指针引用计数
   auto self = shared_from_this();
-  QNetworkReply *reply = _manager.post(request, data);
+  QNetworkReply *reply = manager_.post(request, data);
   //设置信号和槽等待发送完成
   QObject::connect(
       reply, &QNetworkReply::finished, [reply, self, req_id, mod]() {

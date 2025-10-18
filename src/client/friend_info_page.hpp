@@ -13,13 +13,13 @@ class FriendInfoPage : public QWidget {
 public:
   explicit FriendInfoPage(QWidget *parent = nullptr);
   ~FriendInfoPage();
-  void SetInfo(std::shared_ptr<UserInfo> ui);
+  void set_friend_info(std::shared_ptr<UserInfo> friend_info);
 private slots:
   void on_msg_chat_clicked();
 
 private:
   Ui::FriendInfoPage *ui;
-  std::shared_ptr<UserInfo> user_info_;
+  std::shared_ptr<UserInfo> friend_info_;
 signals:
   void sig_jump_chat_item(std::shared_ptr<UserInfo> si);
 };

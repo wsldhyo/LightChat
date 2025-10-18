@@ -12,7 +12,7 @@ class CustomizeEdit : public QLineEdit {
   Q_OBJECT
 public:
   CustomizeEdit(QWidget *parent = nullptr);
-  void SetMaxLength(int maxLen);
+  void set_max_length(int max_len);
 
 protected:
   void focusOutEvent(QFocusEvent *event) override;
@@ -21,12 +21,14 @@ private:
   /**
    * @brief 限制输入框的最大输入长度
    *    如果输入文本超过长度限制，将截断并只显示前面部分的内容
-   * @param text 要显示的文本 
+   * @param text 要显示的文本
    */
-  void limitTextLength(QString text); 
+  void limit_text_length(QString text);
 
-  int _max_len;
 signals:
   void sig_foucus_out();
+
+private:
+  int max_len_;
 };
 #endif

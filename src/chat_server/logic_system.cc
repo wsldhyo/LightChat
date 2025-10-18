@@ -149,7 +149,7 @@ void LogicSystem::register_msg_handler() {
           // 用户已经登录
           //获取当前服务器ip信息
           auto cfg = ConfigManager::get_instance();
-          auto self_name = (*cfg)["SelfServer"]["Name"];
+          auto self_name = (*cfg)["SelfServer"]["name"];
           //如果之前登录的服务器和当前相同，则直接在本服务器踢掉
           if (uid_ip_value == self_name) {
             // 在同一服务器登录，直接清除旧的会话

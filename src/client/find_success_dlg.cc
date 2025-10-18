@@ -13,7 +13,7 @@ FindSuccessDlg::FindSuccessDlg(QWidget *parent)
   // 隐藏对话框标题栏
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
   // 初始化添加好友的按钮状态
-  ui->add_friend_btn->SetState("normal", "hover", "press");
+  ui->add_friend_btn->set_state("normal", "hover", "press");
   this->setModal(true);
 }
 
@@ -23,9 +23,9 @@ FindSuccessDlg::~FindSuccessDlg() {
 }
 
 void FindSuccessDlg::set_search_info(std::shared_ptr<SearchInfo> si) {
-  ui->name_lb->setText(si->_name);
+  ui->name_lb->setText(si->name_);
   // 设置头像
-  QPixmap head_pix(si->_icon);
+  QPixmap head_pix(si->icon_);
   head_pix = head_pix.scaled(ui->head_lb->size(), Qt::KeepAspectRatio,
                              Qt::SmoothTransformation);
   ui->head_lb->setPixmap(head_pix);

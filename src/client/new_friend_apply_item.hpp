@@ -50,16 +50,17 @@ public:
   QSize sizeHint() const override { return QSize(250, 80); }
 
 private:
-  Ui::NewFriendApplyItem *ui;
-  std::shared_ptr<ApplyInfo> apply_info_; ///< 申请数据
-  bool added_;                            ///< 是否已添加成功
-
 signals:
   /**
    * @brief 发起审核好友信号（点击添加按钮触发）
    * @param apply_info 当前申请信息
    */
   void sig_auth_friend(std::shared_ptr<ApplyInfo> apply_info);
+
+private:
+  Ui::NewFriendApplyItem *ui;
+  std::shared_ptr<ApplyInfo> apply_info_; ///< 申请数据
+  bool added_;                            ///< 是否已添加成功
 };
 
 #endif // NEW_FRIEND_APPLY_ITEM_HPP

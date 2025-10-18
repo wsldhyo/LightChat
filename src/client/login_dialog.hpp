@@ -25,20 +25,20 @@ private slots:
   void slot_tcp_con_finish(bool bsuccess);
   void slot_login_failed(int);
 signals:
-  void switchRegister(); // 跳转到注册界面的信号
-  void switchReset();
+  void switch_register(); // 跳转到注册界面的信号
+  void switch_reset();
   void sig_connect_tcp(ServerInfo);
 
 private:
-  void initHttpHandlers();
+  void init_http_handlers();
   // 为登录界面的头像框绘制图片
-  void initHeadLabel();
-  bool enableBtn(bool);
-  void showTip(QString str, bool b_ok);
-  bool checkUserValid();
-  bool checkPwdValid();
-  void AddTipErr(TipErr te, QString tips);
-  void DelTipErr(TipErr te);
+  void init_head_label();
+  bool enable_btn(bool);
+  void show_tip(QString str, bool b_ok);
+  bool check_user_valid();
+  bool check_pwd_valid();
+  void add_tip_err(TipErr te, QString tips);
+  void del_tip_err(TipErr te);
   void create_connection();
 
 private:

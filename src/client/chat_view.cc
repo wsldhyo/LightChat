@@ -9,14 +9,14 @@
 #include <QStyleOption>
 #include <QTimer>
 #include <QVBoxLayout>
-ChatView::ChatView(QWidget *parent) : QWidget(parent), isAppended(false) {
+ChatView::ChatView(QWidget *parent) : QWidget(parent), is_appended_(false) {
   QVBoxLayout *pMainLayout = new QVBoxLayout();
   this->setLayout(pMainLayout);
   pMainLayout->setMargin(0);
 
-  m_pScrollArea = new QScrollArea();
-  m_pScrollArea->setObjectName("chat_area");
-  pMainLayout->addWidget(m_pScrollArea);
+  scroll_area_ = new QScrollArea();
+  scroll_area_->setObjectName("chat_area");
+  pMainLayout->addWidget(scroll_area_);
 
   QWidget *w = new QWidget(this);
   w->setObjectName("chat_bg");
@@ -24,39 +24,39 @@ ChatView::ChatView(QWidget *parent) : QWidget(parent), isAppended(false) {
   QVBoxLayout *pHLayout_1 = new QVBoxLayout();
   pHLayout_1->addWidget(new QWidget(), 100000);
   w->setLayout(pHLayout_1);
-  m_pScrollArea->setWidget(w); //应该时在QSCrollArea构造后执行 才对
+  scroll_area_->setWidget(w); //应该时在QSCrollArea构造后执行 才对
 
-  m_pScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  QScrollBar *pVScrollBar = m_pScrollArea->verticalScrollBar();
+  scroll_area_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  QScrollBar *pVScrollBar = scroll_area_->verticalScrollBar();
   connect(pVScrollBar, &QScrollBar::rangeChanged, this,
-          &ChatView::onVScrollBarMoved);
+          &ChatView::on_vscroll_bar_moved);
   //把垂直ScrollBar放到上边 而不是原来的并排
   QHBoxLayout *pHLayout_2 = new QHBoxLayout();
   pHLayout_2->addWidget(pVScrollBar, 0, Qt::AlignRight);
   pHLayout_2->setMargin(0);
-  m_pScrollArea->setLayout(pHLayout_2);
+  scroll_area_->setLayout(pHLayout_2);
   pVScrollBar->setHidden(true);
 
-  m_pScrollArea->setWidgetResizable(true);
-  m_pScrollArea->installEventFilter(this);
-  initStyleSheet();
+  scroll_area_->setWidgetResizable(true);
+  scroll_area_->installEventFilter(this);
+  init_style_sheet();
 }
 
-void ChatView::appendChatItem(QWidget *item) {
+void ChatView::append_chat_item(QWidget *item) {
   QVBoxLayout *vl =
-      qobject_cast<QVBoxLayout *>(m_pScrollArea->widget()->layout());
+      qobject_cast<QVBoxLayout *>(scroll_area_->widget()->layout());
   qDebug() << "vl->count() is " << vl->count();
   vl->insertWidget(vl->count() - 1, item);
-  isAppended = true;
+  is_appended_ = true;
 }
 
-void ChatView::prependChatItem(QWidget *item) {}
+void ChatView::prepend_chat_item(QWidget *item) {}
 
-void ChatView::insertChatItem(QWidget *before, QWidget *item) {}
+void ChatView::insert_chat_item(QWidget *before, QWidget *item) {}
 
-void ChatView::removeAllItem() {
+void ChatView::remove_all_item() {
   QVBoxLayout *layout =
-      qobject_cast<QVBoxLayout *>(m_pScrollArea->widget()->layout());
+      qobject_cast<QVBoxLayout *>(scroll_area_->widget()->layout());
 
   int count = layout->count();
 
@@ -77,11 +77,11 @@ bool ChatView::eventFilter(QObject *o, QEvent *e) {
 
   }
   else */
-  if (e->type() == QEvent::Enter && o == m_pScrollArea) {
-    m_pScrollArea->verticalScrollBar()->setHidden(
-        m_pScrollArea->verticalScrollBar()->maximum() == 0);
-  } else if (e->type() == QEvent::Leave && o == m_pScrollArea) {
-    m_pScrollArea->verticalScrollBar()->setHidden(true);
+  if (e->type() == QEvent::Enter && o == scroll_area_) {
+    scroll_area_->verticalScrollBar()->setHidden(
+        scroll_area_->verticalScrollBar()->maximum() == 0);
+  } else if (e->type() == QEvent::Leave && o == scroll_area_) {
+    scroll_area_->verticalScrollBar()->setHidden(true);
   }
   return QWidget::eventFilter(o, e);
 }
@@ -93,18 +93,18 @@ void ChatView::paintEvent(QPaintEvent *event) {
   style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }
 
-void ChatView::onVScrollBarMoved(int min, int max) {
-  if (isAppended) //添加item可能调用多次
+void ChatView::on_vscroll_bar_moved(int min, int max) {
+  if (is_appended_) //添加item可能调用多次
   {
-    QScrollBar *pVScrollBar = m_pScrollArea->verticalScrollBar();
+    QScrollBar *pVScrollBar = scroll_area_->verticalScrollBar();
     pVScrollBar->setSliderPosition(pVScrollBar->maximum());
     // 500毫秒内可能调用多次
-    QTimer::singleShot(500, [this]() { isAppended = false; });
+    QTimer::singleShot(500, [this]() { is_appended_ = false; });
   }
 }
 
-void ChatView::initStyleSheet() {
-  //    QScrollBar *scrollBar = m_pScrollArea->verticalScrollBar();
+void ChatView::init_style_sheet() {
+  //    QScrollBar *scrollBar = scroll_area_->verticalScrollBar();
   //    scrollBar->setStyleSheet("QScrollBar{background:transparent;}"
   //                             "QScrollBar:vertical{background:transparent;width:8px;}"
   //                             "QScrollBar::handle:vertical{background:red;

@@ -12,19 +12,19 @@ ResetDialog::ResetDialog(QWidget *parent)
   ui->setupUi(this);
 
   connect(ui->user_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkUserValid(); });
+          [this]() { check_user_valid(); });
 
   connect(ui->email_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkEmailValid(); });
+          [this]() { check_email_valid(); });
 
   connect(ui->pwd_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkPassValid(); });
+          [this]() { check_pass_valid(); });
 
   connect(ui->varify_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkVarifyValid(); });
+          [this]() { check_veritfy_valid(); });
 
   //连接reset相关信号和注册处理回调
-  initHandlers();
+  init_handlers();
   connect(HttpMgr::get_instance().get(), &HttpMgr::sig_reset_mod_finish, this,
           &ResetDialog::slot_reset_mod_finish);
 }
@@ -33,25 +33,25 @@ ResetDialog::~ResetDialog() { delete ui; }
 
 void ResetDialog::on_return_btn_clicked() {
   qDebug() << "sure btn clicked ";
-  emit switchLogin();
+  emit sig_switch_login();
 }
 
-bool ResetDialog::checkUserValid() {
+bool ResetDialog::check_user_valid() {
   if (ui->user_edit->text() == "") {
-    AddTipErr(TipErr::TIP_USER_ERR, tr("用户名不能为空"));
+    add_tip_err(TipErr::TIP_USER_ERR, tr("用户名不能为空"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_USER_ERR);
+  del_tip_err(TipErr::TIP_USER_ERR);
   return true;
 }
 
-bool ResetDialog::checkPassValid() {
+bool ResetDialog::check_pass_valid() {
   auto pass = ui->pwd_edit->text();
 
   if (pass.length() < 6 || pass.length() > 15) {
     //提示长度不准确
-    AddTipErr(TipErr::TIP_PWD_ERR, tr("密码长度应为6~15"));
+    add_tip_err(TipErr::TIP_PWD_ERR, tr("密码长度应为6~15"));
     return false;
   }
 
@@ -62,17 +62,17 @@ bool ResetDialog::checkPassValid() {
   bool match = regExp.match(pass).hasMatch();
   if (!match) {
     //提示字符非法
-    AddTipErr(TipErr::TIP_PWD_ERR, tr("不能包含非法字符"));
+    add_tip_err(TipErr::TIP_PWD_ERR, tr("不能包含非法字符"));
     return false;
     ;
   }
 
-  DelTipErr(TipErr::TIP_PWD_ERR);
+  del_tip_err(TipErr::TIP_PWD_ERR);
 
   return true;
 }
 
-bool ResetDialog::checkEmailValid() {
+bool ResetDialog::check_email_valid() {
   //验证邮箱的地址正则表达式
   auto email = ui->email_edit->text();
   // 邮箱地址的正则表达式
@@ -80,41 +80,41 @@ bool ResetDialog::checkEmailValid() {
   bool match = regex.match(email).hasMatch(); // 执行正则表达式匹配
   if (!match) {
     //提示邮箱不正确
-    AddTipErr(TipErr::TIP_EMAIL_ERR, tr("邮箱地址不正确"));
+    add_tip_err(TipErr::TIP_EMAIL_ERR, tr("邮箱地址不正确"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_EMAIL_ERR);
+  del_tip_err(TipErr::TIP_EMAIL_ERR);
   return true;
 }
 
-bool ResetDialog::checkVarifyValid() {
+bool ResetDialog::check_veritfy_valid() {
   auto pass = ui->varify_edit->text();
   if (pass.isEmpty()) {
-    AddTipErr(TipErr::TIP_VERTIFY_ERR, tr("验证码不能为空"));
+    add_tip_err(TipErr::TIP_VERTIFY_ERR, tr("验证码不能为空"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_CONFIRM_ERR);
+  del_tip_err(TipErr::TIP_CONFIRM_ERR);
   return true;
 }
 
-void ResetDialog::AddTipErr(TipErr te, QString tips) {
+void ResetDialog::add_tip_err(TipErr te, QString tips) {
   tip_errs_[te] = tips;
-  showTip(tips, false);
+  show_tip(tips, false);
 }
 
-void ResetDialog::DelTipErr(TipErr te) {
+void ResetDialog::del_tip_err(TipErr te) {
   tip_errs_.remove(te);
   if (tip_errs_.empty()) {
     ui->err_tip->clear();
     return;
   }
 
-  showTip(tip_errs_.first(), false);
+  show_tip(tip_errs_.first(), false);
 }
 
-void ResetDialog::showTip(QString str, bool b_ok) {
+void ResetDialog::show_tip(QString str, bool b_ok) {
   if (b_ok) {
     ui->err_tip->setProperty("state", "normal");
   } else {
@@ -129,7 +129,7 @@ void ResetDialog::showTip(QString str, bool b_ok) {
 void ResetDialog::on_varify_btn_clicked() {
   qDebug() << "receive vertify btn clicked ";
   auto email = ui->email_edit->text();
-  auto bcheck = checkEmailValid();
+  auto bcheck = check_email_valid();
   if (!bcheck) {
     return;
   }
@@ -144,16 +144,16 @@ void ResetDialog::on_varify_btn_clicked() {
       json_obj, ReqId::ID_GET_VERTIFY_CODE, Modules::RESETMOD);
 }
 
-void ResetDialog::initHandlers() {
+void ResetDialog::init_handlers() {
   //注册获取验证码回包逻辑
   handlers_.insert(ReqId::ID_GET_VERTIFY_CODE, [this](QJsonObject jsonObj) {
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
-      showTip(tr("参数错误"), false);
+      show_tip(tr("参数错误"), false);
       return;
     }
     auto email = jsonObj["email"].toString();
-    showTip(tr("验证码已发送到邮箱，注意查收"), true);
+    show_tip(tr("验证码已发送到邮箱，注意查收"), true);
     qDebug() << "email is " << email;
   });
 
@@ -161,11 +161,11 @@ void ResetDialog::initHandlers() {
   handlers_.insert(ReqId::ID_RESET_PWD, [this](QJsonObject jsonObj) {
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
-      showTip(tr("参数错误"), false);
+      show_tip(tr("参数错误"), false);
       return;
     }
     auto email = jsonObj["email"].toString();
-    showTip(tr("重置成功,点击返回登录"), true);
+    show_tip(tr("重置成功,点击返回登录"), true);
     qDebug() << "email is " << email;
     qDebug() << "user uuid is " << jsonObj["uuid"].toString();
   });
@@ -173,7 +173,7 @@ void ResetDialog::initHandlers() {
 
 void ResetDialog::slot_reset_mod_finish(ReqId id, QString res, ErrorCodes err) {
   if (err != ErrorCodes::NO_ERROR) {
-    showTip(tr("网络请求错误"), false);
+    show_tip(tr("网络请求错误"), false);
     return;
   }
 
@@ -181,13 +181,13 @@ void ResetDialog::slot_reset_mod_finish(ReqId id, QString res, ErrorCodes err) {
   QJsonDocument jsonDoc = QJsonDocument::fromJson(res.toUtf8());
   // json解析错误
   if (jsonDoc.isNull()) {
-    showTip(tr("json解析错误"), false);
+    show_tip(tr("json解析错误"), false);
     return;
   }
 
   // json解析错误
   if (!jsonDoc.isObject()) {
-    showTip(tr("json解析错误"), false);
+    show_tip(tr("json解析错误"), false);
     return;
   }
 
@@ -198,22 +198,22 @@ void ResetDialog::slot_reset_mod_finish(ReqId id, QString res, ErrorCodes err) {
 }
 
 void ResetDialog::on_sure_btn_clicked() {
-  bool valid = checkUserValid();
+  bool valid = check_user_valid();
   if (!valid) {
     return;
   }
 
-  valid = checkEmailValid();
+  valid = check_email_valid();
   if (!valid) {
     return;
   }
 
-  valid = checkPassValid();
+  valid = check_pass_valid();
   if (!valid) {
     return;
   }
 
-  valid = checkVarifyValid();
+  valid = check_veritfy_valid();
   if (!valid) {
     return;
   }

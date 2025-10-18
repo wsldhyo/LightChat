@@ -10,7 +10,7 @@ FindFailedDlg::FindFailedDlg(QWidget *parent)
   // 隐藏对话框标题栏
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint); // 隐藏边框
   this->setObjectName("FindFailedDlg");
-  ui->fail_sure_btn->SetState("normal", "hover", "press");
+  ui->fail_sure_btn->set_state("normal", "hover", "press");
   this->setModal(true); // 模态
 }
 

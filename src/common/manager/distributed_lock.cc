@@ -14,11 +14,11 @@ DistLock &DistLock::get_instance() {
 DistLock::~DistLock() {}
 
 std::string DistLock::acquire(redisContext *context,
-                              const std::string &lockName, int lockTimeout,
+                              const std::string &lock_name, int lockTimeout,
                               int acquireTimeout) {
   // 生成唯一标识符，用于区分不同客户端的锁
   std::string identifier = generate_unique_string();
-  std::string lockKey = "lock:" + lockName;
+  std::string lockKey = "lock:" + lock_name;
 
   // 计算锁获取操作的超时截止时间
   auto endTime =
@@ -47,9 +47,9 @@ std::string DistLock::acquire(redisContext *context,
   return "";
 }
 
-bool DistLock::release(redisContext *context, const std::string &lockName,
+bool DistLock::release(redisContext *context, const std::string &lock_name,
                        const std::string &identifier) {
-  std::string lockKey = "lock:" + lockName;
+  std::string lockKey = "lock:" + lock_name;
 
   // Lua 脚本：仅当锁的值与当前标识符匹配时才删除 key
   const char *luaScript = "if redis.call('get', KEYS[1]) == ARGV[1] then "

@@ -5,28 +5,28 @@
 
 //连接头像框与气泡框的小三角的宽度
 BubbleFrame::BubbleFrame(ChatRole role, QWidget *parent)
-    : QFrame(parent), m_role(role), m_margin(3) {
-  m_pHLayout = new QHBoxLayout();
-  if (m_role == ChatRole::SELF)
-    m_pHLayout->setContentsMargins(m_margin, m_margin,
-                                   BUBBLE_TRIANGLE_WIDTH + m_margin, m_margin);
+    : QFrame(parent), role_(role), margin_(3) {
+  h_layout_ = new QHBoxLayout();
+  if (role_ == ChatRole::SELF)
+    h_layout_->setContentsMargins(margin_, margin_,
+                                   BUBBLE_TRIANGLE_WIDTH + margin_, margin_);
   else
-    m_pHLayout->setContentsMargins(BUBBLE_TRIANGLE_WIDTH + m_margin, m_margin,
-                                   m_margin, m_margin);
+    h_layout_->setContentsMargins(BUBBLE_TRIANGLE_WIDTH + margin_, margin_,
+                                   margin_, margin_);
 
-  this->setLayout(m_pHLayout);
+  this->setLayout(h_layout_);
 }
 
-void BubbleFrame::setMargin(int margin) {
+void BubbleFrame::set_margin(int margin) {
   Q_UNUSED(margin);
-  // m_margin = margin;
+  // margin_ = margin;
 }
 
-void BubbleFrame::setWidget(QWidget *w) {
-  if (m_pHLayout->count() > 0)
+void BubbleFrame::set_widget(QWidget *w) {
+  if (h_layout_->count() > 0)
     return;
   else {
-    m_pHLayout->addWidget(w);
+    h_layout_->addWidget(w);
   }
 }
 
@@ -34,7 +34,7 @@ void BubbleFrame::paintEvent(QPaintEvent *e) {
   QPainter painter(this);
   painter.setPen(Qt::NoPen);
 
-  if (m_role == ChatRole::OTHERS) {
+  if (role_ == ChatRole::OTHERS) {
     //画气泡
     QColor bk_color(Qt::white);
     painter.setBrush(QBrush(bk_color));

@@ -44,8 +44,8 @@ void NewFriendApplyPage::add_new_apply(std::shared_ptr<AddFriendApply> apply) {
   // 创建新列表项
   auto *apply_item = new NewFriendApplyItem();
   auto apply_info =
-      std::make_shared<ApplyInfo>(apply->_from_uid, apply->_name, apply->_desc,
-                                  apply->_icon, apply->_name, 0, 0);
+      std::make_shared<ApplyInfo>(apply->from_uid_, apply->name_, apply->desc_,
+                                  apply->icon_, apply->name_, 0, 0);
   apply_item->set_info(apply_info);
 
   // 创建 QListWidgetItem 并设置自定义 widget
@@ -85,7 +85,7 @@ void NewFriendApplyPage::load_apply_list() {
     ui->apply_friend_list->insertItem(0, item);
     ui->apply_friend_list->setItemWidget(item, apply_item);
 
-    if (apply->_status) {
+    if (apply->status_) {
       apply_item->show_add_btn(false); // 已处理过的申请隐藏按钮
     } else {
       has_new_apply = true;
@@ -132,7 +132,7 @@ void NewFriendApplyPage::load_apply_list() {
 
 void NewFriendApplyPage::slot_handle_auth_rsp(
     std::shared_ptr<AuthRsp> auth_rsp) {
-  auto uid = auth_rsp->_uid;
+  auto uid = auth_rsp->uid_;
   auto find_iter = unauth_items_.find(uid);
   if (find_iter == unauth_items_.end()) {
     qDebug() << "uid:" << uid << "does not in unauth_items";

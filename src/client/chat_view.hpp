@@ -16,23 +16,23 @@ class ChatView : public QWidget
     Q_OBJECT
 public:
     ChatView(QWidget *parent = Q_NULLPTR);
-    void appendChatItem(QWidget *item);                 //尾插
-    void prependChatItem(QWidget *item);                //头插
-    void insertChatItem(QWidget *before, QWidget *item);//中间插
-    void removeAllItem();
+    void append_chat_item(QWidget *item);                 //尾插
+    void prepend_chat_item(QWidget *item);                //头插
+    void insert_chat_item(QWidget *before, QWidget *item);//中间插
+    void remove_all_item();
 protected:
     bool eventFilter(QObject *o, QEvent *e) override;
     void paintEvent(QPaintEvent *event) override;
 private slots:
-    void onVScrollBarMoved(int min, int max);
+    void on_vscroll_bar_moved(int min, int max);
 
 private:
-    void initStyleSheet();
+    void init_style_sheet();
 private:
     //QWidget *m_pCenterWidget;
-    QVBoxLayout *m_pVl;
-    QScrollArea *m_pScrollArea;
-    bool isAppended;
+    QVBoxLayout *v_layout_;
+    QScrollArea *scroll_area_;
+    bool is_appended_;
 
 };
 

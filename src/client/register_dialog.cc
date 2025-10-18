@@ -20,7 +20,7 @@ RegisterDialog::RegisterDialog(QWidget *parent)
   ui->err_tip->setProperty("state", "normal");
   g_repolish(ui->err_tip);
   create_connection();
-  initHttpHandlers();
+  init_http_handlers();
   //设置浮动显示手形状
   ui->pass_visible->setCursor(Qt::PointingHandCursor);
   ui->confirm_visible->setCursor(Qt::PointingHandCursor);
@@ -58,7 +58,7 @@ void RegisterDialog::on_get_code_clicked() {
   } else {
     //提示邮箱不正确
 
-    showTip(QString("邮箱地址不正确"), false);
+    show_tip(QString("邮箱地址不正确"), false);
   }
 }
 
@@ -69,22 +69,22 @@ static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
 void RegisterDialog::on_sure_btn_clicked() {
 
   // 检查输入是否都正确
-  bool valid = checkUserValid();
+  bool valid = check_user_valid();
   if (!valid) {
     return;
   }
 
-  valid = checkEmailValid();
+  valid = check_email_valid();
   if (!valid) {
     return;
   }
 
-  valid = checkPassValid();
+  valid = check_pass_valid();
   if (!valid) {
     return;
   }
 
-  valid = checkVarifyValid();
+  valid = check_vertify_valid();
   if (!valid) {
     return;
   }
@@ -114,24 +114,24 @@ void RegisterDialog::on_sure_btn_clicked() {
 
 void RegisterDialog::on_return_btn_clicked() {
   countdown_timer_->stop();
-  emit sigSwitchLogin();
+  emit sig_switch_login();
 }
 
 void RegisterDialog::on_cancel_btn_clicked() {
   countdown_timer_->stop();
-  emit sigSwitchLogin();
+  emit sig_switch_login();
 }
 
-void RegisterDialog::initHttpHandlers() {
+void RegisterDialog::init_http_handlers() {
   //注册获取验证码回包逻辑
   handlers_.insert(ReqId::ID_GET_VERTIFY_CODE, [this](QJsonObject jsonObj) {
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
-      showTip("参数错误", false);
+      show_tip("参数错误", false);
       return;
     }
     auto email = jsonObj["email"].toString();
-    showTip("验证码已发送到邮箱，注意查收", true);
+    show_tip("验证码已发送到邮箱，注意查收", true);
     qDebug() << "success get vertify code, email is " << email;
   });
 
@@ -139,18 +139,18 @@ void RegisterDialog::initHttpHandlers() {
   handlers_.insert(ReqId::ID_REG_USER, [this](QJsonObject jsonObj) {
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
-      showTip(tr("参数错误"), false);
+      show_tip(tr("参数错误"), false);
       return;
     }
     auto email = jsonObj["email"].toString();
-    showTip(tr("用户注册成功"), true);
+    show_tip(tr("用户注册成功"), true);
     qDebug() << "email is " << email;
     qDebug() << "user uuid is " << jsonObj["uuid"].toString();
-    ChangeTipPage();
+    change_tip_page();
   });
 }
 
-void RegisterDialog::showTip(QString str, bool b_ok) {
+void RegisterDialog::show_tip(QString str, bool b_ok) {
   if (b_ok) {
     ui->err_tip->setProperty("state", "normal");
   } else {
@@ -163,19 +163,19 @@ void RegisterDialog::showTip(QString str, bool b_ok) {
 void RegisterDialog::slot_reg_mod_finish(ReqId id, QString res,
                                          ErrorCodes err) {
   if (err != ErrorCodes::NO_ERROR) {
-    showTip("网络请求错误", false);
+    show_tip("网络请求错误", false);
     return;
   }
   // 解析 JSON 字符串,res需转化为QByteArray
   QJsonDocument jsonDoc = QJsonDocument::fromJson(res.toUtf8());
   // json解析错误
   if (jsonDoc.isNull()) {
-    showTip("json解析错误", false);
+    show_tip("json解析错误", false);
     return;
   }
   // json解析错误
   if (!jsonDoc.isObject()) {
-    showTip("json解析错误", false);
+    show_tip("json解析错误", false);
     return;
   }
   QJsonObject jsonObj = jsonDoc.object();
@@ -190,22 +190,22 @@ void RegisterDialog::slot_reg_mod_finish(ReqId id, QString res,
   return;
 }
 
-bool RegisterDialog::checkUserValid() {
+bool RegisterDialog::check_user_valid() {
   if (ui->user_edit->text() == "") {
-    AddTipErr(TipErr::TIP_USER_ERR, tr("用户名不能为空"));
+    add_tip_err(TipErr::TIP_USER_ERR, tr("用户名不能为空"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_USER_ERR);
+  del_tip_err(TipErr::TIP_USER_ERR);
   return true;
 }
 
-bool RegisterDialog::checkPassValid() {
+bool RegisterDialog::check_pass_valid() {
   auto pass = ui->pass_edit->text();
 
   if (pass.length() < 6 || pass.length() > 15) {
     //提示长度不准确
-    AddTipErr(TipErr::TIP_PWD_ERR, tr("密码长度应为6~15"));
+    add_tip_err(TipErr::TIP_PWD_ERR, tr("密码长度应为6~15"));
     return false;
   }
 
@@ -216,17 +216,17 @@ bool RegisterDialog::checkPassValid() {
   bool match = regExp.match(pass).hasMatch();
   if (!match) {
     //提示字符非法
-    AddTipErr(TipErr::TIP_PWD_ERR, tr("不能包含非法字符"));
+    add_tip_err(TipErr::TIP_PWD_ERR, tr("不能包含非法字符"));
     return false;
     ;
   }
 
-  DelTipErr(TipErr::TIP_PWD_ERR);
+  del_tip_err(TipErr::TIP_PWD_ERR);
 
   return true;
 }
 
-bool RegisterDialog::checkEmailValid() {
+bool RegisterDialog::check_email_valid() {
   //验证邮箱的地址正则表达式
   auto email = ui->email_edit->text();
   // 邮箱地址的正则表达式
@@ -234,32 +234,32 @@ bool RegisterDialog::checkEmailValid() {
   bool match = regex.match(email).hasMatch(); // 执行正则表达式匹配
   if (!match) {
     //提示邮箱不正确
-    AddTipErr(TipErr::TIP_EMAIL_ERR, tr("邮箱地址不正确"));
+    add_tip_err(TipErr::TIP_EMAIL_ERR, tr("邮箱地址不正确"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_EMAIL_ERR);
+  del_tip_err(TipErr::TIP_EMAIL_ERR);
   return true;
 }
 
-bool RegisterDialog::checkVarifyValid() {
+bool RegisterDialog::check_vertify_valid() {
   auto pass = ui->varify_edit->text();
   if (pass.isEmpty()) {
-    AddTipErr(TipErr::TIP_VERTIFY_ERR, tr("验证码不能为空"));
+    add_tip_err(TipErr::TIP_VERTIFY_ERR, tr("验证码不能为空"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_VERTIFY_ERR);
+  del_tip_err(TipErr::TIP_VERTIFY_ERR);
   return true;
 }
 
-bool RegisterDialog::checkConfirmValid() {
+bool RegisterDialog::check_confirm_valid() {
   auto pass = ui->pass_edit->text();
   auto confirm = ui->confirm_edit->text();
 
   if (confirm.length() < 6 || confirm.length() > 15) {
     //提示长度不准确
-    AddTipErr(TipErr::TIP_CONFIRM_ERR, tr("密码长度应为6~15"));
+    add_tip_err(TipErr::TIP_CONFIRM_ERR, tr("密码长度应为6~15"));
     return false;
   }
 
@@ -270,38 +270,38 @@ bool RegisterDialog::checkConfirmValid() {
   bool match = regExp.match(confirm).hasMatch();
   if (!match) {
     //提示字符非法
-    AddTipErr(TipErr::TIP_CONFIRM_ERR, tr("不能包含非法字符"));
+    add_tip_err(TipErr::TIP_CONFIRM_ERR, tr("不能包含非法字符"));
     return false;
   }
 
-  DelTipErr(TipErr::TIP_CONFIRM_ERR);
+  del_tip_err(TipErr::TIP_CONFIRM_ERR);
 
   if (pass != confirm) {
     //提示密码不匹配
-    AddTipErr(TipErr::TIP_PWD_CONFIRM, tr("确认密码和密码不匹配"));
+    add_tip_err(TipErr::TIP_PWD_CONFIRM, tr("确认密码和密码不匹配"));
     return false;
   } else {
-    DelTipErr(TipErr::TIP_PWD_CONFIRM);
+    del_tip_err(TipErr::TIP_PWD_CONFIRM);
   }
   return true;
 }
 
-void RegisterDialog::AddTipErr(TipErr te, QString tips) {
+void RegisterDialog::add_tip_err(TipErr te, QString tips) {
   tip_errs_[te] = tips;
-  showTip(tips, false);
+  show_tip(tips, false);
 }
 
-void RegisterDialog::DelTipErr(TipErr te) {
+void RegisterDialog::del_tip_err(TipErr te) {
   tip_errs_.remove(te);
   if (tip_errs_.empty()) {
     ui->err_tip->clear();
     return;
   }
 
-  showTip(tip_errs_.first(), false);
+  show_tip(tip_errs_.first(), false);
 }
 
-void RegisterDialog::ChangeTipPage() {
+void RegisterDialog::change_tip_page() {
   countdown_timer_->stop();
   ui->stackedWidget->setCurrentWidget(ui->page_2);
   countdown_ = 5;
@@ -315,19 +315,19 @@ void RegisterDialog::create_connection() {
   ui->err_tip->clear();
 
   connect(ui->user_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkUserValid(); });
+          [this]() { check_user_valid(); });
 
   connect(ui->email_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkEmailValid(); });
+          [this]() { check_email_valid(); });
 
   connect(ui->pass_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkPassValid(); });
+          [this]() { check_pass_valid(); });
 
   connect(ui->confirm_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkConfirmValid(); });
+          [this]() { check_confirm_valid(); });
 
   connect(ui->varify_edit, &QLineEdit::editingFinished, this,
-          [this]() { checkVarifyValid(); });
+          [this]() { check_vertify_valid(); });
 
   //连接ClickedLabel点击事件，改变其样式
   connect(ui->pass_visible, &ClickedLabel::clicked, this, [this]() {
@@ -356,7 +356,7 @@ void RegisterDialog::create_connection() {
   connect(countdown_timer_, &QTimer::timeout, [this]() {
     if (countdown_ <= 0) {
       countdown_timer_->stop();
-      emit sigSwitchLogin();
+      emit sig_switch_login();
       return;
     }
     auto str = QString("注册成功，%1 s后返回登录").arg(countdown_);

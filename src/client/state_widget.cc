@@ -10,10 +10,10 @@
 StateWidget::StateWidget(QWidget *parent)
     : QWidget(parent), curstate_(ClickLbState::Normal) {
   setCursor(Qt::PointingHandCursor);
-  AddRedPoint();
+  add_red_point();
 }
 
-void StateWidget::SetState(QString normal, QString hover, QString press,
+void StateWidget::set_state(QString normal, QString hover, QString press,
                            QString select, QString select_hover,
                            QString select_press) {
   normal_ = normal;
@@ -28,16 +28,16 @@ void StateWidget::SetState(QString normal, QString hover, QString press,
   g_repolish(this);
 }
 
-ClickLbState StateWidget::GetCurState() { return curstate_; }
+ClickLbState StateWidget::get_cur_state() { return curstate_; }
 
-void StateWidget::ClearState() {
+void StateWidget::clear_state() {
   curstate_ = ClickLbState::Normal;
   setProperty("state", normal_);
   g_repolish(this);
   update();
 }
 
-void StateWidget::SetSelected(bool bselected) {
+void StateWidget::set_selected(bool bselected) {
   if (bselected) {
     curstate_ = ClickLbState::Selected;
     setProperty("state", selected_);
@@ -54,7 +54,7 @@ void StateWidget::SetSelected(bool bselected) {
 }
 
 //右上角添加红点, 表示有未读消息
-void StateWidget::AddRedPoint() {
+void StateWidget::add_red_point() {
   //添加红点示意图
   red_point_ = new QLabel();
   red_point_->setObjectName("red_point");
@@ -66,7 +66,7 @@ void StateWidget::AddRedPoint() {
   red_point_->setVisible(false);
 }
 
-void StateWidget::ShowRedPoint(bool show) { red_point_->setVisible(true); }
+void StateWidget::show_red_point(bool show) { red_point_->setVisible(true); }
 
 void StateWidget::paintEvent(QPaintEvent *event) {
   QStyleOption opt;

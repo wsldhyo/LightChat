@@ -13,16 +13,16 @@ class StateWidget : public QWidget {
 public:
   explicit StateWidget(QWidget *parent = nullptr);
 
-  void SetState(QString normal = "", QString hover = "", QString press = "",
+  void set_state(QString normal = "", QString hover = "", QString press = "",
                 QString select = "", QString select_hover = "",
                 QString select_press = "");
 
-  ClickLbState GetCurState();
-  void ClearState();
+  ClickLbState get_cur_state();
+  void clear_state();
 
-  void SetSelected(bool bselected);
-  void AddRedPoint();
-  void ShowRedPoint(bool show = true);
+  void set_selected(bool bselected);
+  void add_red_point();
+  void show_red_point(bool show = true);
 
 protected:
   void paintEvent(QPaintEvent *event) override;

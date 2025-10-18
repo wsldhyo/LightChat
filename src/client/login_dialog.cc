@@ -16,8 +16,8 @@ LoginDialog::LoginDialog(QWidget *parent)
                               "selected_hover", "");
   ui->forget_label->setCursor(Qt::PointingHandCursor);
   create_connection();
-  initHeadLabel();
-  initHttpHandlers();
+  init_head_label();
+  init_http_handlers();
 }
 
 LoginDialog::~LoginDialog() {
@@ -27,12 +27,12 @@ LoginDialog::~LoginDialog() {
 
 void LoginDialog::slot_forget_pwd() {
   qDebug() << "slot forget pwd";
-  emit switchReset();
+  emit switch_reset();
 }
 
 void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err) {
   if (err != ErrorCodes::NO_ERROR) {
-    showTip(tr("网络请求错误"), false);
+    show_tip(tr("网络请求错误"), false);
     return;
   }
 
@@ -40,13 +40,13 @@ void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err) {
   QJsonDocument jsonDoc = QJsonDocument::fromJson(res.toUtf8());
   // json解析错误
   if (jsonDoc.isNull()) {
-    showTip(tr("json解析错误"), false);
+    show_tip(tr("json解析错误"), false);
     return;
   }
 
   // json解析错误
   if (!jsonDoc.isObject()) {
-    showTip(tr("json解析错误"), false);
+    show_tip(tr("json解析错误"), false);
     return;
   }
 
@@ -61,14 +61,14 @@ void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err) {
 
 void LoginDialog::slot_login_failed(int error) {
   QString result = QString("登录失败, err is %1").arg(error);
-  showTip(result, false);
-  enableBtn(true);
+  show_tip(result, false);
+  enable_btn(true);
 }
 
 void LoginDialog::slot_tcp_con_finish(bool bsuccess) {
 
   if (bsuccess) {
-    showTip(tr("聊天服务连接成功，正在登录..."), true);
+    show_tip(tr("聊天服务连接成功，正在登录..."), true);
     QJsonObject jsonObj;
     jsonObj["uid"] = uid_;
     jsonObj["token"] = token_;
@@ -80,23 +80,23 @@ void LoginDialog::slot_tcp_con_finish(bool bsuccess) {
     TcpMgr::get_instance()->sig_send_data(ReqId::ID_CHAT_LOGIN_REQ, jsonData);
 
   } else {
-    showTip(tr("网络异常"), false);
-    enableBtn(true);
+    show_tip(tr("网络异常"), false);
+    enable_btn(true);
   }
 }
 
 void LoginDialog::on_login_btn_clicked() {
 
   qDebug() << "login btn clicked";
-  if (checkUserValid() == false) {
+  if (check_user_valid() == false) {
     return;
   }
 
-  if (checkPwdValid() == false) {
+  if (check_pwd_valid() == false) {
     return;
   }
 
-  enableBtn(false);
+  enable_btn(false);
   auto email = ui->email_edit->text();
   auto pwd = ui->pass_edit->text();
   //发送http请求登录
@@ -109,33 +109,33 @@ void LoginDialog::on_login_btn_clicked() {
       json_obj, ReqId::ID_LOGIN_USER, Modules::LOGINMOD);
 }
 
-void LoginDialog::initHttpHandlers() {
+void LoginDialog::init_http_handlers() {
   //注册获取登录回包逻辑
   handlers_.insert(ReqId::ID_LOGIN_USER, [this](QJsonObject jsonObj) {
     int error = jsonObj["error"].toInt();
     if (error != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
-      showTip(tr("参数错误"), false);
-      enableBtn(true);
+      show_tip(tr("参数错误"), false);
+      enable_btn(true);
       return;
     }
     auto email = jsonObj["email"].toString();
 
     //发送信号通知tcpMgr发送长链接
     ServerInfo si;
-    si.Uid = jsonObj["uid"].toInt();
-    si.Host = jsonObj["host"].toString();
-    si.Port = jsonObj["port"].toString();
-    si.Token = jsonObj["token"].toString();
+    si.uid = jsonObj["uid"].toInt();
+    si.host = jsonObj["host"].toString();
+    si.port = jsonObj["port"].toString();
+    si.token = jsonObj["token"].toString();
 
-    uid_ = si.Uid;
-    token_ = si.Token;
-    qDebug() << "email is " << email << " uid is " << si.Uid << " host is "
-             << si.Host << " Port is " << si.Port << " Token is " << si.Token;
+    uid_ = si.uid;
+    token_ = si.token;
+    qDebug() << "email is " << email << " uid is " << si.uid << " host is "
+             << si.host << " Port is " << si.port << " Token is " << si.token;
     emit sig_connect_tcp(si);
   });
 }
 
-void LoginDialog::initHeadLabel() {
+void LoginDialog::init_head_label() {
   // 加载图片
   QPixmap originalPixmap(":/icons/head_1.jpg");
   // 设置图片自动缩放
@@ -164,18 +164,18 @@ void LoginDialog::initHeadLabel() {
   ui->head_label->setPixmap(roundedPixmap);
 }
 
-bool LoginDialog::enableBtn(bool enabled) {
+bool LoginDialog::enable_btn(bool enabled) {
   ui->login_btn->setEnabled(enabled);
   ui->reg_btn->setEnabled(enabled);
   return true;
 }
 
-bool LoginDialog::checkPwdValid() {
+bool LoginDialog::check_pwd_valid() {
   auto pwd = ui->pass_edit->text();
   if (pwd.length() < 6 || pwd.length() > 15) {
     qDebug() << "Pass length invalid";
     //提示长度不准确
-    AddTipErr(TipErr::TIP_PWD_ERR, tr("密码长度应为6~15"));
+    add_tip_err(TipErr::TIP_PWD_ERR, tr("密码长度应为6~15"));
     return false;
   }
 
@@ -186,29 +186,29 @@ bool LoginDialog::checkPwdValid() {
   bool match = regExp.match(pwd).hasMatch();
   if (!match) {
     //提示字符非法
-    AddTipErr(TipErr::TIP_PWD_ERR, tr("不能包含非法字符且长度为(6~15)"));
+    add_tip_err(TipErr::TIP_PWD_ERR, tr("不能包含非法字符且长度为(6~15)"));
     return false;
     ;
   }
 
-  DelTipErr(TipErr::TIP_PWD_ERR);
+  del_tip_err(TipErr::TIP_PWD_ERR);
 
   return true;
 }
 
-bool LoginDialog::checkUserValid() {
+bool LoginDialog::check_user_valid() {
 
   auto email = ui->email_edit->text();
   if (email.isEmpty()) {
     qDebug() << "email empty ";
-    AddTipErr(TipErr::TIP_EMAIL_ERR, tr("邮箱不能为空"));
+    add_tip_err(TipErr::TIP_EMAIL_ERR, tr("邮箱不能为空"));
     return false;
   }
-  DelTipErr(TipErr::TIP_EMAIL_ERR);
+  del_tip_err(TipErr::TIP_EMAIL_ERR);
   return true;
 }
 
-void LoginDialog::showTip(QString str, bool b_ok) {
+void LoginDialog::show_tip(QString str, bool b_ok) {
   if (b_ok) {
     ui->err_tip->setProperty("state", "normal");
   } else {
@@ -220,24 +220,24 @@ void LoginDialog::showTip(QString str, bool b_ok) {
   g_repolish(ui->err_tip);
 }
 
-void LoginDialog::AddTipErr(TipErr te, QString tips) {
+void LoginDialog::add_tip_err(TipErr te, QString tips) {
   tip_errs_[te] = tips;
-  showTip(tips, false);
+  show_tip(tips, false);
 }
 
-void LoginDialog::DelTipErr(TipErr te) {
+void LoginDialog::del_tip_err(TipErr te) {
   tip_errs_.remove(te);
   if (tip_errs_.empty()) {
     ui->err_tip->clear();
     return;
   }
 
-  showTip(tip_errs_.first(), false);
+  show_tip(tip_errs_.first(), false);
 }
 
 void LoginDialog::create_connection() {
   connect(ui->reg_btn, &QPushButton::clicked, this,
-          &LoginDialog::switchRegister);
+          &LoginDialog::switch_register);
   connect(ui->forget_label, &ClickedLabel::clicked, this,
           &LoginDialog::slot_forget_pwd);
   //连接登录回包信号

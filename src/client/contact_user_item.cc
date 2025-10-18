@@ -8,7 +8,7 @@ ContactUserItem::ContactUserItem(QWidget *parent)
   SetItemType(ListItemType::CONTACT_USER_ITEM);
 
   ui->red_point->raise(); // 保证红点显示在最顶层
-  ShowRedPoint(false);    // 默认不显示红点
+  show_red_point(false);  // 默认不显示红点
 }
 
 ContactUserItem::~ContactUserItem() { delete ui; }
@@ -18,44 +18,25 @@ QSize ContactUserItem::sizeHint() const {
 }
 
 // 设置联系人信息（AuthInfo）
-void ContactUserItem::SetInfo(std::shared_ptr<AuthInfo> auth_info) {
-  _info = std::make_shared<UserInfo>(auth_info);
-
-  // 加载头像并缩放
-  QPixmap pixmap(_info->_icon);
-  ui->icon_lb->setPixmap(pixmap.scaled(ui->icon_lb->size(), Qt::KeepAspectRatio,
-                                       Qt::SmoothTransformation));
-  ui->icon_lb->setScaledContents(true);
-
-  ui->user_name_lb->setText(_info->_name);
+void ContactUserItem::set_info(std::shared_ptr<AuthInfo> auth_info) {
+  friend_info_ = std::make_shared<UserInfo>(auth_info);
+  set_friend_info();
 }
 
 // 设置联系人信息（uid、name、icon）
-void ContactUserItem::SetInfo(int uid, QString name, QString icon) {
-  _info = std::make_shared<UserInfo>(uid, name, icon);
-
-  QPixmap pixmap(_info->_icon);
-  ui->icon_lb->setPixmap(pixmap.scaled(ui->icon_lb->size(), Qt::KeepAspectRatio,
-                                       Qt::SmoothTransformation));
-  ui->icon_lb->setScaledContents(true);
-
-  ui->user_name_lb->setText(_info->_name);
+void ContactUserItem::set_info(int uid, QString name, QString icon) {
+  friend_info_ = std::make_shared<UserInfo>(uid, name, icon);
+  set_friend_info();
 }
 
 // 设置联系人信息（AuthRsp）
-void ContactUserItem::SetInfo(std::shared_ptr<AuthRsp> auth_rsp) {
-  _info = std::make_shared<UserInfo>(auth_rsp);
-
-  QPixmap pixmap(_info->_icon);
-  ui->icon_lb->setPixmap(pixmap.scaled(ui->icon_lb->size(), Qt::KeepAspectRatio,
-                                       Qt::SmoothTransformation));
-  ui->icon_lb->setScaledContents(true);
-
-  ui->user_name_lb->setText(_info->_name);
+void ContactUserItem::set_info(std::shared_ptr<AuthRsp> auth_rsp) {
+  friend_info_ = std::make_shared<UserInfo>(auth_rsp);
+  set_friend_info();
 }
 
 // 控制右上角红点显隐
-void ContactUserItem::ShowRedPoint(bool show) {
+void ContactUserItem::show_red_point(bool show) {
   if (show) {
     ui->red_point->show();
   } else {
@@ -64,5 +45,14 @@ void ContactUserItem::ShowRedPoint(bool show) {
 }
 
 std::shared_ptr<UserInfo> const ContactUserItem::get_user_info() const {
-  return _info;
+  return friend_info_;
+}
+
+void ContactUserItem::set_friend_info() {
+  QPixmap pixmap(friend_info_->icon_);
+  ui->icon_lb->setPixmap(pixmap.scaled(ui->icon_lb->size(), Qt::KeepAspectRatio,
+                                       Qt::SmoothTransformation));
+  ui->icon_lb->setScaledContents(true);
+
+  ui->user_name_lb->setText(friend_info_->name_);
 }
