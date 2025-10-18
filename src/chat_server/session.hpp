@@ -104,6 +104,26 @@ public:
 
   void notify_offline(int32_t uid);
 
+  bool is_heartbeat_expired(std::chrono::steady_clock::time_point const &now);
+  void update_heartbeat();
+
+  /**
+   * @brief 处理未使用或异常会话的清理工作
+   *
+   * 当会话异常关闭、客户端断开、心跳超时或者其他情况下，
+   * 需要清理与该 session 相关的资源，包括：
+   * 1. 从 Redis 中删除用户 session 信息
+   * 2. 删除用户登录信息
+   * 3. 通知 Server 从内存 map 中移除该 session
+   *
+   * 该函数会先尝试获取 Redis 分布式锁，确保在多节点环境下安全操作，
+   * 避免误删除其他服务器上活跃的 session。
+   *
+   * 锁释放和 Server 移除 session 的操作通过 Defer 机制保证即使中途 return
+   * 也能执行。
+   */
+  void deal_exception_session();
+
 private:
   /**
    * @brief 异步读取指定长度的数据，直到读满或发生错误
@@ -217,22 +237,6 @@ private:
    */
   void send_callback(boost::system::error_code ec,
                      std::size_t bytes_transferred);
-  /**
-   * @brief 处理未使用或异常会话的清理工作
-   *
-   * 当会话异常关闭、客户端断开、心跳超时或者其他情况下，
-   * 需要清理与该 session 相关的资源，包括：
-   * 1. 从 Redis 中删除用户 session 信息
-   * 2. 删除用户登录信息
-   * 3. 通知 Server 从内存 map 中移除该 session
-   *
-   * 该函数会先尝试获取 Redis 分布式锁，确保在多节点环境下安全操作，
-   * 避免误删除其他服务器上活跃的 session。
-   *
-   * 锁释放和 Server 移除 session 的操作通过 Defer 机制保证即使中途 return
-   * 也能执行。
-   */
-  void deal_unused_session();
 
 private:
   tcp::socket peer_;             ///< 与客户端通信的 socket
@@ -244,5 +248,7 @@ private:
   std::queue<std::unique_ptr<SendMsgNode>> send_que_; ///< 发送队列
   std::atomic_bool closing_{false}; ///< 会话是否正在关闭（幂等保护）
   int32_t user_id_;
+  std::atomic<std::chrono::steady_clock::time_point>
+      last_heartbeat_; // 上次接收数据的时间
 };
 #endif

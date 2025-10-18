@@ -89,8 +89,10 @@ TcpMgr::TcpMgr()
       });
 
   // 处理连接断开
-  QObject::connect(&socket_, &QTcpSocket::disconnected,
-                   [&]() { qDebug() << "Disconnected from server."; });
+  QObject::connect(&socket_, &QTcpSocket::disconnected, [&]() {
+    qDebug() << "Disconnected from server.";
+    emit sig_connection_closed();
+  });
 
   QObject::connect(this, &TcpMgr::sig_send_data, this, &TcpMgr::slot_send_data);
   init_handlers();
@@ -129,7 +131,9 @@ void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes) {
 }
 
 void TcpMgr::init_handlers() {
+  // =======================================
   //注册获取登录回包逻辑
+  // =======================================
   handlers_.insert(ReqId::ID_CHAT_LOGIN_RSP, [this](ReqId id, int len,
                                                     QByteArray data) {
     Q_UNUSED(len);
@@ -176,8 +180,9 @@ void TcpMgr::init_handlers() {
     emit sig_switch_chatdlg();
     // qDebug() << "switch chat dlg";
   });
-
+  // =======================================
   // 处理服务器搜索用户请求的响应
+  // =======================================
   handlers_.insert(
       ReqId::ID_SEARCH_USER_RSP, [this](ReqId id, int len, QByteArray data) {
         Q_UNUSED(len);
@@ -216,7 +221,9 @@ void TcpMgr::init_handlers() {
         // 将搜索结果发送给聊天界面
         emit sig_user_search(search_info);
       });
+  // =======================================
   // 处理服务器对申请好友的回包
+  // =======================================
   handlers_.insert(ReqId::ID_NOTIFY_FRIEND_APPLY_REQ, [this](ReqId id, int len,
                                                              QByteArray data) {
     Q_UNUSED(len);
@@ -258,7 +265,9 @@ void TcpMgr::init_handlers() {
     // 通知好友申请界面，展示好友申请消息
     emit sig_recv_friend_apply(apply_info);
   });
+  // =======================================
   // 处理服务器处理申请好友请求后的回包（可能成功通知对方有好友申请，也可能有错误而没有通知对方）
+  // =======================================
   handlers_.insert(
       ReqId::ID_APPLY_FRIEND_RSP, [this](ReqId id, int len, QByteArray data) {
         Q_UNUSED(len);
@@ -289,7 +298,9 @@ void TcpMgr::init_handlers() {
 
         qDebug() << "Add Friend Success ";
       });
+  // =======================================
   // 服务器响应好友认证请求后的处理
+  // =======================================
   handlers_.insert(
       ReqId::ID_AUTH_FRIEND_RSP, [this](ReqId id, int len, QByteArray data) {
         Q_UNUSED(len);
@@ -327,7 +338,9 @@ void TcpMgr::init_handlers() {
         auto auth_rsp = std::make_shared<AuthRsp>(uid, name, nick, icon, sex);
         emit sig_friend_apply_rsp(auth_rsp);
       });
+  // =======================================
   // 收到他人好友认证请求后的处理
+  // =======================================
   handlers_.insert(ReqId::ID_NOTIFY_AUTH_FRIEND_REQ, [this](ReqId id, int len,
                                                             QByteArray data) {
     Q_UNUSED(len);
@@ -366,8 +379,9 @@ void TcpMgr::init_handlers() {
 
     emit sig_recv_friend_auth(auth_info);
   });
-
+  // =======================================
   // 服务器响应发送消息给对方
+  // =======================================
   handlers_.insert(
       ReqId::ID_TEXT_CHAT_MSG_RSP, [this](ReqId id, int len, QByteArray data) {
         Q_UNUSED(len);
@@ -402,7 +416,9 @@ void TcpMgr::init_handlers() {
         // TODO 发送失败可以显示红色感叹号，重发按钮等
       });
 
+  // =======================================
   // 收到他人消息
+  // =======================================
   handlers_.insert(ReqId::ID_NOTIFY_TEXT_CHAT_MSG_REQ, [this](ReqId id, int len,
                                                               QByteArray data) {
     Q_UNUSED(len);
@@ -440,7 +456,9 @@ void TcpMgr::init_handlers() {
     emit sig_recv_text_msg(msg_ptr);
   });
 
+  // =======================================
   // 同账号客户端异地登录
+  // =======================================
   handlers_.insert(
       ReqId::ID_NOTIFY_OFFLINE_REQ, [this](ReqId id, int len, QByteArray data) {
         Q_UNUSED(len);
@@ -477,6 +495,41 @@ void TcpMgr::init_handlers() {
           socket_.disconnectFromHost();
           // 若要立即关闭，可改为 socket_->close(); 不会等四次挥手结束
         }
+      });
+
+  // =======================================
+  // 心跳包响应处理, 聊天登录成功后，在ChatDialog里定时发送心跳包
+  // =======================================
+  handlers_.insert(
+      ReqId::ID_HEARTBEAT_RSP, [this](ReqId id, int len, QByteArray data) {
+        Q_UNUSED(len);
+        // qDebug() << "handle id is " << static_cast<int32_t>(id) << " data is "
+        //         << data;
+        // 将QByteArray转换为QJsonDocument
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        // 检查转换是否成功
+        if (jsonDoc.isNull()) {
+          qDebug() << "Failed to create QJsonDocument.";
+          return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+
+        if (!jsonObj.contains("error")) {
+          int err = static_cast<int32_t>(ErrorCodes::PARSE_JSON_FAILED);
+          qDebug() << "Heartbeat parse json obj missing \"error\" field"
+                   << err;
+          return;
+        }
+
+        int err = jsonObj["error"].toInt();
+        if (err != static_cast<int32_t>(ErrorCodes::NO_ERROR)) {
+          qDebug() << "Heartbeat err is " << err;
+          return;
+        }
+
+        qDebug() << "Receive Heartbeat Success ";
       });
 }
 

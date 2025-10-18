@@ -48,7 +48,7 @@ enum class ChatRole {
 
 constexpr int PIC_MAX_WIDTH{160};
 constexpr int PIC_MAX_HEIGHT{90};
-constexpr int BUBBLE_TRIANGLE_WIDTH  {8}; //聊天气泡的三角宽
+constexpr int BUBBLE_TRIANGLE_WIDTH{8}; //聊天气泡的三角宽
 
 // 申请好友框的最小长度
 constexpr int MIN_APPLY_LABEL_ED_LEN{40};
@@ -59,4 +59,10 @@ const QString g_add_prefix{QStringLiteral(u"添加标签")};
 // 一页13个聊天会话项
 constexpr int CHAT_COUNT_PER_PAGE{13};
 
+enum class UIStatus { 
+  LOGIN_UI, 
+  REGISTER_UI, 
+  RESET_UI, 
+  CHAT_UI 
+};
 #endif

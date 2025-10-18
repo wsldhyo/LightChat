@@ -17,6 +17,7 @@ struct TextChatMsg;
 namespace Ui {
 class ChatDialog;
 }
+class QTimer;
 
 class StateWidget;
 /**
@@ -104,6 +105,7 @@ private:
 
   int cur_chat_uid_; /// 当前激活的聊天视图的uid（展示的是哪一个用户的聊天记录）
   QWidget *last_widget_; /// StackWidget中上次的Widget
+  QTimer* heartbear_timer_; // 心跳包定时器
 };
 
 #endif // CHATDIALOG_H

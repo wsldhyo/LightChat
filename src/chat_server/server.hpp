@@ -43,6 +43,8 @@ public:
   void remove_session(std::string const &session_id);
 
   bool check_session_vaild(std::string const& session_id);
+
+  void on_timer(boost::system::error_code const& ec);
 private:
   /// 将函数投递到 acceptor 的执行上下文
   template <typename F> void post(F &&f) {
@@ -65,5 +67,7 @@ private:
       sessions_;                    ///< 活跃会话
   std::mutex mutex_;                ///< 保护 sessions_ 的互斥锁
   std::atomic_bool closing_{false}; ///< 是否正在关闭，防止重复执行
+
+  asio::steady_timer timer_;  // 定时器
 };
 #endif

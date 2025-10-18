@@ -35,6 +35,9 @@ signals:
   void sig_recv_text_msg(std::shared_ptr<TextChatMsg> msg);
   // 收到下线通知
   void sig_recv_offline();
+  // 与服务器连接断开
+  void sig_connection_closed();
+
 private:
   void init_handlers();
   void handle_msg(ReqId id, int len, QByteArray data);

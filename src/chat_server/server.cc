@@ -1,10 +1,17 @@
 #include "server.hpp"
+#include "manager/config_manager.hpp"
+#include "manager/redis_manager.hpp"
 #include "pool/iocontext_pool.hpp"
 #include "session.hpp"
 #include "user_manager.hpp"
+#include <chrono>
 #include <iostream>
 Server::Server(asio::io_context &ioc, int port)
-    : acceptor_(ioc, tcp::endpoint(tcp::v4(), port)) {
+    : acceptor_(ioc, tcp::endpoint(tcp::v4(), port)),
+      timer_(ioc, std::chrono::seconds(60)) //定时间隔
+{
+  timer_.async_wait(
+      [this](boost::system::error_code const &ec) { on_timer(ec); });
   std::cout << "Chat Server start, listening on port: " << port << "\n";
 }
 
@@ -47,6 +54,38 @@ void Server::start_accept() {
 bool Server::check_session_vaild(std::string const &session_id) {
   std::lock_guard<std::mutex> lock(mutex_);
   return sessions_.find(session_id) != sessions_.end();
+}
+
+void Server::on_timer(boost::system::error_code const &ec) {
+  std::vector<std::shared_ptr<Session>> expired_sessions;
+  int32_t session_count{0};
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    //这里先加线程锁后加分布式锁，与其他流程先加分布式锁后加线程锁的顺序币一样，
+    // 所以缓存过期Session随后立即释放线程锁，避免与其他线程加锁顺序不一致引发死锁
+    auto now = std::chrono::steady_clock::now();
+    for (auto it = sessions_.begin(); it != sessions_.end(); ++it) {
+      if (it->second->is_heartbeat_expired(now)) {
+        it->second->close();
+        expired_sessions.push_back(it->second);
+      } else {
+        session_count++;
+      }
+    }
+  }
+  //设置session数量
+  auto cfg = ConfigManager::get_instance();
+  auto self_name = (*cfg)["SelfServer"]["Name"];
+  auto count_str = std::to_string(session_count);
+  RedisMgr::get_instance()->h_set(REDIS_LOGIN_COUNT_PREFIX, self_name,
+                                  count_str);
+
+  for (auto &session : expired_sessions) {
+    session->deal_exception_session();
+  }
+  //再次设置，下一个60s检测
+  timer_.expires_after(std::chrono::seconds(60));
+  timer_.async_wait([this](boost::system::error_code ec) { on_timer(ec); });
 }
 
 void Server::close() {

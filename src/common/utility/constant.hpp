@@ -1,6 +1,7 @@
 #ifndef CONSTANT_HPP
 #define CONSTANT_HPP
 #include <string_view>
+#include <chrono>
 using std::literals::string_view_literals::operator""sv;
 // Http请求类型的id
 enum class ReqId {
@@ -22,6 +23,8 @@ enum class ReqId {
   ID_TEXT_CHAT_MSG_RSP,      // 服务器响应了聊天消息的转发
   ID_NOTIFY_TEXT_CHAT_MSG_REQ, // 通知有有聊天消息到来
   ID_NOTIFY_OFFLINE_REQ,       // 通知客户端下线
+  ID_HEARTBEAT_REQ,       // 心跳包请求
+  ID_HEARTBEAT_RSP,       // 心跳回包
 };
 
 enum class ErrorCodes {
@@ -96,5 +99,8 @@ constexpr std::string_view POST_GET_VERFIY_CODE{"/get_vertify_code"sv};
 constexpr std::string_view POST_REG_USER{"/reg_user"sv};
 constexpr std::string_view POST_RESET_PWD{"/reset_pwd"sv};
 constexpr std::string_view POST_USER_LOGIN{"/user_login"sv};
+
+// 心跳阈值，单位秒
+constexpr std::chrono::seconds HEARTBEAT_THRESHOLD {20}; 
 
 #endif

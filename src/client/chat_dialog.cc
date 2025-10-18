@@ -9,8 +9,10 @@
 #include "usermgr.hpp"
 #include <QAction>
 #include <QDebug>
+#include <QJsonDocument>
 #include <QMouseEvent>
 #include <QRandomGenerator>
+#include <QTimer>
 ChatDialog::ChatDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::ChatDialog), mode_(ChatUIMode::CHAT_MODE),
       state_(ChatUIMode::CHAT_MODE), b_loading_(false), cur_chat_uid_(0),
@@ -35,10 +37,11 @@ ChatDialog::ChatDialog(QWidget *parent)
   ui->side_chat_lb->setProperty("state", "normal");
 
   ui->side_chat_lb->set_state("normal", "hover", "pressed", "selected_normal",
-                             "selected_hover", "selected_pressed");
+                              "selected_hover", "selected_pressed");
 
-  ui->side_contact_lb->set_state("normal", "hover", "pressed", "selected_normal",
-                                "selected_hover", "selected_pressed");
+  ui->side_contact_lb->set_state("normal", "hover", "pressed",
+                                 "selected_normal", "selected_hover",
+                                 "selected_pressed");
 
   add_lb_group(ui->side_chat_lb);
   add_lb_group(ui->side_contact_lb);
@@ -54,14 +57,19 @@ ChatDialog::ChatDialog(QWidget *parent)
   set_select_chat_item();
   set_select_chat_page();
 
+  heartbear_timer_ = new QTimer(this);
   create_connection();
   // 加载好友申请列表
   ui->friend_apply_page->load_apply_list();
   // 初始默认为ChatPage
   ui->stackedWidget->setCurrentWidget(ui->chat_page);
+  // 定时发送心跳包
 }
 
-ChatDialog::~ChatDialog() { delete ui; }
+ChatDialog::~ChatDialog() {
+  heartbear_timer_->stop();
+  delete ui;
+}
 
 bool ChatDialog::eventFilter(QObject *watched, QEvent *event) {
   if (event->type() == QEvent::MouseButtonPress) {
@@ -232,7 +240,7 @@ void ChatDialog::load_more_contact_user() {
     for (auto &friend_ele : friend_list) {
       auto *chat_user_wid = new ContactUserItem();
       chat_user_wid->set_info(friend_ele->uid_, friend_ele->name_,
-                             friend_ele->icon_);
+                              friend_ele->icon_);
       QListWidgetItem *item = new QListWidgetItem;
       // qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
       item->setSizeHint(chat_user_wid->sizeHint());
@@ -409,6 +417,17 @@ void ChatDialog::create_connection() {
 
   connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_text_msg, this,
           &ChatDialog::slot_recv_text_msg);
+
+
+  connect(heartbear_timer_, &QTimer::timeout, this, [this]() {
+    QJsonObject json_obj;
+    json_obj["fromuid"] = UserMgr::get_instance()->get_uid();
+    QJsonDocument doc(json_obj);
+    QByteArray json_data = doc.toJson(QJsonDocument::Compact);
+    emit TcpMgr::get_instance()->sig_send_data(ReqId::ID_HEARTBEAT_REQ,
+                                               json_data);
+  });
+  heartbear_timer_->start(10 * 1000); // 10s发送一次心跳包
 }
 
 void ChatDialog::update_chat_msg(
@@ -739,7 +758,7 @@ void ChatDialog::slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg) {
   auto find_iter = chat_items_added_.find(msg->from_uid_);
   if (find_iter != chat_items_added_.end()) {
     qDebug() << "set chat item msg, uid is " << msg->from_uid_;
-    
+
     // 获取对应的 QWidget，并转换为 ChatUserWid 类型
     QWidget *widget = ui->chat_user_list->itemWidget(find_iter.value());
     auto chat_wid = qobject_cast<ChatUserWid *>(widget);
@@ -756,7 +775,7 @@ void ChatDialog::slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg) {
 
     // 将消息追加到用户管理器的聊天记录中
     UserMgr::get_instance()->append_friend_chat_msg(msg->from_uid_,
-                                                   msg->chat_msgs_);
+                                                    msg->chat_msgs_);
     return;
   }
 
@@ -776,7 +795,7 @@ void ChatDialog::slot_recv_text_msg(std::shared_ptr<TextChatMsg> msg) {
 
   // 将消息追加到用户管理器的聊天记录中
   UserMgr::get_instance()->append_friend_chat_msg(msg->from_uid_,
-                                                 msg->chat_msgs_);
+                                                  msg->chat_msgs_);
 
   // 将新创建的聊天项插入到聊天列表顶部
   ui->chat_user_list->insertItem(0, item);

@@ -27,16 +27,7 @@ Status StatusServer::GetChatServer(ServerContext *context,
 ChatServer StatusServer::get_chat_server() {
   std::lock_guard<std::mutex> guard(server_mtx_);
   auto minServer = servers_.begin()->second;
-  auto lock_key = std::string(REDIS_LOCK_PREFIX);
-
-  // 获取分布式锁
-  auto identifier = RedisMgr::get_instance()->acquire_lock(
-      lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
-  //利用defer解锁
-  Defer defer([this, identifier, lock_key]() {
-    RedisMgr::get_instance()->release_lock(lock_key, identifier);
-  });
-
+  // 这里不必加分布式锁，允许缓存的服务器数量有误差
   auto count_str =
       RedisMgr::get_instance()->h_get(REDIS_LOGIN_COUNT_PREFIX, minServer.name);
   if (count_str.empty()) {

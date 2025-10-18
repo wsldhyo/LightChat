@@ -130,70 +130,67 @@ void LogicSystem::register_msg_handler() {
           return;
         }
 
-        //此处添加分布式锁，让该线程独占登录
-        // ***
-        // 先加分布式锁，保证对Redis的操作不受污染。TODO，锁粒度较大，可对一些允许接受旧值数据访问移除到锁保护范围外
-        //拼接用户ip对应的key
-        auto lock_key = std::string(REDIS_LOCK_PREFIX) + uid_str;
-        auto identifier = RedisMgr::get_instance()->acquire_lock(
-            lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
-        //利用defer解锁
-        Defer defer2([this, identifier, lock_key]() {
-          RedisMgr::get_instance()->release_lock(lock_key, identifier);
-        });
-        // 先查询用户是否登录（Redis中记录了uid的登录ip），如果已经登录，则需要进行踢人处理
-        std::string uid_ip_value = "";
-        auto uid_ip_key = std::string(REDIS_USER_IP_PREFIX) + uid_str;
-        bool b_ip = RedisMgr::get_instance()->get(uid_ip_key, uid_ip_value);
-        if (b_ip) {
-          // 用户已经登录
-          //获取当前服务器ip信息
-          auto cfg = ConfigManager::get_instance();
-          auto self_name = (*cfg)["SelfServer"]["name"];
-          //如果之前登录的服务器和当前相同，则直接在本服务器踢掉
-          if (uid_ip_value == self_name) {
-            // 在同一服务器登录，直接清除旧的会话
-
-            //查找旧有的连接
-            auto old_session = UserManager::get_instance()->get_session(uid);
-
-            //此处应该发送踢人消息
-            if (old_session) {
-              old_session->notify_offline(uid);
-              //清除旧的连接
-              server_->remove_session(old_session->get_session_id());
-            }
-
-          } else {
-            //跨服踢人，如果不是本服务器，则通知grpc通知其他服务器踢掉
-            //如果不是本服务器，则通知grpc通知其他服务器踢掉
-            //发送通知
-            message::KickUserReq kick_req;
-            kick_req.set_uid(uid);
-            ChatGrpcClient::get_instance()->NotifyKickUser(uid_ip_value,
-                                                           kick_req);
-          }
-        }
-
         // 构造返回 JSON 包含用户信息和好友信息
         rtvalue = userinfo_to_json(user_info);
         get_friend_apply_info(uid, rtvalue);
         get_friend_list(uid, rtvalue);
+        {
+          //此处添加分布式锁，让该线程独占登录
+          // ***
+          // 先加分布式锁，保证对Redis的操作不受污染。TODO，锁粒度较大，可对一些允许接受旧值数据访问移除到锁保护范围外
+          //拼接用户ip对应的key
+          auto lock_key = std::string(REDIS_LOCK_PREFIX) + uid_str;
+          auto identifier = RedisMgr::get_instance()->acquire_lock(
+              lock_key, REDIS_LOCK_TIMEOUT, REDIS_ACQUIRE_TIMEOUT);
+          //利用defer解锁
+          Defer defer2([this, identifier, lock_key]() {
+            RedisMgr::get_instance()->release_lock(lock_key, identifier);
+          });
+          // 先查询用户是否登录（Redis中记录了uid的登录ip），如果已经登录，则需要进行踢人处理
+          std::string uid_ip_value = "";
+          auto uid_ip_key = std::string(REDIS_USER_IP_PREFIX) + uid_str;
+          bool b_ip = RedisMgr::get_instance()->get(uid_ip_key, uid_ip_value);
+          if (b_ip) {
+            // 用户已经登录
+            //获取当前服务器ip信息
+            auto cfg = ConfigManager::get_instance();
+            auto self_name = (*cfg)["SelfServer"]["name"];
+            //如果之前登录的服务器和当前相同，则直接在本服务器踢掉
+            if (uid_ip_value == self_name) {
+              // 在同一服务器登录，直接清除旧的会话
 
-        // 更新当前服务器登录计数
-        auto cfg = ConfigManager::get_instance();
-        auto server_name = cfg->get_value("SelfServer", "name");
-        int count = 0;
-        auto login_count = RedisMgr::get_instance()->h_get(
-            REDIS_LOGIN_COUNT_PREFIX, server_name);
-        RedisMgr::get_instance()->increase_count(server_name);
-        // 缓存用户 session 和所在服务器信息
+              //查找旧有的连接
+              auto old_session = UserManager::get_instance()->get_session(uid);
+
+              //此处应该发送踢人消息
+              if (old_session) {
+                old_session->notify_offline(uid);
+                //清除旧的连接
+                server_->remove_session(old_session->get_session_id());
+              }
+
+            } else {
+              //跨服踢人，如果不是本服务器，则通知grpc通知其他服务器踢掉
+              //如果不是本服务器，则通知grpc通知其他服务器踢掉
+              //发送通知
+              message::KickUserReq kick_req;
+              kick_req.set_uid(uid);
+              ChatGrpcClient::get_instance()->NotifyKickUser(uid_ip_value,
+                                                             kick_req);
+            }
+          }
+
+          // 更新当前服务器登录计数
+          auto cfg = ConfigManager::get_instance();
+          auto server_name = cfg->get_value("SelfServer", "name");
+          int count = 0;
+          // 缓存用户 session 和所在服务器信息
+          RedisMgr::get_instance()->set(std::string(REDIS_USER_IP_PREFIX) +
+                                            std::to_string(uid),
+                                        server_name);
+        }
         session->set_user_id(uid);
-        RedisMgr::get_instance()->set(std::string(REDIS_USER_IP_PREFIX) +
-                                          std::to_string(uid),
-                                      server_name);
         UserManager::get_instance()->set_user_session(uid, session);
-
         // 登录成功返回 NO_ERROR
         rtvalue["error"] = static_cast<int>(ErrorCodes::NO_ERROR);
       });
@@ -451,6 +448,27 @@ void LogicSystem::register_msg_handler() {
         }
         ChatGrpcClient::get_instance()->notify_text_chat_msg(to_ip_value,
                                                              text_req, rtvalue);
+      });
+  // =======================================
+  // 心跳请求处理
+  // =======================================
+  handlers_.emplace(
+      ReqId::ID_HEARTBEAT_REQ,
+      [this](std::shared_ptr<Session> session, ReqId, std::string_view msg) {
+        Json::Value root, rtvalue;
+
+        // 使用 Defer 确保返回响应
+        Defer defer([session, &rtvalue]() {
+          session->send(json_compact(rtvalue),
+                        static_cast<uint16_t>(ReqId::ID_TEXT_CHAT_MSG_RSP));
+        });
+        // 解析客户端 JSON 消息
+        if (!parse_json(msg, root)) {
+          rtvalue["error"] = static_cast<int>(ErrorCodes::PARSE_JSON_FAILED);
+          return;
+        }
+        // 构造返回 JSON
+        rtvalue["error"] = static_cast<int>(ErrorCodes::NO_ERROR);
       });
 }
 

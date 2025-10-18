@@ -11,7 +11,8 @@
 #include <boost/asio/write.hpp>
 #include <json/writer.h>
 Session::Session(tcp::socket peer, std::shared_ptr<Server> server)
-    : peer_(std::move(peer)), server_(server) {
+    : peer_(std::move(peer)), server_(server),
+      last_heartbeat_(std::chrono::steady_clock::now()) {
   session_id_ = generate_unique_string();
   recv_head_node_ = std::make_unique<TcpMsgNode>(TCP_MSG_HEAD_MEM_SIZE);
 }
@@ -19,9 +20,6 @@ Session::Session(tcp::socket peer, std::shared_ptr<Server> server)
 Session::~Session() {
   std::cout << "~session\n";
   close();
-  auto cfg = ConfigManager::get_instance();
-  auto self_name = (*cfg)["SelfServer"]["name"];
-  RedisMgr::get_instance()->decrease_count(self_name);
 }
 
 void Session::start() {
@@ -93,7 +91,7 @@ void Session::readhead_callback(boost::system::error_code ec,
   if (ec) {
     std::cout << "readhead error occurred, error is " << ec.message() << '\n';
     this->close();
-    deal_unused_session();
+    deal_exception_session();
     return;
   }
   try {
@@ -104,7 +102,7 @@ void Session::readhead_callback(boost::system::error_code ec,
         return;
       }
     }
-
+    update_heartbeat(); // 收到客户端数据包,说明连接存货，更新时间戳
     // 消息头读取完毕，读取消息体
     // 先从头部获取id和消息长度，并转为本地字节序
     std::uint16_t msg_id{0};
@@ -144,9 +142,9 @@ void Session::readhead_callback(boost::system::error_code ec,
           self->readbody_callback(ec, bytes_transferred);
         });
   } catch (std::exception const &e) {
-    std::cout << "logic exception in readhead: " << e.what() << '\n';
-    this->close();
-    deal_unused_session();
+    std::cout << "logic exception in readhead callback: " << e.what() << '\n';
+    // this->close();  TODO
+    // deal_exception_session();
   }
 }
 
@@ -157,7 +155,7 @@ void Session::readbody_callback(boost::system::error_code ec,
   if (ec) {
     std::cout << "readhead error occurred, error is " << ec.message() << '\n';
     this->close();
-    deal_unused_session();
+    deal_exception_session();
     return;
   }
   try {
@@ -168,7 +166,8 @@ void Session::readbody_callback(boost::system::error_code ec,
         return;
       }
     }
-    // 消息读取完毕，将其投递给LogicSystem的队列
+    update_heartbeat(); // 收到客户端数据包,说明连接存货，更新时间戳
+    //  消息读取完毕，将其投递给LogicSystem的队列
     LogicSystem::get_instance()->post_msg(std::move(recv_msg_node_),
                                           shared_from_this());
     // 继续尝试读取
@@ -178,9 +177,9 @@ void Session::readbody_callback(boost::system::error_code ec,
                      self->readhead_callback(ec, bytes_transferred);
                    });
   } catch (std::exception const &e) {
-    std::cout << "logic exception in read: " << e.what() << '\n';
-    this->close();
-    deal_unused_session();
+    std::cout << "logic exception in readbody callback: " << e.what() << '\n';
+    // this->close();  TODO
+    // deal_exception_session();
   }
 }
 
@@ -190,7 +189,7 @@ void Session::send_callback(boost::system::error_code ec,
   if (ec) {
     std::cout << "send error occurred. error is " << ec.message() << '\n';
     this->close();
-    deal_unused_session();
+    deal_exception_session();
     return;
   }
 
@@ -220,13 +219,13 @@ void Session::send_callback(boost::system::error_code ec,
           });
     }
   } catch (std::exception const &e) {
-    std::cout << "logic exception in send: " << e.what() << '\n';
-    this->close();
-    deal_unused_session();
+    std::cout << "logic exception in send callback: " << e.what() << '\n';
+    // this->close();  TODO
+    // deal_exception_session();
   }
 }
 
-void Session::deal_unused_session() {
+void Session::deal_exception_session() {
 
   //加锁清除session
   auto uid_str = std::to_string(user_id_);
@@ -277,4 +276,19 @@ void Session::notify_offline(int32_t uid) {
   // 通知客户端退出登录界面
   send(return_str, static_cast<uint16_t>(ReqId::ID_NOTIFY_OFFLINE_REQ));
   return;
+}
+bool Session::is_heartbeat_expired(
+    std::chrono::steady_clock::time_point const &now) {
+  auto diff_sec = std::chrono::duration_cast<std::chrono::seconds>(
+      now - last_heartbeat_.load(std::memory_order_relaxed));
+  if (diff_sec > HEARTBEAT_THRESHOLD) {
+    std::cout << "Heartbeat expired diff_sec:" << diff_sec.count()
+              << " session id is " << session_id_ << '\n';
+    return true;
+  }
+  return false;
+}
+
+void Session::update_heartbeat() {
+  last_heartbeat_.store(std::chrono::steady_clock::now());
 }

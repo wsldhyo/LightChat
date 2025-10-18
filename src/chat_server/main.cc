@@ -53,9 +53,9 @@ int main(int argc, char *argv[]) {
 
   try {
     //将登录数设置为0
-    RedisMgr::get_instance()->init_count(server_name);
+    RedisMgr::get_instance()->h_set(REDIS_LOGIN_COUNT_PREFIX, server_name, "0");
     Defer derfer([server_name]() {
-      RedisMgr::get_instance()->del_count(server_name);
+      RedisMgr::get_instance()->h_del(REDIS_LOGIN_COUNT_PREFIX, server_name);
       RedisMgr::get_instance()->close();
     });
 
