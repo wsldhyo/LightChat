@@ -37,6 +37,11 @@
  <file>icons/red_point.png</file>
  <file>icons/right_tip.png</file>
  <file>icons/search.png</file>
+ <file>icons/settings.png</file>
+ <file>icons/settings_hover.png</file>
+ <file>icons/settings_press.png</file>
+ <file>icons/settings_select_hover.png</file>
+ <file>icons/settings_select_press.png</file>
  <file>icons/smile.png</file>
  <file>icons/smile_hover.png</file>
  <file>icons/smile_press.png</file>

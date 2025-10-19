@@ -516,7 +516,7 @@
   <customwidget>
    <class>ClickedLabel</class>
    <extends>QLabel</extends>
-   <header>clicked_label.hpp</header>
+   <header location="global">clicked_label.hpp</header>
   </customwidget>
   <customwidget>
    <class>TimerBtn</class>

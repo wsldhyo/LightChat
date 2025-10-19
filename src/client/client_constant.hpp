@@ -24,6 +24,7 @@ enum class ChatUIMode {
   SEARCH_MODE,  // 搜索模式
   CHAT_MODE,    // 聊天模式
   CONTACT_MODE, // 联系人模式
+  SETTING_MODE, // 用户属性设置模式
 };
 
 /**
@@ -64,5 +65,32 @@ enum class UIStatus {
   REGISTER_UI, 
   RESET_UI, 
   CHAT_UI 
+};
+
+
+
+// 图像裁剪形状
+enum class CropperShape {
+    UNDEFINED     = 0,
+    RECT          = 1,
+    SQUARE        = 2,
+    FIXED_RECT    = 3,
+    ELLIPSE       = 4,
+    CIRCLE        = 5,
+    FIXED_ELLIPSE = 6
+};
+
+// 裁剪输出形状
+enum class OutputShape {
+    RECT    = 0,
+    ELLIPSE = 1
+};
+
+// 裁剪尺寸类型，用来控制当图片过大/过小时如何缩放至 Label 尺寸
+enum class SizeType {
+    fixedSize           = 0,
+    fitToMaxWidth       = 1,
+    fitToMaxHeight      = 2,
+    fitToMaxWidthHeight = 3,
 };
 #endif

@@ -1,6 +1,7 @@
 #include "contact_user_list.hpp"
 #include "contact_user_item.hpp"
 #include "group_tip_item.hpp"
+#include "simulated_data.hpp"
 #include "tcp_manager.hpp"
 #include "user_data.hpp"
 #include "usermgr.hpp"
@@ -29,19 +30,6 @@ ContactUserList::ContactUserList(QWidget *parent)
 void ContactUserList::show_red_point(bool bshow /*= true*/) {
   add_friend_item_->show_red_point(bshow);
 }
-
-// ------------------ 模拟数据 ------------------
-static std::vector<QString> strs = {
-    "hello world !", "nice to meet u", "New year，new life",
-    "You have to love yourself",
-    "My love is written in the wind ever since the whole world is you"};
-
-static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
-                                     ":/icons/head_3.jpg", ":/icons/head_4.jpg",
-                                     ":/icons/head_5.jpg"};
-
-static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
-                                     "java", "nodejs", "python", "rust"};
 
 void ContactUserList::add_contact_user_list() {
   // 添加“新的朋友”分组提示
@@ -179,11 +167,11 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item) {
   else if (itemType == ListItemType::APPLY_FRIEND_ITEM) {
     qDebug() << "apply friend item clicked ";
     emit sig_switch_apply_friend_page();
-  }
-  else if (itemType == ListItemType::CONTACT_USER_ITEM) {
+  } else if (itemType == ListItemType::CONTACT_USER_ITEM) {
     qDebug() << "contact user item clicked ";
 
-    emit sig_switch_friend_info_page((qobject_cast<ContactUserItem*>(customItem))->get_user_info());
+    emit sig_switch_friend_info_page(
+        (qobject_cast<ContactUserItem *>(customItem))->get_user_info());
   }
 }
 

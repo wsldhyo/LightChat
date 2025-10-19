@@ -64,9 +64,13 @@ private:
 public slots:
   void slot_loading_chat_user();
   void slot_loading_contact_user();
-  void slot_side_chat();
+  // 切换到聊天会话列表
+  void slot_side_chat(); 
+  // 切换到联系人列表
   void slot_side_contact();
-  // void slot_side_setting();
+  // 切换到用户属性设置页面
+  void slot_side_setting();
+  // 搜索输入框文本改变的响应
   void slot_text_changed(const QString &str);
   // void slot_focus_out();
   // 切换到好友详细信息页面

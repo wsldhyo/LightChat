@@ -110,6 +110,9 @@ add_executable(${TARGET_NAME}
   find_failed_dlg.cc
   authen_friend_dlg.cc
   friend_info_page.cc
+  user_info_page.cc
+  image_cropper_dlg.cc
+  image_cropper_lbl.cc
 )
 
 # 包含构建目录，以便找到 ui_*.h

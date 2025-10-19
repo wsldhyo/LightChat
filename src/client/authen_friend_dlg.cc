@@ -18,7 +18,7 @@ AuthenFriendDlg::AuthenFriendDlg(QWidget *parent) :
     this->setObjectName("AuthenFriendDlg");
     this->setModal(true);
     ui->lb_ed->setPlaceholderText("搜索、添加标签");
-    ui->back_ed->setPlaceholderText("燃烧的胸毛");
+    ui->back_ed->setPlaceholderText("燃烧的胸毛"); // 备注
 
     ui->lb_ed->set_max_length(21);
     ui->lb_ed->move(2, 2);

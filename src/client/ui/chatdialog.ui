@@ -332,12 +332,12 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>3</number>
      </property>
      <widget class="ChatPage" name="chat_page"/>
      <widget class="NewFriendApplyPage" name="friend_apply_page"/>
      <widget class="FriendInfoPage" name="friend_info_page"/>
-     <widget class="QWidget" name="user_info_page"/>
+     <widget class="UserInfoPage" name="user_info_page"/>
     </widget>
    </item>
   </layout>
@@ -356,12 +356,12 @@
   <customwidget>
    <class>ChatUserList</class>
    <extends>QListWidget</extends>
-   <header>chat_user_list.hpp</header>
+   <header location="global">chat_user_list.hpp</header>
   </customwidget>
   <customwidget>
    <class>SearchList</class>
    <extends>QListWidget</extends>
-   <header>search_list.hpp</header>
+   <header location="global">search_list.hpp</header>
   </customwidget>
   <customwidget>
    <class>ChatPage</class>
@@ -378,18 +378,24 @@
   <customwidget>
    <class>ContactUserList</class>
    <extends>QListWidget</extends>
-   <header>contact_user_list.hpp</header>
+   <header location="global">contact_user_list.hpp</header>
   </customwidget>
   <customwidget>
    <class>NewFriendApplyPage</class>
    <extends>QWidget</extends>
-   <header>new_friend_apply_page.hpp</header>
+   <header location="global">new_friend_apply_page.hpp</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>FriendInfoPage</class>
    <extends>QWidget</extends>
    <header location="global">friend_info_page.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>UserInfoPage</class>
+   <extends>QWidget</extends>
+   <header location="global">user_info_page.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -2,6 +2,7 @@
 #include "chat_user_wid.hpp"
 #include "contact_user_item.hpp"
 #include "loading_dialog.hpp"
+#include "simulated_data.hpp"
 #include "state_widget.hpp"
 #include "tcp_manager.hpp"
 #include "ui_chatdialog.h"
@@ -27,10 +28,9 @@ ChatDialog::ChatDialog(QWidget *parent)
 
   // 设置侧边栏
   QPixmap pixmap(UserMgr::get_instance()->get_icon());
-  ui->side_head_lb->setPixmap(pixmap); // 将图片设置到QLabel上
   QPixmap scaledPixmap = pixmap.scaled(
-      ui->side_head_lb->size(), Qt::KeepAspectRatio); // 将图片缩放到label的大小
-  ui->side_head_lb->setPixmap(scaledPixmap); // 将缩放后的图片设置到QLabel上
+      ui->side_head_lb->size(), Qt::KeepAspectRatio); // 将头像图片缩放到label的大小
+  ui->side_head_lb->setPixmap(scaledPixmap); // 将缩放后的头像图片设置到QLabel上
   ui->side_head_lb->setScaledContents(
       true); // 设置QLabel自动缩放图片内容以适应大小
 
@@ -42,10 +42,12 @@ ChatDialog::ChatDialog(QWidget *parent)
   ui->side_contact_lb->set_state("normal", "hover", "pressed",
                                  "selected_normal", "selected_hover",
                                  "selected_pressed");
-
+  ui->side_settings_lb->set_state("normal", "hover", "pressed",
+                                  "selected_normal", "selected_hover",
+                                  "selected_pressed");
   add_lb_group(ui->side_chat_lb);
   add_lb_group(ui->side_contact_lb);
-
+  add_lb_group(ui->side_settings_lb);
   // 安装事件过滤器，实现非搜索列表控件范围内的点击，将隐藏搜索列表
   this->installEventFilter(this);
   //设置聊天label选中状态
@@ -134,17 +136,6 @@ void ChatDialog::set_search_edit() {
   ui->search_edit->set_max_length(15);
 }
 
-static std::vector<QString> strs = {
-    "hello world !", "nice to meet u", "New year，new life",
-    "You have to love yourself",
-    "My love is written in the wind ever since the whole world is you"};
-
-static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
-                                     ":/icons/head_3.jpg", ":/icons/head_4.jpg",
-                                     ":/icons/head_5.jpg"};
-
-static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
-                                     "java", "nodejs", "python", "rust"};
 void ChatDialog::add_chat_user_list() {
   // 加载服务器传递过来的聊天会话项
   auto friend_list = UserMgr::get_instance()->get_chat_list_per_page();
@@ -380,6 +371,8 @@ void ChatDialog::create_connection() {
           &ChatDialog::slot_side_chat);
   connect(ui->side_contact_lb, &StateWidget::clicked, this,
           &ChatDialog::slot_side_contact);
+  connect(ui->side_settings_lb, &StateWidget::clicked, this,
+          &ChatDialog::slot_side_setting);
   connect(ui->search_edit, &QLineEdit::textChanged, this,
           &ChatDialog::slot_text_changed);
 
@@ -417,7 +410,6 @@ void ChatDialog::create_connection() {
 
   connect(TcpMgr::get_instance().get(), &TcpMgr::sig_recv_text_msg, this,
           &ChatDialog::slot_recv_text_msg);
-
 
   connect(heartbear_timer_, &QTimer::timeout, this, [this]() {
     QJsonObject json_obj;
@@ -503,6 +495,16 @@ void ChatDialog::slot_side_contact() {
     ui->stackedWidget->setCurrentWidget(last_widget_);
   }
   state_ = ChatUIMode::CONTACT_MODE;
+  show_search(false);
+}
+
+void ChatDialog::slot_side_setting() {
+  qDebug() << "receive side setting clicked";
+  clear_label_state(ui->side_settings_lb);
+  //设置
+  ui->stackedWidget->setCurrentWidget(ui->user_info_page);
+
+  state_ = ChatUIMode::SETTING_MODE;
   show_search(false);
 }
 

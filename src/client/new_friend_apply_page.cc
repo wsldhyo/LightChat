@@ -2,6 +2,7 @@
 #include "authen_friend_dlg.hpp"
 #include "new_friend_apply_item.hpp"
 #include "new_friend_apply_list.hpp"
+#include "simulated_data.hpp"
 #include "tcp_manager.hpp"
 #include "ui_newfriendapplypage.h"
 #include "user_data.hpp"
@@ -23,23 +24,10 @@ NewFriendApplyPage::NewFriendApplyPage(QWidget *parent)
 
 NewFriendApplyPage::~NewFriendApplyPage() { delete ui; }
 
-// ------------------ 模拟数据 ------------------
-static std::vector<QString> strs = {
-    "hello world !", "nice to meet u", "New year,new life",
-    "You have to love yourself",
-    "My love is written in the wind ever since the whole world is you"};
-
-static std::vector<QString> heads = {":/icons/head_1.jpg", ":/icons/head_2.jpg",
-                                     ":/icons/head_3.jpg", ":/icons/head_4.jpg",
-                                     ":/icons/head_5.jpg"};
-
-static std::vector<QString> names = {"llfc", "zack",   "golang", "cpp",
-                                     "java", "nodejs", "python", "rust"};
-
 void NewFriendApplyPage::add_new_apply(std::shared_ptr<AddFriendApply> apply) {
   // 随机选择头像
-  //int randomValue = QRandomGenerator::global()->bounded(100);
-  //int head_i = randomValue % heads.size();
+  // int randomValue = QRandomGenerator::global()->bounded(100);
+  // int head_i = randomValue % heads.size();
 
   // 创建新列表项
   auto *apply_item = new NewFriendApplyItem();
