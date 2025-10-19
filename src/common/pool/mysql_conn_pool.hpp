@@ -12,9 +12,14 @@
 #include <queue>
 #include <string>
 
-
-using sql_conn_t = sql::Connection;
-using sql_conn_uptr_t  = std::unique_ptr<sql_conn_t>;
+struct SqlConnection {
+  SqlConnection(sql::Connection *con,
+                std::chrono::steady_clock::time_point lasttime)
+      : con_(con), last_operate_time_(lasttime) {}
+  std::unique_ptr<sql::Connection> con_;
+  std::chrono::steady_clock::time_point last_operate_time_;
+};
+using sql_conn_uptr_t = std::unique_ptr<SqlConnection>;
 using sql_driver_t = sql::mysql::MySQL_Driver;
 
 /**
@@ -37,7 +42,8 @@ public:
    * @note 构造函数会预先创建 pool_size 个连接并放入池中。
    */
   MysqlConnPool(const std::string &url, const std::string &user,
-            const std::string &pass, const std::string &schema, int pool_size);
+                const std::string &pass, const std::string &schema,
+                int pool_size);
 
   /**
    * @brief 析构函数
@@ -52,8 +58,8 @@ public:
    * 调用该方法会从池中取出一个可用连接。
    * 如果没有可用连接，会阻塞等待，直到有连接归还。
    *
-   * @return  
-   *        sql_connection: 正常情况下 
+   * @return
+   *        sql_connection: 正常情况下
    *        nullptr: 如果连接池已经关闭
    */
   sql_conn_uptr_t get_connection();
@@ -68,7 +74,6 @@ public:
    */
   void return_connection(sql_conn_uptr_t con);
 
-
   /**
    * @brief 关闭连接池
    *
@@ -77,16 +82,22 @@ public:
    */
   void close();
 
+private:
+  void check_connection();
+  void check_connection_pro();
+  bool reconnect(std::chrono::steady_clock::time_point now);
 
 private:
-  std::string url_;                    ///< 数据库地址
-  std::string user_;                   ///< 用户名
-  std::string pass_;                   ///< 密码
-  std::string schema_;                 ///< schema（数据库名）
-  int pool_size_;                      ///< 连接池大小
-  std::queue<sql_conn_uptr_t> pool_;   ///< 连接池队列
-  std::mutex mutex_;                   ///< 互斥锁，保证线程安全
-  std::condition_variable cond_;       ///< 条件变量，用于连接等待与通知
-  std::atomic<bool> b_stop_;           ///< 标记连接池是否关闭
+  std::string url_;                  ///< 数据库地址
+  std::string user_;                 ///< 用户名
+  std::string pass_;                 ///< 密码
+  std::string schema_;               ///< schema（数据库名）
+  int pool_size_;                    ///< 连接池大小
+  std::queue<sql_conn_uptr_t> pool_; ///< 连接池队列
+  std::mutex mutex_;                 ///< 互斥锁，保证线程安全
+  std::condition_variable cond_; ///< 条件变量，用于连接等待与通知
+  std::atomic<bool> b_stop_;     ///< 标记连接池是否关闭
+  std::thread check_thread_;
+  int32_t fail_count_;
 };
 #endif

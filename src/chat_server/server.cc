@@ -76,20 +76,25 @@ void Server::on_timer(boost::system::error_code const &ec) {
   }
   std::vector<std::shared_ptr<Session>> expired_sessions;
   int32_t session_count{0};
+
+  decltype(sessions_) sessions_copy;  //拷贝出一份，减小锁粒度。避免在加锁期间遍历
   {
-    std::lock_guard<std::mutex> lock(mutex_);
     //这里先加线程锁后加分布式锁，与其他流程先加分布式锁后加线程锁的顺序币一样，
     // 所以缓存过期Session随后立即释放线程锁，避免与其他线程加锁顺序不一致引发死锁
-    auto now = std::chrono::steady_clock::now();
-    for (auto it = sessions_.begin(); it != sessions_.end(); ++it) {
-      if (it->second->is_heartbeat_expired(now)) {
-        it->second->close();
-        expired_sessions.push_back(it->second);
-      } else {
-        session_count++;
-      }
+    std::lock_guard<std::mutex> lock(mutex_);
+    sessions_copy = sessions_;
+  }
+
+  auto now = std::chrono::steady_clock::now();
+  for (auto it = sessions_copy.begin(); it != sessions_copy.end(); ++it) {
+    if (it->second->is_heartbeat_expired(now)) {
+      it->second->close();
+      expired_sessions.push_back(it->second);
+    } else {
+      ++session_count;
     }
   }
+
   //设置session数量
   auto cfg = ConfigManager::get_instance();
   auto self_name = (*cfg)["SelfServer"]["Name"];

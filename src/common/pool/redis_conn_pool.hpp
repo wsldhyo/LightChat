@@ -32,7 +32,8 @@ public:
    * pool_size。
    * @warning 若传入空密码而服务启用了认证，则 AUTH 会失败，该连接不会放入池中。
    */
-  RedisConnPool(size_t pool_size, std::string const& host, int port, std::string const& pwd);
+  RedisConnPool(size_t pool_size, std::string const &host, int port,
+                std::string const &pwd);
 
   /**
    * @brief 析构函数。
@@ -52,6 +53,7 @@ public:
    * @thread_safety 线程安全；可能阻塞。
    */
   redisContext *get_connection();
+
 
   /**
    * @brief 归还一个连接到池。
@@ -76,11 +78,21 @@ public:
   void close();
 
 private:
+  redisContext *get_connection_nonblock();
+  void check_connection();
+  bool reconnect();
+private:
   ///< 池停止标记；一旦为 true，get 将返回 nullptr，return 将丢弃
   std::atomic<bool> b_stop_{false};
+  std::string host_;
+  int32_t port_;
+  std::string pwd_;
   std::size_t pool_size_{0}; ///< 目标池大小上限（可能因失败而实际小于此值）
   std::queue<redisContext *> connections_; ///< 可用连接队列（拥有其所有权）
   std::mutex mutex_;                       ///< 保护队列与停止标记
   std::condition_variable cond_; ///< 连接可用/停止时的条件变量
+  std::thread check_thread_;
+  int check_count_;
+  std::atomic<int> fail_count_;
 };
 #endif
