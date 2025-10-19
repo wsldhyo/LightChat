@@ -61,31 +61,32 @@ int main(int argc, char *argv[]) {
 
     boost::asio::io_context io_context;
     auto pool = IoContextPool::get_instance();
-    //定义一个GrpcServer
-    ChatServiceImpl service;
+    ChatServiceImpl rpc_service; // Grpc服务
     grpc::ServerBuilder builder;
     // 监听端口和添加服务
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&service);
-    // 构建并启动gRPC服务器
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+    builder.RegisterService(&rpc_service);
+    // Grpc服务器，监听并将rpc请求交给rpc_service处理
+    std::unique_ptr<grpc::Server> rpc_server(builder.BuildAndStart());
     std::cout << "RPC Server listening on " << server_address << std::endl;
 
     //单独启动一个线程处理grpc服务
-    std::thread grpc_server_thread([&server]() { server->Wait(); });
+    std::thread grpc_server_thread([&rpc_server]() { rpc_server->Wait(); });
 
+    auto server = std::make_shared<Server>(io_context, port);
     boost::asio::signal_set signals(io_context, SIGINT, SIGTERM);
-    signals.async_wait([&io_context, pool, &server](auto, auto) {
+    signals.async_wait([server, &io_context, pool, &rpc_server](auto, auto) {
+      server->stop_timer();
       io_context.stop();
       pool->stop();
-      server->Shutdown();
+      rpc_server->Shutdown();
     });
 
-    auto s = std::make_shared<Server>(io_context, port);
-    LogicSystem::get_instance()->set_server(s);
-    service.RegisterServer(s);
-    s->start_accept();
+    LogicSystem::get_instance()->set_server(server);
+    rpc_service.RegisterServer(server);
+    server->start_accept();
     io_context.run();
+    server->start_timer();
     grpc_server_thread.join();
     return 0;
   } catch (std::exception &e) {

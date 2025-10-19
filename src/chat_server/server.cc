@@ -7,15 +7,14 @@
 #include <chrono>
 #include <iostream>
 Server::Server(asio::io_context &ioc, int port)
-    : acceptor_(ioc, tcp::endpoint(tcp::v4(), port)),
-      timer_(ioc, std::chrono::seconds(60)) //定时间隔
-{
-  timer_.async_wait(
-      [this](boost::system::error_code const &ec) { on_timer(ec); });
+    : acceptor_(ioc, tcp::endpoint(tcp::v4(), port)), heartbeat_timer_(ioc) {
   std::cout << "Chat Server start, listening on port: " << port << "\n";
 }
 
-Server::~Server() { close(); }
+Server::~Server() {
+  heartbeat_timer_.cancel(); // 析构前需要取消定时器
+  close();
+}
 
 void Server::remove_session(std::string const &session_id) {
   // 同步移除UserManager中的绑定信息
@@ -56,7 +55,25 @@ bool Server::check_session_vaild(std::string const &session_id) {
   return sessions_.find(session_id) != sessions_.end();
 }
 
+void Server::start_timer() {
+  // 设置超时
+  heartbeat_timer_.expires_after(std::chrono::seconds(60));
+  heartbeat_timer_.async_wait(
+      [self = shared_from_this()](boost::system::error_code const &ec) {
+        self->on_timer(ec);
+      });
+}
+
+void Server::stop_timer() {
+  std::cout << "stop timer\n";
+  heartbeat_timer_.cancel();
+}
+
 void Server::on_timer(boost::system::error_code const &ec) {
+  if (ec) {
+    std::cout << "time error: " << ec.what() << '\n';
+    return;
+  }
   std::vector<std::shared_ptr<Session>> expired_sessions;
   int32_t session_count{0};
   {
@@ -83,9 +100,8 @@ void Server::on_timer(boost::system::error_code const &ec) {
   for (auto &session : expired_sessions) {
     session->deal_exception_session();
   }
-  //再次设置，下一个60s检测
-  timer_.expires_after(std::chrono::seconds(60));
-  timer_.async_wait([this](boost::system::error_code ec) { on_timer(ec); });
+  // 再次启动定时器
+  start_timer();
 }
 
 void Server::close() {
