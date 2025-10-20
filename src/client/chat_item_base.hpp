@@ -31,10 +31,12 @@ public:
   void set_spacer_width(int width);
 
 private:
+  void set_msg_state(SendMsgState msg_state);
   ChatRole role_;
   QLabel *name_label_;
   QLabel *icon_label_;
   QWidget *bubble_;
+  QLabel* status_label_;
 };
 
 #endif

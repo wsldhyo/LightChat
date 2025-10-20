@@ -41,8 +41,8 @@ RedisConnPool::RedisConnPool(size_t pool_size, std::string const &host,
         check_connection();
         check_count_ = 0;
       }
-    std::this_thread::sleep_for(
-        std::chrono::seconds(1)); // 每间隔30s发送一次Redis命令
+      std::this_thread::sleep_for(
+          std::chrono::seconds(1)); // 每间隔30s发送一次Redis命令
     }
   });
 }
@@ -175,7 +175,12 @@ void RedisConnPool::check_connection() {
   }
 
   // 尝试重连，恢复池中连接数量
-  while (fail_count_ > 0) {
+  bool need_reconnect{fail_count_ > 0};
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    need_reconnect = connections_.empty() && !b_stop_;
+  }
+  while (need_reconnect) {
     auto res = reconnect();
     if (res) {
       fail_count_--;
@@ -188,9 +193,9 @@ void RedisConnPool::check_connection() {
 bool RedisConnPool::reconnect() {
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    if(connections_.size() >= 10){
+    if (connections_.size() >= 10) {
       std::cout << "redis connection resume!\n";
-       fail_count_ = 0;
+      fail_count_ = 0;
       return true;
     }
   }
@@ -198,7 +203,8 @@ bool RedisConnPool::reconnect() {
   auto context = redisConnect(host_.c_str(), port_);
   if (context == nullptr || context->err != 0) {
     if (context != nullptr) {
-      std::cout << "redis reconnection error.error code:" << context->err << '\n';
+      std::cout << "redis reconnection error.error code:" << context->err
+                << '\n';
       redisFree(context);
     }
     return false;
@@ -207,14 +213,14 @@ bool RedisConnPool::reconnect() {
   // 进行认证操作
   auto reply = (redisReply *)redisCommand(context, "AUTH %s", pwd_.c_str());
   if (reply->type == REDIS_REPLY_ERROR) {
-    std::cout << "redis reconnect auth failed"; 
+    std::cout << "redis reconnect auth failed";
     freeReplyObject(reply);
     redisFree(context);
     return false;
   }
 
   freeReplyObject(reply);
-  std::cout << "redis reconnect success!\n"; 
+  std::cout << "redis reconnect success!\n";
   return_connection(context);
   return true;
 }

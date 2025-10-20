@@ -82,6 +82,8 @@ void Server::on_timer(boost::system::error_code const &ec) {
     //这里先加线程锁后加分布式锁，与其他流程先加分布式锁后加线程锁的顺序币一样，
     // 所以缓存过期Session随后立即释放线程锁，避免与其他线程加锁顺序不一致引发死锁
     std::lock_guard<std::mutex> lock(mutex_);
+    // TODO 是否可考虑分桶检查，而不是一次性检查所有session，降低单次拷贝检查开销。
+    // 或者用epoll事件超时机制: epoll_wait 超时返回时（即本轮无任何事件），做一次空闲检测?
     sessions_copy = sessions_;
   }
 

@@ -12,9 +12,15 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
   font.setPointSize(9);
   name_label_->setFont(font);
   name_label_->setFixedHeight(20);
+
   icon_label_ = new QLabel();
   icon_label_->setScaledContents(true);
   icon_label_->setFixedSize(42, 42);
+
+  status_label_ = new QLabel(); // 用于本人所发消息，表示消息状态：发送失败、对方未读、对方已读
+  status_label_->setFixedSize(16, 16);
+  status_label_->setScaledContents(true);  // 让图片自动缩放适应Label大小
+
   bubble_ = new QWidget();
   QGridLayout *pGLayout = new QGridLayout();
   pGLayout->setVerticalSpacing(3);
@@ -25,8 +31,8 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
   if (role_ == ChatRole::SELF) {
     name_label_->setContentsMargins(0, 0, 8, 0);
     name_label_->setAlignment(Qt::AlignRight);
-    pGLayout->addWidget(name_label_, 0, 1, 1, 1);
-    pGLayout->addWidget(icon_label_, 0, 2, 2, 1, Qt::AlignTop);
+    pGLayout->addWidget(name_label_, 0, 2, 1, 1);
+    pGLayout->addWidget(icon_label_, 0, 3, 2, 1, Qt::AlignTop);
     QHBoxLayout *cellLayout = new QHBoxLayout();
     // cellLayout里的Spacer在气泡宽度小于namelabel宽度时，通过ChatItemBase::set_spacer_width调整宽度，将气泡压向头像框
     cellLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Fixed,
@@ -34,9 +40,12 @@ ChatItemBase::ChatItemBase(ChatRole role, QWidget *parent)
     cellLayout->addWidget(bubble_);
 
     pGLayout->addItem(pSpacer, 1, 0, 1, 1);
-    pGLayout->addLayout(cellLayout, 1, 1, 1, 1);
+    pGLayout->addWidget(status_label_, 1, 1, 1, 1, Qt::AlignCenter);
+    pGLayout->addLayout(cellLayout, 1, 2, 1, 1);
     pGLayout->setColumnStretch(0, 2);
-    pGLayout->setColumnStretch(1, 8);
+    pGLayout->setColumnStretch(1, 0); // status_label_固定大小，不随界面拉伸
+    pGLayout->setColumnStretch(2, 8);
+    pGLayout->setColumnStretch(3, 0);
   } else {
     name_label_->setContentsMargins(8, 0, 0, 0);
     name_label_->setAlignment(Qt::AlignLeft);
@@ -101,3 +110,21 @@ void ChatItemBase::set_spacer_width(int width) {
   spacer->changeSize(width, 0, QSizePolicy::Fixed, QSizePolicy::Minimum);
   layout->invalidate();
 }
+
+
+
+  void ChatItemBase::set_msg_state(SendMsgState msg_state){
+    switch(msg_state){
+      case SendMsgState::SEND_SUCCESS:
+      break;
+      case SendMsgState::SEND_FAILED:
+        status_label_->setPixmap(QPixmap(":/icons/send_failed.png"));
+      break;
+      case SendMsgState::UN_READ:
+        status_label_->setPixmap(QPixmap(":/icons/unread.png"));
+      break;
+      case SendMsgState::READ:
+        status_label_->setPixmap(QPixmap(":/icons/readed.png"));
+      break;
+    }
+  }

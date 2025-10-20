@@ -60,37 +60,34 @@ const QString g_add_prefix{QStringLiteral(u"添加标签")};
 // 一页13个聊天会话项
 constexpr int CHAT_COUNT_PER_PAGE{13};
 
-enum class UIStatus { 
-  LOGIN_UI, 
-  REGISTER_UI, 
-  RESET_UI, 
-  CHAT_UI 
-};
-
-
+enum class UIStatus { LOGIN_UI, REGISTER_UI, RESET_UI, CHAT_UI };
 
 // 图像裁剪形状
 enum class CropperShape {
-    UNDEFINED     = 0,
-    RECT          = 1,
-    SQUARE        = 2,
-    FIXED_RECT    = 3,
-    ELLIPSE       = 4,
-    CIRCLE        = 5,
-    FIXED_ELLIPSE = 6
+  UNDEFINED = 0,
+  RECT = 1,
+  SQUARE = 2,
+  FIXED_RECT = 3,
+  ELLIPSE = 4,
+  CIRCLE = 5,
+  FIXED_ELLIPSE = 6
 };
 
 // 裁剪输出形状
-enum class OutputShape {
-    RECT    = 0,
-    ELLIPSE = 1
-};
+enum class OutputShape { RECT = 0, ELLIPSE = 1 };
 
 // 裁剪尺寸类型，用来控制当图片过大/过小时如何缩放至 Label 尺寸
 enum class SizeType {
-    fixedSize           = 0,
-    fitToMaxWidth       = 1,
-    fitToMaxHeight      = 2,
-    fitToMaxWidthHeight = 3,
+  fixedSize = 0,
+  fitToMaxWidth = 1,
+  fitToMaxHeight = 2,
+  fitToMaxWidthHeight = 3,
+};
+
+enum class SendMsgState {
+  SEND_SUCCESS,
+  SEND_FAILED,
+  UN_READ,
+  READ,
 };
 #endif
